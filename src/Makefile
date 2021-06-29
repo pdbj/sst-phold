@@ -3,6 +3,8 @@ CXX=$(shell sst-config --CXX)
 CXXFLAGS=$(shell sst-config --ELEMENT_CXXFLAGS)
 LDFLAGS=$(shell sst-config --ELEMENT_LDFLAGS)
 
+CXXFLAGS+="-I${HOME}/local/include"
+
 all: libphold.so install
 
 DEPS = phold.cc phold.h
