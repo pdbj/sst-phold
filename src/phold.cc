@@ -6,20 +6,21 @@
  * Author:  Peter D. Barnes, Jr. <pdbarnes@llnl.gov>
  */
 
-// Forward declarations
-class PholdEvent;
 
 #include "phold.h"
 
-Phold::Phold( SST::ComponentId_t id, SST::Params& params ) 
+namespace Phold {
+
+
+Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
 {
   m_output.init("Phold-" + getName() + "-> ", 1, 0, SST::Output::STDOUT);
 
   m_remote  = params.find<double>("remote", 0.9);
-  m_minimum = params.find<double>("min", 0.1);
-  m_average = params.find<double>("mean", 0.9);
-  m_number  = params.find<long>("number", 2);
+  m_minimum = params.find<double>("minimum", 0.1);
+  m_average = params.find<double>("average", 0.9);
+  m_number  = params.find<long>  ("number", 2);
   m_verbose = params.find<bool>  ("verbose", false);
 
   std::stringstream ss;
@@ -59,7 +60,10 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   primaryComponentDoNotEndSim();
 }
 
-Phold::~Phold() 
+Phold::Phold()
+{
+}
+Phold::~Phold()
 {
 }
 
@@ -103,7 +107,10 @@ Phold::handleEvent(SST::Event *ev)
   // Schedule and send new event
   uint64_t remoteId = m_uni->getNextDouble();
   double   delay    = m_pois->getNextDouble();
-  double   total    = m_minimum + delay;
+
+  // Normally PHOLD adds the min delay here:
+  // double   total    = m_minimum + delay;
+  // But we use the link latency feature, configured in the Python script
 
 //  PholdEvent * e = new PholdEvent();
   // add hash to e?
@@ -111,3 +118,4 @@ Phold::handleEvent(SST::Event *ev)
 
 }
 
+}  // namespace Phold

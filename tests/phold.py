@@ -63,3 +63,6 @@ print(f"Expect {ph}")
 obj = sst.Component("phold-1",
                     "phold.Phold")
 obj.addParams(ph)
+
+# Add links
+# Set link latency to minimum?
