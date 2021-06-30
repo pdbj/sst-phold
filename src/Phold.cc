@@ -7,7 +7,7 @@
  */
 
 
-#include "phold.h"
+#include "Phold.h"
 
 namespace Phold {
 

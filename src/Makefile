@@ -7,7 +7,7 @@ CXXFLAGS+="-I${HOME}/local/include"
 
 all: libphold.so install
 
-DEPS = phold.cc phold.h
+DEPS = Phold.cc Phold.h
 
 libphold.so: $(DEPS) Makefile
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $<

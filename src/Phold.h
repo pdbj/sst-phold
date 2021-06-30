@@ -9,6 +9,8 @@
 #ifndef _PHOLD_H
 #define _PHOLD_H
 
+#include "PholdEvent.h"
+
 #include <sst/core/component.h>
 #include <sst/core/eli/elementinfo.h>
 #include <sst/core/rng/mersenne.h>
