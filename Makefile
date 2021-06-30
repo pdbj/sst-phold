@@ -1,14 +1,16 @@
 
 RECURSIVE_TARGETS = all-recursive clean-recursive
 
-all: all-recursive
+all: Makefile
+	@echo "Making all in src"
+	@$(MAKE) -C src all && echo "Make all done" || exit 1
 
-all-recursive:
-	echo "Making all in src"
-	$(MAKE) -C src all || exit 1
+clean:
+	@echo "Making clean in src"
+	@$(MAKE) -C src clean && echo "Make clean done" || exit 1
 
-clean: clean-recursive
+info:
+	@echo "Making info in src"
+	@$(MAKE) -C src info && echo "Make info done" || exit 1
 
-clean-recursive:
-	echo "Makeing clean in src"
-	$(MAKE) -C src clean || exit 1
+
