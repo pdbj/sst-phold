@@ -5,7 +5,6 @@ import sst
 import argparse
 import os
 import sys
-import pdb
 
 
 # PHOLD parameters
@@ -13,32 +12,25 @@ class PholdArgs(dict):
     def __init__(self):
         super().__init__()
         self.remote = 0.9
-        self.minimum = 0.1
-        self.average = 0.9
+        self.minimum = 1
+        self.average = 10
+        self.stop = 10
         self.number = 2
         self.events = 1
         self.pverbose = False
-        self.stop = 10
 
     def __str__(self):
         return f"remote: {self.remote}, " \
                f"min: {self.minimum}, " \
                f"avg: {self.average}, " \
+               f"st: {self.stop}, " \
                f"n: {self.number}, " \
                f"ev: {self.events}, " \
-               f"v: {self.pverbose}" \
-               f"st: {self.stop}"
-
+               f"v: {self.pverbose}, " \
 
     @property
     def validate(self):
         valid = True
-        if self.number < 2:
-            print(f"Invalid number: {self.number}, need at least 2")
-            valid = False
-        if self.events < 1:
-            print(f"Invalid initial events: {self.events}, need at least 1")
-            valid = False
         if self.remote < 0 or self.remote > 1:
             print(f"Invalid remote fraction: {self.remote}, must be in [0,1]")
             valid = False
@@ -50,6 +42,12 @@ class PholdArgs(dict):
             valid = False
         if self.stop < 0:
             print(f"Invalid stop time: {self.stop}, must be > 0")
+        if self.number < 2:
+            print(f"Invalid number: {self.number}, need at least 2")
+            valid = False
+        if self.events < 1:
+            print(f"Invalid initial events: {self.events}, need at least 1")
+            valid = False
         return valid
 
 
@@ -74,6 +72,9 @@ def init_argparse() -> argparse.ArgumentParser:
         help=f"Average additional inter-event delay, in seconds. "
              f"This will be added to the min delay, and must be >= 0")
     parser.add_argument(
+        '-s', '--stop', action='store', type=float,
+        help=f"Total simulation time, in seconds. Must be > 0.")
+    parser.add_argument(
         '-n', '--number', action='store', type=int,
         help=f"Total number of LPs. Must be at least 2.")
     parser.add_argument(
@@ -83,9 +84,6 @@ def init_argparse() -> argparse.ArgumentParser:
         # '--verbose' conflicts with SST, even after --
         '-v', '--pverbose', action='store_true',
         help=f"Verbose output")
-    parser.add_argument(
-        '-s', '--stop', action='store', type=float,
-        help=f"Total simulation time, in seconds. Must be > 0.")
     return parser
 
 

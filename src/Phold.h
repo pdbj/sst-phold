@@ -49,12 +49,16 @@ public:
      "0.9"
    },
    { "minimum",
-     "Minimum delay when sending events.",
-     "0.1"  // TODO - make this a time, such as seconds
+     "Minimum delay when sending events, in seconds.",
+     "1"  // TODO - make this a time, such as seconds
    },
    { "average",
-     "Mean delay to be added to min when sending events",
-     "0.9"  // TODO - make this a time, such as seconds
+     "Mean delay to be added to min when sending events, in seconds.",
+     "10"  // TODO - make this a time, such as seconds
+   },
+   { "stop",
+     "Maximum simulation time, in seconds.",
+     "10"
    },
    { "number",
      "Total number of LPs. Must be at least 2.",
@@ -62,7 +66,7 @@ public:
    },
    { "events",
      "Initial number of events per LP.",
-     "2"
+     "1"
    },
    { "pverbose",
      "Verbose output",
@@ -91,10 +95,11 @@ private:
   static double m_remote;     /**< Remote event fraction */
   static double m_minimum;    /**< Minimum event delay */
   static double m_average;    /**< Mean event delay, added to m_minimum */
+  static SST::SimTime_t m_stop;  /**< Stop time */
   static long   m_number;     /**< Total number of LPs */
   static long   m_events;     /**< Initial number of events per LP */
   static bool   m_verbose;    /**< Verbose output flag */
-  static SST::SimTime_t m_stop;  /**< Stop time */
+
   static SST::TimeConverter * m_timeConverter;  /**< Convert between Component time and simulator. */
 
   SST::RNG::MersenneRNG * m_rng;    /**< Base RNG instance */
