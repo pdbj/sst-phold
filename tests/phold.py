@@ -53,27 +53,27 @@ ph = PholdArgs()
 
 
 def init_argparse() -> argparse.ArgumentParser:
-    script = __file__
+    script = os.path.basename(__file__)
     parser = argparse.ArgumentParser(
         usage=f"sst {script} [OPTION]...",
         description="Execute the standard PHOLD benchmark.")
     parser.add_argument(
         '-r', '--remote', action='store', type=float,
-        help=f"Fraction of events which should be scheduled for other LPs")
+        help=f"Fraction of events which should be scheduled for other LPs, in [0,1].")
     parser.add_argument(
         '-m', '--minimum', action='store', type=float,
-        help=f"Minimum inter-event delay, in seconds. "
-             f"Must be greater than zero.")
+        help=f"Minimum inter-event delay, in seconds."
+             f"Must be >0.")
     parser.add_argument(
         '-a', '--average', action='store', type=float,
         help=f"Average additional inter-event delay, in seconds. "
-             f"This will be added to the min delay.")
+             f"This will be added to the min delay, and must be >= 0")
     parser.add_argument(
         '-n', '--number', action='store', type=int,
         help=f"Total number of LPs. Must be at least 2.")
     parser.add_argument(
         '-e', '--events', action='store', type=int,
-        help=f"Number of initial events per LP.")
+        help=f"Number of initial events per LP. Must be >= 1.")
     parser.add_argument(
         # '--verbose' conflicts with SST, even after --
         '-v', '--pverbose', action='store_true',
