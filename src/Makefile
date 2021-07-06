@@ -6,6 +6,7 @@ LDFLAGS=$(shell sst-config --ELEMENT_LDFLAGS)
 # Add hard-coded path to help out CLion
 CXXFLAGS+=-I${HOME}/local/include
 
+DISTDIR = ~/local/lib/sst-elements-library
 
 all: install
 	@:
@@ -29,10 +30,12 @@ include $(wildcard $(DEPS))
 libphold.so: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $<
 
+
 build-date: libphold.so
 	sst-register phold phold_LIBDIR=$(CURDIR)
 	sst-register SST_ELEMENT_SOURCE phold=$(CURDIR)
 	sst-register SST_ELEMENT_TESTS  phold=$(CURDIR)/../tests
+	cp $< $(DISTDIR)/
 	touch $@
 
 
