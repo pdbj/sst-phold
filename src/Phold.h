@@ -122,7 +122,7 @@ private:
   Phold();
 
   /** Send a new event to a random LP. */
-  void SendEvent (void);
+  void SendEvent ();
   /**
    * Incoming event handler
    * @param ev The incoming event.
