@@ -59,6 +59,10 @@ public:
      "Total number of LPs. Must be at least 2.",
      "2"
    },
+   { "events",
+     "Initial number of events per LP.",
+     "2"
+   },
    { "pverbose",
      "Verbose output",
      "false"
@@ -81,6 +85,7 @@ private:
   static double m_minimum;    /**< Minimum event delay */
   static double m_average;    /**< Mean event delay, added to m_minimum */
   static long   m_number;     /**< Total number of LPs */
+  static long   m_events;     /**< Initial number of events per LP */
   static bool   m_verbose;    /**< Verbose output flag */
 
   SST::RNG::MersenneRNG * m_rng;    /**< Base RNG instance */

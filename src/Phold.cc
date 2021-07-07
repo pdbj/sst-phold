@@ -16,7 +16,9 @@ double Phold::m_remote;
 double Phold::m_minimum;
 double Phold::m_average;
 long   Phold::m_number;
+long   Phold::m_events;
 bool   Phold::m_verbose;
+
 
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
@@ -31,6 +33,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_minimum = params.find<double>("minimum", 0.1);
   m_average = params.find<double>("average", 0.9);
   m_number  = params.find<long>  ("number", 2);
+  m_events  = params.find<long>  ("events", 2);
 
   if (m_verbose) {
     std::stringstream ss;
@@ -49,17 +52,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_uni  = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_pois = new SST::RNG::SSTPoissonDistribution(m_average, m_rng);
 
-  uint64_t remoteId = m_uni->getNextDouble();
-  double   delay    = m_pois->getNextDouble();
-  
-  ss.clear();
-  ss.str("");
-  ss << "Initial samples: "
-     << "remote: " << remoteId
-     << ", delay: " << delay
-     << ", total: " << delay + m_minimum;
-
-  m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
+  // Initial events created in setup()
 
   /*
   // Just register a plain clock for this simple example
@@ -98,6 +91,26 @@ void
 Phold::setup() 
 {
   m_output.verbose(CALL_INFO, 1, 0, "setup()\n");
+
+  // Generate initial event set
+  m_output.verbose (CALL_INFO, 1, 0, "  Initial samples:\n");
+
+  for (auto i = 0; i <m_events; ++i)
+  {
+    auto remoteId = static_cast<uint64_t>(m_uni->getNextDouble());
+    double delay  = m_pois->getNextDouble();
+    // m_minimum is added by the link
+
+    if (m_verbose) {
+      std::stringstream ss;
+      ss.clear();
+      ss.str("");
+      ss << "    remote: " << remoteId
+         << ", delay: " << delay
+         << ", total: " << delay + m_minimum;
+      m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
+    }
+  }
 }
 
 void

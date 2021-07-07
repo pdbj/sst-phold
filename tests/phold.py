@@ -16,6 +16,7 @@ class PholdArgs(dict):
         self.minimum = 0.1
         self.average = 0.9
         self.number = 2
+        self.events = 1
         self.pverbose = False
 
     def __str__(self):
@@ -23,6 +24,7 @@ class PholdArgs(dict):
                f"min: {self.minimum}, " \
                f"avg: {self.average}, " \
                f"n: {self.number}, " \
+               f"ev: {self.events}, " \
                f"v: {self.pverbose}"
 
     @property
@@ -70,6 +72,8 @@ def init_argparse() -> argparse.ArgumentParser:
         '-n', '--number', action='store', type=int,
         help=f"Total number of LPs. Must be at least 2.")
     parser.add_argument(
+        '-e', '--events', action='store', type=int,
+        help=f"Number of initial events per LP.")
     parser.add_argument(
         # '--verbose' conflicts with SST, even after --
         '-v', '--pverbose', action='store_true',
