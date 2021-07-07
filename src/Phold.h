@@ -59,7 +59,7 @@ public:
      "Total number of LPs. Must be at least 2.",
      "2"
    },
-   { "verbose",
+   { "pverbose",
      "Verbose output",
      "false"
    }

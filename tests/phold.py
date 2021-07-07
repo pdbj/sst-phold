@@ -16,14 +16,14 @@ class PholdArgs(dict):
         self.minimum = 0.1
         self.average = 0.9
         self.number = 2
-        self.verbose = False
+        self.pverbose = False
 
     def __str__(self):
         return f"remote: {self.remote}, " \
                f"min: {self.minimum}, " \
                f"avg: {self.average}, " \
                f"n: {self.number}, " \
-               f"v: {self.verbose}"
+               f"v: {self.pverbose}"
 
     @property
     def validate(self):
@@ -70,7 +70,9 @@ def init_argparse() -> argparse.ArgumentParser:
         '-n', '--number', action='store', type=int,
         help=f"Total number of LPs. Must be at least 2.")
     parser.add_argument(
-        '-v', '--verbose', action='store_true',
+    parser.add_argument(
+        # '--verbose' conflicts with SST, even after --
+        '-v', '--pverbose', action='store_true',
         help=f"Verbose output")
     return parser
 
@@ -84,11 +86,13 @@ def parse():
 
 
 parse()
-print(f"Expect {ph}")
+if (ph.pverbose) : print(f"Phold.py: expect {ph}")
 
 obj = sst.Component("phold-1",
                     "phold.Phold")
 obj.addParams(vars(ph)) # pass as simple dictionary
+if ph.pverbose:
+    print(f"Phold.py: expect {ph}")
 
 # Add links
 # Set link latency to minimum?

@@ -21,25 +21,29 @@ bool   Phold::m_verbose;
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
 {
-  m_output.init("Phold-" + getName() + "-> ", 1, 0, SST::Output::STDOUT);
+  // SST::Params doesn't understand Python bools
+  auto pverb = params.find<std::string>  ("pverbose", "False");
+  m_verbose = ( "True" == pverb);
+  m_output.init("Phold-" + getName() + "-> ", m_verbose, 0, SST::Output::STDOUT);
   m_output.verbose(CALL_INFO, 1, 0, "Full c'tor()\n");
 
   m_remote  = params.find<double>("remote", 0.9);
   m_minimum = params.find<double>("minimum", 0.1);
   m_average = params.find<double>("average", 0.9);
   m_number  = params.find<long>  ("number", 2);
-  m_verbose = params.find<bool>  ("verbose", false);
 
-  std::stringstream ss;
-  ss << "Config: "
-     << "remote=" << m_remote
-     << ", min=" << m_minimum
-     << ", avg=" << m_average
-     << ", num=" << m_number
-     << (m_verbose ? " VERBOSE" : "");
+  if (m_verbose) {
+    std::stringstream ss;
+    ss << "  Config: "
+       << "remote=" << m_remote
+       << ", min=" << m_minimum
+       << ", avg=" << m_average
+       << ", num=" << m_number
+       << ", ev=" << m_events
+       << (m_verbose ? " VERBOSE" : "");
 
-  m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
-
+    m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
+  }
 
   m_rng  = new SST::RNG::MersenneRNG();
   m_uni  = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
@@ -109,13 +113,15 @@ Phold::clockTick( SST::Cycle_t currentCycle )
   uint64_t remoteId = m_uni->getNextDouble();
   double   delay    = m_pois->getNextDouble();
   
-  std::stringstream ss;
-  ss << "Tick: " << currentCycle
-     << ", remote: " << remoteId
-     << ", delay: " << delay
-     << ", total: " << delay + m_minimum;
+  if (m_verbose) {
+    std::stringstream ss;
+    ss << "Tick: " << currentCycle
+       << ", remote: " << remoteId
+       << ", delay: " << delay
+       << ", total: " << delay + m_minimum;
 
-  m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
+    m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
+  }
 
   primaryComponentOKToEndSim();
 
@@ -139,6 +145,17 @@ Phold::handleEvent(SST::Event *ev)
 //  PholdEvent * e = new PholdEvent();
   // add hash to e?
   // link N->send(e)
+
+  if (m_verbose) {
+    std::stringstream ss;
+    ss.clear();
+    ss.str("");
+    ss << "  New event: remote: " << remoteId
+       << ", delay: " << delay
+       << ", total: " << delay + m_minimum;
+
+    m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
+  }
 
 }
 
