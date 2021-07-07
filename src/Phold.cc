@@ -62,10 +62,6 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   // Initial events created in setup()
 
-  /*
-  // Just register a plain clock for this simple example
-  registerClock("100MHz", new SST::Clock::Handler<Phold>(this, &Phold::clockTick));
-  */
 
   // Tell SST to wait until we authorize it to exit
   registerAsPrimaryComponent();
