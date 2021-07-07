@@ -73,7 +73,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   }
 
   m_output.verbose(CALL_INFO, 1, 0, "Initializing RNGs\n");
-  m_rng  = new SST::RNG::MersenneRNG();
+  m_rng  = new Phold::RNG_t;
   m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);
@@ -109,7 +109,7 @@ Phold::Phold() : SST::Component(-1)
    * These are class static, so available in this case,
    * but what to do in the general case of instance data?
    */
-  m_rng  = new SST::RNG::MersenneRNG();
+  m_rng  = new Phold::RNG_t;
   m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);

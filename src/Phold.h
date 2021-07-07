@@ -15,6 +15,7 @@
 #include <sst/core/link.h>
 #include <sst/core/eli/elementinfo.h>
 #include <sst/core/rng/mersenne.h>
+#include <sst/core/rng/marsaglia.h>
 #include <sst/core/rng/uniform.h>
 #include <sst/core/rng/expon.h>
 
@@ -145,7 +146,10 @@ private:
   SST::Output m_output;              /**< Output stream for verbose output */
   std::vector<SST::Link *> m_links;  /**< The list of links for this LP. */
 
-  SST::RNG::MersenneRNG * m_rng;    /**< Base RNG instance */
+  /** Choice of underlying RNG: SST::RNG::MersenneRNG or SST::RNG::MarsagliaRNG */
+  typedef SST::RNG::MarsagliaRNG RNG_t;
+
+  RNG_t * m_rng;    /**< Base RNG instance */
   SST::RNG::SSTUniformDistribution * m_remRng;       /**< Uniform RNG for deciding if event should be remote */
   SST::RNG::SSTUniformDistribution * m_nodeRng;      /**< Uniform RNG for picking remote LPs */
   SST::RNG::SSTExponentialDistribution * m_delayRng; /**< Poisson RNG for picking delay times */
