@@ -22,6 +22,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
 {
   m_output.init("Phold-" + getName() + "-> ", 1, 0, SST::Output::STDOUT);
+  m_output.verbose(CALL_INFO, 1, 0, "Full c'tor()\n");
 
   m_remote  = params.find<double>("remote", 0.9);
   m_minimum = params.find<double>("minimum", 0.1);
@@ -92,18 +93,19 @@ Phold::~Phold() noexcept
 void
 Phold::setup() 
 {
-  m_output.verbose(CALL_INFO, 1, 0, "Component is being setup.\n");
+  m_output.verbose(CALL_INFO, 1, 0, "setup()\n");
 }
 
 void
 Phold::finish() 
 {
-  m_output.verbose(CALL_INFO, 1, 0, "Component is being finished.\n");
+  m_output.verbose(CALL_INFO, 1, 0, "finish()\n");
 }
 
 bool
 Phold::clockTick( SST::Cycle_t currentCycle ) 
 {
+  m_output.verbose(CALL_INFO, 1, 0, "clockTick()\n");
   uint64_t remoteId = m_uni->getNextDouble();
   double   delay    = m_pois->getNextDouble();
   
