@@ -6,6 +6,8 @@ import argparse
 import os
 import sys
 
+def PhPrint (args):
+    print(f"Phold.py: ", args)
 
 # PHOLD parameters
 class PholdArgs(dict):
@@ -96,13 +98,13 @@ ph = PholdArgs()
 
 parse()
 if ph.pverbose:
-    print(f"Phold.py: expect {ph}")
+    PhPrint(f"expect {ph}")
 
 # Create the LPs
 lps = []
 for i in range(ph.number):
     if ph.pverbose:
-        print(f"Creating LP {i}")
+        PhPrint(f"Creating LP {i}")
     lp = sst.Component(str(i), "phold.Phold")
     lp.addParams(vars(ph))  # pass ph as simple dictionary
     lps.append(lp)
@@ -112,12 +114,12 @@ for i in range(ph.number):
 for i in range(ph.number):
     for j in range(i + 1, ph.number):
         if ph.pverbose:
-            print(f"Creating link {i}_{j}")
+            PhPrint(f"Creating link {i}_{j}")
         link = sst.Link(str(i) + "_" + str(j))
         if ph.pverbose:
-            print(f"  creating tuples")
+            PhPrint(f"  creating tuples")
         li = lps[i], "port", str(ph.minimum) + "s"
         lj = lps[j], "port", str(ph.minimum) + "s"
         if ph.pverbose:
-            print(f"  connecting {i} to {j}")
+            PhPrint(f"  connecting {i} to {j}")
         link.connect(li, lj)
