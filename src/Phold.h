@@ -6,8 +6,8 @@
  * Author:  Peter D. Barnes, Jr. <pdbarnes@llnl.gov>
  */
 
-#ifndef _PHOLD_H
-#define _PHOLD_H
+#ifndef PHOLD_PHOLD_H
+#define PHOLD_PHOLD_H
 
 #include "PholdEvent.h"
 
@@ -92,4 +92,4 @@ private:
 }  // namespace Phold
 
 
-#endif  // _PHOLD_H
+#endif  // PHOLD_PHOLD_H
