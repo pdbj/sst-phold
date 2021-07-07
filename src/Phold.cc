@@ -60,8 +60,19 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   primaryComponentDoNotEndSim();
 }
 
-Phold::Phold()
+
+Phold::Phold(void) : SST::Component(-1)
 {
+  m_output.verbose(CALL_INFO, 1, 0, "Default c'tor()\n");
+  /*
+   * \todo How to initialize a Component after deserialization?
+   * Here we need m_number, m_average
+   * These are class static, so available in this case,
+   * but what to do in the general case of instance data?
+   */
+  m_rng  = new SST::RNG::MersenneRNG();
+  m_uni  = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
+  m_pois = new SST::RNG::SSTPoissonDistribution(m_average, m_rng);
 }
 Phold::~Phold()
 {
