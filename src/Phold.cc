@@ -59,12 +59,27 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
     m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
   }
 
+  m_output.verbose(CALL_INFO, 1, 0, "Initializing RNGs\n");
   m_rng  = new SST::RNG::MersenneRNG();
-  m_uni  = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
+  m_rem  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
+  m_node = new SST::RNG::SSTUniformDistribution(m_number + 1, m_rng);
   m_pois = new SST::RNG::SSTPoissonDistribution(m_average, m_rng);
 
-  // Initial events created in setup()
+  // Configure ports/links
+  m_output.verbose(CALL_INFO, 1, 0,"Configuring links:\n");
+  m_links.reserve(2);  // Just self and port
+  m_output.verbose(CALL_INFO, 1, 0, "  self link\n");
+  auto self_link = getName() + "_self";
+  m_links[0] = configureSelfLink(self_link,
+                                 new SST::Event::Handler<Phold>(this, &Phold::handleEvent));
+  ASSERT(m_links[0], "Failed to configure self link %s\n", self_link.c_str());
 
+  m_output.verbose(CALL_INFO, 1, 0, "  port link\n");
+  m_links[1] = configureLink("port",
+                             new SST::Event::Handler<Phold>(this, &Phold::handleEvent));
+  ASSERT(m_links[1], "Failed to configure port link\n");
+
+  // Initial events created in setup()
 
   // Tell SST to wait until we authorize it to exit
   registerAsPrimaryComponent();
@@ -82,7 +97,8 @@ Phold::Phold(void) : SST::Component(-1)
    * but what to do in the general case of instance data?
    */
   m_rng  = new SST::RNG::MersenneRNG();
-  m_uni  = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
+  m_rem  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
+  m_node = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_pois = new SST::RNG::SSTPoissonDistribution(m_average, m_rng);
 }
 
@@ -90,7 +106,8 @@ Phold::~Phold() noexcept
 {
   m_output.verbose(CALL_INFO, 1, 0, "Destructor()\n");
   delete m_pois;
-  delete m_uni;
+  delete m_node;
+  delete m_rem;
   delete m_rng;
 }
 
@@ -134,9 +151,11 @@ Phold::SendEvent ()
 void
 Phold::handleEvent(SST::Event *ev)
 {
-  m_output.verbose(CALL_INFO, 1, 0, "handlEvent()\n");
+  m_output.verbose(CALL_INFO, 1, 0, "handleEvent(): ");
   auto event = dynamic_cast<PholdEvent*>(ev);
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
+  // Extract any useful data, then clean it up
+  delete event;
 
   // Check the stopping condition
   auto now = getCurrentSimTime(m_timeConverter);

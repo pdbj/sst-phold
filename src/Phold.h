@@ -12,6 +12,7 @@
 #include "PholdEvent.h"
 
 #include <sst/core/component.h>
+#include <sst/core/link.h>
 #include <sst/core/eli/elementinfo.h>
 #include <sst/core/rng/mersenne.h>
 #include <sst/core/rng/uniform.h>
@@ -71,7 +72,13 @@ public:
 
   // SST_ELI_DOCUMENT_STATISTICS();
 
-  // SST_ELI_DOCUMENT_PORTS();
+  SST_ELI_DOCUMENT_PORTS
+  (
+      {"port",
+       "Representative port",
+        {"phold.PholdEvent", ""}
+      }
+  );
   
 private:
   Phold();  /**< Default c'tor for serialization only. */
@@ -91,9 +98,12 @@ private:
   static SST::TimeConverter * m_timeConverter;  /**< Convert between Component time and simulator. */
 
   SST::RNG::MersenneRNG * m_rng;    /**< Base RNG instance */
-  SST::RNG::SSTUniformDistribution * m_uni;  /**< Uniform RNG for picking remotes */
+  SST::RNG::SSTUniformDistribution * m_rem;   /**< Uniform RNG for deciding if event should be remote */
+  SST::RNG::SSTUniformDistribution * m_node;  /**< Uniform RNG for picking remote LPs */
   SST::RNG::SSTPoissonDistribution * m_pois; /**< Poisson RNG for picking delay times */
-  
+
+  typedef std::vector<SST::Link *> LinkVector;
+  LinkVector m_links;
 };
 
 }  // namespace Phold
