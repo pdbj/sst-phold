@@ -101,4 +101,16 @@ for i in range(ph.number):
     lps.append(lp)
 
 # Add links
-# Set link latency to minimum?
+# pdb.set_trace()
+for i in range(ph.number):
+    for j in range(i + 1, ph.number):
+        if ph.pverbose:
+            print(f"Creating link {i}_{j}")
+        link = sst.Link(str(i) + "_" + str(j))
+        if ph.pverbose:
+            print(f"  creating tuples")
+        li = lps[i], "port", str(ph.minimum) + "s"
+        lj = lps[j], "port", str(ph.minimum) + "s"
+        if ph.pverbose:
+            print(f"  connecting {i} to {j}")
+        link.connect(li, lj)
