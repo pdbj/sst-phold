@@ -88,11 +88,17 @@ def parse():
 parse()
 if (ph.pverbose) : print(f"Phold.py: expect {ph}")
 
-obj = sst.Component("phold-1",
-                    "phold.Phold")
-obj.addParams(vars(ph)) # pass as simple dictionary
 if ph.pverbose:
     print(f"Phold.py: expect {ph}")
+
+# Create the LPs
+lps = []
+for i in range(ph.number):
+    if ph.pverbose:
+        print(f"Creating LP {i}")
+    lp = sst.Component(str(i), "phold.Phold")
+    lp.addParams(vars(ph))  # pass ph as simple dictionary
+    lps.append(lp)
 
 # Add links
 # Set link latency to minimum?
