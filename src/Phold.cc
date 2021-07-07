@@ -19,9 +19,14 @@
 #include <utility> // swap()
 #include <vector>
 
+/**
+ * \file
+ * Phold::Phold class implementation.
+ */
+
 namespace Phold {
 
-// Class static member
+// Class static data members
 double Phold::m_remote;
 double Phold::m_minimum;
 double Phold::m_average;
