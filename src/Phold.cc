@@ -119,11 +119,6 @@ Phold::setup()
   }
 }
 
-void
-Phold::finish() 
-{
-  m_output.verbose(CALL_INFO, 1, 0, "finish()\n");
-}
 
 bool
 Phold::clockTick( SST::Cycle_t currentCycle ) 
@@ -174,6 +169,10 @@ Phold::handleEvent(SST::Event *ev)
     m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
   }
 
+void
+Phold::finish() 
+{
+  m_output.verbose(CALL_INFO, 1, 0, "finish()\n");
 }
 
 }  // namespace Phold
