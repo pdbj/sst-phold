@@ -1,8 +1,11 @@
-#!python3
+#!/opt/local/bin/python3
 
 import sst
 
 import argparse
+import os
+import sys
+import pdb
 
 
 # PHOLD parameters
@@ -21,6 +24,26 @@ class PholdArgs(dict):
                f"avg: {self.average}, " \
                f"n: {self.number}, " \
                f"v: {self.verbose}"
+
+    @property
+    def validate(self):
+        valid = True
+        if self.number < 2:
+            print(f"Invalid number: {self.number}, need at least 2")
+            valid = False
+        if self.events < 1:
+            print(f"Invalid initial events: {self.events}, need at least 1")
+            valid = False
+        if self.remote < 0 or self.remote > 1:
+            print(f"Invalid remote fraction: {self.remote}, must be in [0,1]")
+            valid = False
+        if self.minimum <= 0:
+            print(f"Invalid minimum delay: {self.minimum}, must be > 0")
+            valid = False
+        if self.average < 0:
+            print(f"Invalid average delay: {self.average}, must be >= 0")
+            valid = False
+        return valid
 
 
 # Phold arguments instance
@@ -55,6 +78,9 @@ def init_argparse() -> argparse.ArgumentParser:
 def parse():
     parser = init_argparse()
     parser.parse_args(namespace=ph)
+    if not ph.validate:
+        parser.print_help()
+        sys.exit(1)
 
 
 parse()
