@@ -105,6 +105,8 @@ Phold::setup()
     double delay  = m_pois->getNextDouble();
     // m_minimum is added by the link
 
+    /// \todo Schedule the event
+
     if (m_verbose) {
       std::stringstream ss;
       ss.clear();
@@ -155,13 +157,10 @@ Phold::handleEvent(SST::Event *ev)
   // Schedule and send new event
   uint64_t remoteId = m_uni->getNextDouble();
   double   delay    = m_pois->getNextDouble();
+  // m_minimum is added by the link
 
-  // Normally PHOLD adds the min delay here:
-  // double   total    = m_minimum + delay;
-  // But we use the link latency feature, configured in the Python script
-
-//  PholdEvent * e = new PholdEvent();
-  // add hash to e?
+  // Send the event
+  PholdEvent * e = new PholdEvent();
   // link N->send(e)
 
   if (m_verbose) {
