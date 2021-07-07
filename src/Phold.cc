@@ -145,20 +145,6 @@ Phold::handleEvent(SST::Event *ev)
   }
 }
 
-  // Send the event
-  PholdEvent * e = new PholdEvent();
-  // link N->send(e)
-
-  if (m_verbose) {
-    std::stringstream ss;
-    ss.clear();
-    ss.str("");
-    ss << "  New event: remote: " << remoteId
-       << ", delay: " << delay
-       << ", total: " << delay + m_minimum;
-
-    m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
-  }
 
 void
 Phold::finish() 
