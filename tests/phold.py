@@ -51,10 +51,6 @@ class PholdArgs(dict):
         return valid
 
 
-# Phold arguments instance
-ph = PholdArgs()
-
-
 def init_argparse() -> argparse.ArgumentParser:
     script = os.path.basename(__file__)
     parser = argparse.ArgumentParser(
@@ -95,9 +91,10 @@ def parse():
         sys.exit(1)
 
 
-parse()
-if (ph.pverbose) : print(f"Phold.py: expect {ph}")
+# Phold arguments instance
+ph = PholdArgs()
 
+parse()
 if ph.pverbose:
     print(f"Phold.py: expect {ph}")
 
