@@ -16,7 +16,7 @@
 #include <sst/core/eli/elementinfo.h>
 #include <sst/core/rng/mersenne.h>
 #include <sst/core/rng/uniform.h>
-#include <sst/core/rng/poisson.h>
+#include <sst/core/rng/expon.h>
 
 namespace Phold {
 
@@ -98,9 +98,9 @@ private:
   static SST::TimeConverter * m_timeConverter;  /**< Convert between Component time and simulator. */
 
   SST::RNG::MersenneRNG * m_rng;    /**< Base RNG instance */
-  SST::RNG::SSTUniformDistribution * m_rem;   /**< Uniform RNG for deciding if event should be remote */
-  SST::RNG::SSTUniformDistribution * m_node;  /**< Uniform RNG for picking remote LPs */
-  SST::RNG::SSTPoissonDistribution * m_pois; /**< Poisson RNG for picking delay times */
+  SST::RNG::SSTUniformDistribution * m_remRng;   /**< Uniform RNG for deciding if event should be remote */
+  SST::RNG::SSTUniformDistribution * m_nodeRng;  /**< Uniform RNG for picking remote LPs */
+  SST::RNG::SSTExponentialDistribution * m_delayRng; /**< Poisson RNG for picking delay times */
 
   typedef std::vector<SST::Link *> LinkVector;
   LinkVector m_links;

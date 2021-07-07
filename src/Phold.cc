@@ -71,9 +71,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   m_output.verbose(CALL_INFO, 1, 0, "Initializing RNGs\n");
   m_rng  = new SST::RNG::MersenneRNG();
-  m_rem  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
-  m_node = new SST::RNG::SSTUniformDistribution(m_number + 1, m_rng);
-  m_pois = new SST::RNG::SSTPoissonDistribution(m_average, m_rng);
+  m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
+  m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
+  m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);
 
   // Configure ports/links
   m_output.verbose(CALL_INFO, 1, 0,"Configuring links:\n");
@@ -107,17 +107,17 @@ Phold::Phold() : SST::Component(-1)
    * but what to do in the general case of instance data?
    */
   m_rng  = new SST::RNG::MersenneRNG();
-  m_rem  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
-  m_node = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
-  m_pois = new SST::RNG::SSTPoissonDistribution(m_average, m_rng);
+  m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
+  m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
+  m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);
 }
 
 Phold::~Phold() noexcept
 {
   m_output.verbose(CALL_INFO, 1, 0, "Destructor()\n");
-  delete m_pois;
-  delete m_node;
-  delete m_rem;
+  delete m_delayRng;
+  delete m_nodeRng;
+  delete m_remRng;
   delete m_rng;
 }
 
@@ -128,11 +128,11 @@ Phold::SendEvent ()
 
   // Remote or local?
   SST::ComponentId_t nextId = getId();
-  auto rem = m_rem->getNextDouble() / UINT32_MAX;
+  auto rem = m_remRng->getNextDouble() / UINT32_MAX;
   m_output.verbose(CALL_INFO, 1, 0, "  next rng: %f\n", rem);
   if (m_remote < rem)
   {
-    nextId = static_cast<SST::ComponentId_t>(m_uni->getNextDouble());
+    nextId = static_cast<SST::ComponentId_t>(m_nodeRng->getNextDouble());
     m_output.verbose(CALL_INFO, 1, 0, "  remote %lld\n", nextId);
   }
   else
@@ -142,7 +142,7 @@ Phold::SendEvent ()
   ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %lld\n", nextId);
 
   // Time to event, in s
-  auto delayS = m_pois->getNextDouble();
+  auto delayS = m_delayRng->getNextDouble();
 
   // Need to convert to SST::SimTime_t
   auto delaySt = static_cast<SST::SimTime_t>(1e9 * delayS);
