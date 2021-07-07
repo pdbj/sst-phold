@@ -18,7 +18,7 @@ class PholdArgs(dict):
         self.number = 2
         self.verbose = False
 
-    def __repr__(self):
+    def __str__(self):
         return f"remote: {self.remote}, " \
                f"min: {self.minimum}, " \
                f"avg: {self.average}, " \
