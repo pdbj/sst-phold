@@ -150,7 +150,8 @@ Phold::SendEvent ()
   // m_minimum is added by the link
 
   m_output.verbose(CALL_INFO, 1, 0,
-                   "  delay: %f, total: %f\n", delayS, delayS + m_minimum);
+                   "  delay: %f, total: %f => %f\n",
+                   delayS, delayS + m_minimum, delayS + m_minimum + getCurrentSimTime("1s"));
 
   // Send a new event
   auto ev = new PholdEvent();
