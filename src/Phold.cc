@@ -19,6 +19,10 @@ long   Phold::m_number;
 long   Phold::m_events;
 bool   Phold::m_verbose;
 
+// Simplify use of sst_assert
+#define ASSERT(condition, ...) \
+    Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
+
 
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
@@ -144,8 +148,9 @@ Phold::clockTick( SST::Cycle_t currentCycle )
 void
 Phold::handleEvent(SST::Event *ev)
 {
-  //PholdEvent * event = dynamic_cast<PholdEvent*>(ev);
-  // ASSERT (event)
+  m_output.verbose(CALL_INFO, 1, 0, "handlEvent()\n");
+  auto event = dynamic_cast<PholdEvent*>(ev);
+  ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
 
   // Schedule and send new event
   uint64_t remoteId = m_uni->getNextDouble();
