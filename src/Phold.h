@@ -77,11 +77,11 @@ private:
   
   SST::Output m_output;    /**< Output stream for verbose output */
 
-  double m_remote;         /**< Remote event fraction */
-  double m_minimum;        /**< Minimum event delay */
-  double m_average;        /**< Mean event delay, added to m_minimum */
-  long   m_number;         /**< Total number of LPs */
-  bool m_verbose;          /**< Verbose output flag */
+  static double m_remote;     /**< Remote event fraction */
+  static double m_minimum;    /**< Minimum event delay */
+  static double m_average;    /**< Mean event delay, added to m_minimum */
+  static long   m_number;     /**< Total number of LPs */
+  static bool   m_verbose;    /**< Verbose output flag */
 
   SST::RNG::MersenneRNG * m_rng;    /**< Base RNG instance */
   SST::RNG::SSTUniformDistribution * m_uni;  /**< Uniform RNG for picking remotes */

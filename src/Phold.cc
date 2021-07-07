@@ -11,6 +11,12 @@
 
 namespace Phold {
 
+// Class static member
+double Phold::m_remote;
+double Phold::m_minimum;
+double Phold::m_average;
+long   Phold::m_number;
+bool   Phold::m_verbose;
 
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
