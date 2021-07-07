@@ -10,6 +10,15 @@
 #include "Phold.h"
 
 #include <sst/core/timeConverter.h>
+#include <sst/core/sst_types.h>
+
+#include <cstdint>  // UINT32_MAX
+#include <iostream>
+#include <iomanip>
+#include <string>  // to_string()
+#include <utility> // swap()
+#include <vector>
+
 namespace Phold {
 
 // Class static member
@@ -21,6 +30,7 @@ long   Phold::m_events;
 bool   Phold::m_verbose;
 SST::SimTime_t Phold::m_stop;
 SST::TimeConverter * Phold::m_timeConverter;
+
 
 // Simplify use of sst_assert
 #define ASSERT(condition, ...) \
@@ -49,10 +59,10 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
     std::stringstream ss;
     ss << "  Config: "
        << "remote=" << m_remote
-       << ", min=" << m_minimum
-       << ", avg=" << m_average
-       << ", num=" << m_number
-       << ", ev=" << m_events
+       << ", min="  << m_minimum
+       << ", avg="  << m_average
+       << ", num="  << m_number
+       << ", ev="   << m_events
        << ", st="   << m_stop
        << (m_verbose ? " VERBOSE" : "");
 
@@ -87,7 +97,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 }
 
 
-Phold::Phold(void) : SST::Component(-1)
+Phold::Phold() : SST::Component(-1)
 {
   m_output.verbose(CALL_INFO, 1, 0, "Default c'tor()\n");
   /*
