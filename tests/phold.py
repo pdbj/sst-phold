@@ -18,6 +18,7 @@ class PholdArgs(dict):
         self.number = 2
         self.events = 1
         self.pverbose = False
+        self.stop = 10
 
     def __str__(self):
         return f"remote: {self.remote}, " \
@@ -25,7 +26,9 @@ class PholdArgs(dict):
                f"avg: {self.average}, " \
                f"n: {self.number}, " \
                f"ev: {self.events}, " \
-               f"v: {self.pverbose}"
+               f"v: {self.pverbose}" \
+               f"st: {self.stop}"
+
 
     @property
     def validate(self):
@@ -45,6 +48,8 @@ class PholdArgs(dict):
         if self.average < 0:
             print(f"Invalid average delay: {self.average}, must be >= 0")
             valid = False
+        if self.stop < 0:
+            print(f"Invalid stop time: {self.stop}, must be > 0")
         return valid
 
 
@@ -78,6 +83,9 @@ def init_argparse() -> argparse.ArgumentParser:
         # '--verbose' conflicts with SST, even after --
         '-v', '--pverbose', action='store_true',
         help=f"Verbose output")
+    parser.add_argument(
+        '-s', '--stop', action='store', type=float,
+        help=f"Total simulation time, in seconds. Must be > 0.")
     return parser
 
 

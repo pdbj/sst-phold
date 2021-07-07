@@ -87,6 +87,7 @@ private:
   static long   m_number;     /**< Total number of LPs */
   static long   m_events;     /**< Initial number of events per LP */
   static bool   m_verbose;    /**< Verbose output flag */
+  static SST::SimTime_t m_stop;  /**< Stop time */
 
   SST::RNG::MersenneRNG * m_rng;    /**< Base RNG instance */
   SST::RNG::SSTUniformDistribution * m_uni;  /**< Uniform RNG for picking remotes */

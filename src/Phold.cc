@@ -18,6 +18,7 @@ double Phold::m_average;
 long   Phold::m_number;
 long   Phold::m_events;
 bool   Phold::m_verbose;
+SST::SimTime_t Phold::m_stop;
 
 // Simplify use of sst_assert
 #define ASSERT(condition, ...) \
@@ -38,6 +39,8 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_average = params.find<double>("average", 0.9);
   m_number  = params.find<long>  ("number", 2);
   m_events  = params.find<long>  ("events", 2);
+  auto stop = params.find<double>("stop", 100);
+  m_stop = static_cast<SST::SimTime_t>(1e9 * stop);
 
   if (m_verbose) {
     std::stringstream ss;
@@ -47,6 +50,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
        << ", avg=" << m_average
        << ", num=" << m_number
        << ", ev=" << m_events
+       << ", st="   << m_stop
        << (m_verbose ? " VERBOSE" : "");
 
     m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
@@ -153,6 +157,16 @@ Phold::handleEvent(SST::Event *ev)
   uint64_t remoteId = m_uni->getNextDouble();
   double   delay    = m_pois->getNextDouble();
   // m_minimum is added by the link
+  // Check the stopping condition
+  auto now = getCurrentSimTime(m_timeConverter);
+  if (now < m_stop)
+  {
+    SendEvent();
+  } else
+  {
+    primaryComponentOKToEndSim();
+  }
+}
 
   // Send the event
   PholdEvent * e = new PholdEvent();
