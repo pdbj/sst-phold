@@ -31,6 +31,7 @@ namespace Phold {
     Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
 
 // Class static data members
+const char * Phold::TIMEBASE {"1ns"};
 double Phold::m_remote;
 double Phold::m_minimum;
 double Phold::m_average;
@@ -38,7 +39,6 @@ long   Phold::m_number;
 long   Phold::m_events;
 bool   Phold::m_verbose;
 SST::SimTime_t Phold::m_stop;
-SST::TimeConverter * Phold::m_timeConverter;
 
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
@@ -56,7 +56,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_events  = params.find<long>  ("events", 2);
   auto stop = params.find<double>("stop", 100);
   m_stop = static_cast<SST::SimTime_t>(1e9 * stop);
-  m_timeConverter = getTimeConverter("1ns");
+  registerTimeBase(TIMEBASE, true);
 
   if (m_verbose) {
     std::stringstream ss;
@@ -146,20 +146,19 @@ Phold::SendEvent ()
 
   // Time to event, in s
   auto delayS = m_delayRng->getNextDouble();
-
-  // Need to convert to SST::SimTime_t
-  auto delaySt = static_cast<SST::SimTime_t>(1e9 * delayS);
+  auto delayNs = static_cast<SST::SimTime_t> (TIMEBASE * delayS);
 
   // m_minimum is added by the link
 
   m_output.verbose(CALL_INFO, 1, 0,
                    "  delay: %f, total: %f => %f\n",
                    delayS, delayS + m_minimum,
-                   delayS + m_minimum + static_cast<double>(getCurrentSimTime("1s")));
+                   delayS + m_minimum +
+                   1e9 * getCurrentSimTime(TIMEBASE));
 
   // Send a new event
   auto ev = new PholdEvent();
-  m_links[nextId]->send(delaySt, m_timeConverter, ev);
+  m_links[nextId]->send(delayNs, ev);
 }
 
 
@@ -175,7 +174,7 @@ Phold::handleEvent(SST::Event *ev)
   delete event;
 
   // Check the stopping condition
-  auto now = getCurrentSimTime(m_timeConverter);
+  auto now = getCurrentSimTime(TIMEBASE);
   if (now < m_stop)
   {
     SendEvent();

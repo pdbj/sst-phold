@@ -130,6 +130,7 @@ private:
   void handleEvent(SST::Event *ev);
 
   // class static data members
+  static const char * TIMEBASE;
 
 
   static double m_remote;        /**< Remote event fraction */
@@ -139,9 +140,6 @@ private:
   static long   m_number;        /**< Total number of LPs */
   static long   m_events;        /**< Initial number of events per LP */
   static bool   m_verbose;       /**< Verbose output flag */
-
-  /**< Convert between Component time and simulator. */
-  static SST::TimeConverter * m_timeConverter;
 
   // class instance data members
   SST::Output m_output;              /**< Output stream for verbose output */
