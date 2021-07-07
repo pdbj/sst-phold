@@ -76,6 +76,7 @@ public:
 private:
   Phold();  /**< Default c'tor for serialization only. */
 
+  void SendEvent (void);
   void handleEvent(SST::Event *ev);
 
   SST::Output m_output;    /**< Output stream for verbose output */

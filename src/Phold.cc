@@ -95,32 +95,41 @@ Phold::~Phold() noexcept
 }
 
 void
-Phold::setup() 
+Phold::SendEvent ()
 {
-  m_output.verbose(CALL_INFO, 1, 0, "setup()\n");
+  m_output.verbose(CALL_INFO, 1, 0, "sendEvent():\n");
 
-  // Generate initial event set
-  m_output.verbose (CALL_INFO, 1, 0, "  Initial samples:\n");
-
-  for (auto i = 0; i <m_events; ++i)
+  // Remote or local?
+  SST::ComponentId_t nextId = getId();
+  auto rem = m_rem->getNextDouble() / UINT32_MAX;
+  m_output.verbose(CALL_INFO, 1, 0, "  next rng: %f\n", rem);
+  if (m_remote < rem)
   {
-    auto remoteId = static_cast<uint64_t>(m_uni->getNextDouble());
-    double delay  = m_pois->getNextDouble();
-    // m_minimum is added by the link
-
-    /// \todo Schedule the event
-
-    if (m_verbose) {
-      std::stringstream ss;
-      ss.clear();
-      ss.str("");
-      ss << "    remote: " << remoteId
-         << ", delay: " << delay
-         << ", total: " << delay + m_minimum;
-      m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
-    }
+    nextId = static_cast<SST::ComponentId_t>(m_uni->getNextDouble());
+    m_output.verbose(CALL_INFO, 1, 0, "  remote %lld\n", nextId);
   }
+  else
+  {
+    m_output.verbose(CALL_INFO, 1, 0, "  self   %lld\n", nextId);
+  }
+  ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %lld\n", nextId);
+
+  // Time to event, in s
+  auto delayS = m_pois->getNextDouble();
+
+  // Need to convert to SST::SimTime_t
+  auto delaySt = static_cast<SST::SimTime_t>(1e9 * delayS);
+
+  // m_minimum is added by the link
+
+  m_output.verbose(CALL_INFO, 1, 0,
+                   "  delay: %f, total: %f\n", delayS, delayS + m_minimum);
+
+  // Send a new event
+  auto ev = new PholdEvent();
+  m_links[nextId]->send(delaySt, m_timeConverter, ev);
 }
+
 
 void
 Phold::handleEvent(SST::Event *ev)
@@ -129,10 +138,6 @@ Phold::handleEvent(SST::Event *ev)
   auto event = dynamic_cast<PholdEvent*>(ev);
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
 
-  // Schedule and send new event
-  uint64_t remoteId = m_uni->getNextDouble();
-  double   delay    = m_pois->getNextDouble();
-  // m_minimum is added by the link
   // Check the stopping condition
   auto now = getCurrentSimTime(m_timeConverter);
   if (now < m_stop)
@@ -141,6 +146,19 @@ Phold::handleEvent(SST::Event *ev)
   } else
   {
     primaryComponentOKToEndSim();
+  }
+}
+
+
+void
+Phold::setup() 
+{
+  m_output.verbose(CALL_INFO, 1, 0, "setup(): initial events: %ld\n", m_events);
+
+  // Generate initial event set
+  for (auto i = 0; i < m_events; ++i)
+  {
+    SendEvent();
   }
 }
 
