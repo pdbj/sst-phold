@@ -74,8 +74,13 @@ Phold::Phold(void) : SST::Component(-1)
   m_uni  = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_pois = new SST::RNG::SSTPoissonDistribution(m_average, m_rng);
 }
-Phold::~Phold()
+
+Phold::~Phold() noexcept
 {
+  m_output.verbose(CALL_INFO, 1, 0, "Destructor()\n");
+  delete m_pois;
+  delete m_uni;
+  delete m_rng;
 }
 
 void

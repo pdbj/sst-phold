@@ -24,7 +24,7 @@ class Phold : public SST::Component
 
 public:
   Phold( SST::ComponentId_t id, SST::Params& params );
-  ~Phold() override;
+  ~Phold() noexcept override;
   Phold(const Phold &) = delete;
   Phold operator= (const Phold &) = delete;
 
