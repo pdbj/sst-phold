@@ -154,7 +154,8 @@ Phold::SendEvent ()
 
   m_output.verbose(CALL_INFO, 1, 0,
                    "  delay: %f, total: %f => %f\n",
-                   delayS, delayS + m_minimum, delayS + m_minimum + getCurrentSimTime("1s"));
+                   delayS, delayS + m_minimum,
+                   delayS + m_minimum + static_cast<double>(getCurrentSimTime("1s")));
 
   // Send a new event
   auto ev = new PholdEvent();
