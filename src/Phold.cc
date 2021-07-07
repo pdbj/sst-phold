@@ -35,7 +35,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
 
   m_rng  = new SST::RNG::MersenneRNG();
-  m_uni  = new SST::RNG::SSTUniformDistribution(100, m_rng);
+  m_uni  = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_pois = new SST::RNG::SSTPoissonDistribution(m_average, m_rng);
 
   uint64_t remoteId = m_uni->getNextDouble();
