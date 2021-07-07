@@ -26,6 +26,10 @@
 
 namespace Phold {
 
+// Simplify use of sst_assert
+#define ASSERT(condition, ...) \
+    Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
+
 // Class static data members
 double Phold::m_remote;
 double Phold::m_minimum;
@@ -35,12 +39,6 @@ long   Phold::m_events;
 bool   Phold::m_verbose;
 SST::SimTime_t Phold::m_stop;
 SST::TimeConverter * Phold::m_timeConverter;
-
-
-// Simplify use of sst_assert
-#define ASSERT(condition, ...) \
-    Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
-
 
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
