@@ -161,7 +161,9 @@ Phold::SendEvent ()
 void
 Phold::handleEvent(SST::Event *ev)
 {
-  m_output.verbose(CALL_INFO, 1, 0, "handleEvent(): ");
+  m_output.verbose(CALL_INFO, 1, 0,
+                   "handleEvent(): %lld ms\n",
+                   getCurrentSimTime("1ms"));
   auto event = dynamic_cast<PholdEvent*>(ev);
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
   // Extract any useful data, then clean it up
