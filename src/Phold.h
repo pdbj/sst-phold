@@ -77,8 +77,7 @@ private:
   Phold();  /**< Default c'tor for serialization only. */
 
   void handleEvent(SST::Event *ev);
-  bool clockTick( SST::Cycle_t currentCycle );
-  
+
   SST::Output m_output;    /**< Output stream for verbose output */
 
   static double m_remote;     /**< Remote event fraction */

@@ -123,29 +123,6 @@ Phold::setup()
   }
 }
 
-
-bool
-Phold::clockTick( SST::Cycle_t currentCycle ) 
-{
-  m_output.verbose(CALL_INFO, 1, 0, "clockTick()\n");
-  uint64_t remoteId = m_uni->getNextDouble();
-  double   delay    = m_pois->getNextDouble();
-  
-  if (m_verbose) {
-    std::stringstream ss;
-    ss << "Tick: " << currentCycle
-       << ", remote: " << remoteId
-       << ", delay: " << delay
-       << ", total: " << delay + m_minimum;
-
-    m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
-  }
-
-  primaryComponentOKToEndSim();
-
-  return true;
-}
-
 void
 Phold::handleEvent(SST::Event *ev)
 {
