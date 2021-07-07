@@ -62,7 +62,7 @@ print(f"Expect {ph}")
 
 obj = sst.Component("phold-1",
                     "phold.Phold")
-obj.addParams(ph)
+obj.addParams(vars(ph)) # pass as simple dictionary
 
 # Add links
 # Set link latency to minimum?
