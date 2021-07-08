@@ -146,7 +146,7 @@ Phold::SendEvent ()
 
   // Time to event, in s
   auto delayS = m_delayRng->getNextDouble();
-  auto delayNs = static_cast<SST::SimTime_t> (TIMEBASE * delayS);
+  auto delayNs = getTimeConverterNano()->convertToCoreTime(delayS);
 
   // m_minimum is added by the link
 
@@ -154,7 +154,7 @@ Phold::SendEvent ()
                    "  delay: %f, total: %f => %f\n",
                    delayS, delayS + m_minimum,
                    delayS + m_minimum +
-                   1e9 * getCurrentSimTime(TIMEBASE));
+                   static_cast<double>(getCurrentSimTime("1s")));
 
   // Send a new event
   auto ev = new PholdEvent();
