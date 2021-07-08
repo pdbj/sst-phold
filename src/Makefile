@@ -33,8 +33,8 @@ libphold.so: $(OBJS)
 
 build-date: libphold.so
 	sst-register phold phold_LIBDIR=$(CURDIR)
-	sst-register SST_ELEMENT_SOURCE phold=$(CURDIR)
-	sst-register SST_ELEMENT_TESTS  phold=$(CURDIR)/../tests
+	sst-register phold SST_ELEMENT_SOURCE=$(CURDIR)
+	sst-register phold SST_ELEMENT_TESTS=$(CURDIR)/../tests
 	cp $< $(DISTDIR)/
 	touch $@
 
