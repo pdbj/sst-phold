@@ -53,13 +53,14 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_output.verbose(CALL_INFO, 1, 0, "Full c'tor()\n");
 
   m_remote  = params.find<double>("remote", 0.9);
-  m_minimum = params.find<double>("minimum", 0.1);
-  m_average = params.find<double>("average", 0.9);
-  m_number  = params.find<long>  ("number", 2);
-  m_events  = params.find<long>  ("events", 2);
-  auto stop = params.find<double>("stop", 100);
+  m_minimum = params.find<double>("minimum", 1.0);
+  m_average = params.find<double>("average", 10);
+  auto stop = params.find<double>("stop", 10);
   // \todo Use TIMEBASE for this conversion
   m_stop = static_cast<SST::SimTime_t>(1e9 * stop);
+  m_number  = params.find<long>  ("number", 2);
+  m_events  = params.find<long>  ("events", 1);
+
   // Default time unit for Component and links
   registerTimeBase(TIMEBASE, true);
 
