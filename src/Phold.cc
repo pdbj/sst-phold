@@ -49,7 +49,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   // SST::Params doesn't understand Python bools
   auto pverb = params.find<std::string>  ("pverbose", "False");
   m_verbose = ( "True" == pverb);
-  m_output.init("Phold-" + getName() + "-> ", m_verbose, 0, SST::Output::STDOUT);
+  m_output.init("@t:Phold-" + getName() + " [@p (@f:@l)] -> ", m_verbose, 0, SST::Output::STDOUT);
   m_output.verbose(CALL_INFO, 1, 0, "Full c'tor()\n");
 
   m_remote  = params.find<double>("remote", 0.9);
