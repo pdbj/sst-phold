@@ -116,15 +116,19 @@ for i in range(ph.number):
 
 # Add links
 phPrint(f"Creating complete graph")
+# min latency
+latency = str(ph.minimum) + "s"
 for i in range(ph.number):
     for j in range(i + 1, ph.number):
         if ph.pverbose:
             phPrint(f"  Creating link {i}_{j}")
         link = sst.Link(str(i) + "_" + str(j))
         if ph.pverbose:
-        li = lps[i], "port", str(ph.minimum) + "s"
-        lj = lps[j], "port", str(ph.minimum) + "s"
             phPrint(f"    creating tuples")
+        # links cross connect ports: 
+        # port number gives the LP id on the other side of the link
+        li = lps[i], "port_" + str(j), latency
+        lj = lps[j], "port_" + str(i), latency
         if ph.pverbose:
             phPrint(f"      {li}")
             phPrint(f"      {lj}")
