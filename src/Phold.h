@@ -106,14 +106,20 @@ public:
 
   // SST_ELI_DOCUMENT_STATISTICS();
 
+  /**
+   * Format for dynamic ports 'port_x'. The number of ports created
+   * will be determined from the "number" argument.
+   */
+  static constexpr char PORT_NAME[]   = "port_%(number)d";
+
   // Macro defined in sst-core/src/core/eli/portsInfo.h:
   // std::vector<SST::ElementInfoPort2>
   // A fixed list of port declarations would look like this:
   SST_ELI_DOCUMENT_PORTS
   (
    // struct SST::ElementInfoPort2 from sst-core/src/core/eli/elibase.h:
-   { "port",                      //!< name (const char *)
-     "Representative port",       //!< description (const char *)
+   { PORT_NAME,                  //!< name (const char *)
+     "Representative port",      //!< description (const char *)
      {"phold.PholdEvent", ""}    //!< validEvents (std::vector<std::string>)
     }
   );
@@ -144,7 +150,8 @@ private:
 
   // class instance data members
   SST::Output m_output;              /**< Output stream for verbose output */
-  std::vector<SST::Link *> m_links;  /**< The list of links for this LP. */
+  std::vector<SST::Link *> m_links;  /**< The list of links to other LPs */
+  SST::Event::Handler<Phold> * m_handler;  /**< The event handler */
 
   /** Choice of underlying RNG: SST::RNG::MersenneRNG or SST::RNG::MarsagliaRNG */
   typedef SST::RNG::MarsagliaRNG RNG_t;

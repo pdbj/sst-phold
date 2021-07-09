@@ -32,6 +32,7 @@ namespace Phold {
 
 // Class static data members
 const char * Phold::TIMEBASE {"1ns"};
+const char Phold::PORT_NAME[];
 double Phold::m_remote;
 double Phold::m_minimum;
 double Phold::m_average;
@@ -58,8 +59,8 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_stop = static_cast<SST::SimTime_t>(1e9 * stop);
   registerTimeBase(TIMEBASE, true);
 
+  std::stringstream ss;  // Declare here so we can reuse it below
   if (m_verbose) {
-    std::stringstream ss;
     ss << "  Config: "
        << "remote=" << m_remote
        << ", min="  << m_minimum
@@ -80,17 +81,40 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   // Configure ports/links
   m_output.verbose(CALL_INFO, 1, 0,"Configuring links:\n");
-  m_links.reserve(2);  // Just self and port
-  m_output.verbose(CALL_INFO, 1, 0, "  self link\n");
-  auto self_link = getName() + "_self";
-  m_links[0] = configureSelfLink(self_link,
-                                 new SST::Event::Handler<Phold>(this, &Phold::handleEvent));
-  ASSERT(m_links[0], "Failed to configure self link %s\n", self_link.c_str());
 
-  m_output.verbose(CALL_INFO, 1, 0, "  port link\n");
-  m_links[1] = configureLink("port",
-                             new SST::Event::Handler<Phold>(this, &Phold::handleEvent));
-  ASSERT(m_links[1], "Failed to configure port link\n");
+  m_output.verbose(CALL_INFO, 1, 0,"  Creating handler\n");
+  m_handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
+  ASSERT(m_handler, "Failed to create handler\n");
+
+  m_output.verbose(CALL_INFO, 1, 0, "  Port links\n");
+  m_links.reserve(m_number);
+
+  // Set up the ss with the prefix  
+  auto pre = std::string(PORT_NAME);
+  pre.erase(pre.find('%'));
+  const auto prefix(pre);
+  const auto end = prefix.size();
+  ss.clear();
+  for (uint32_t i = 0; i < m_number; ++i)
+    {
+      ss.str(prefix);
+      ss.seekp(end) << i;
+
+      if (i  != getId())
+        {
+          m_output.verbose(CALL_INFO, 1, 0, "    link %d: %s\n", 
+                           i, ss.str().c_str());
+          m_links[i] = configureLink(ss.str(), m_handler);
+          ASSERT(m_links[i], "Failed to configure link %d\n", i);
+        }
+      else
+        {
+          m_output.verbose(CALL_INFO, 1, 0, "    link %d: %s (%s)\n", 
+                           i, ss.str().c_str(), "self");
+          m_links[i] = configureSelfLink(ss.str(), m_handler);
+          ASSERT(m_links[i], "Failed to configure self link %d\n", i);
+        }
+    }
 
   // Initial events created in setup()
 
@@ -113,6 +137,7 @@ Phold::Phold() : SST::Component(-1)
   m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);
+  m_handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
 }
 
 Phold::~Phold() noexcept
@@ -122,6 +147,8 @@ Phold::~Phold() noexcept
   delete m_nodeRng;
   delete m_remRng;
   delete m_rng;
+
+  delete m_handler;
 }
 
 void
