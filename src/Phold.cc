@@ -164,7 +164,7 @@ Phold::SendEvent ()
   SST::ComponentId_t nextId = getId();
   auto rem = m_remRng->getNextDouble() / UINT32_MAX;
   m_output.verbose(CALL_INFO, 1, 0, "  next rng: %f\n", rem);
-  if (m_remote < rem)
+  if (rem < m_remote)
   {
     nextId = static_cast<SST::ComponentId_t>(m_nodeRng->getNextDouble());
     m_output.verbose(CALL_INFO, 1, 0, "  remote %lld\n", nextId);
