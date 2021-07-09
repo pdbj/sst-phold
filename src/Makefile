@@ -6,6 +6,9 @@ LDFLAGS=$(shell sst-config --ELEMENT_LDFLAGS)
 # Add hard-coded path to help out CLion
 CXXFLAGS+=-I${HOME}/local/include
 
+# Debug
+CXXFLAGS+=-g
+
 DISTDIR = ~/local/lib/sst-elements-library
 
 all: install
