@@ -55,44 +55,46 @@ class PholdArgs(dict):
         return valid
 
 
-def init_argparse() -> argparse.ArgumentParser:
-    script = os.path.basename(__file__)
-    parser = argparse.ArgumentParser(
-        usage=f"sst {script} [OPTION]...",
-        description="Execute the standard PHOLD benchmark.")
-    parser.add_argument(
-        '-r', '--remote', action='store', type=float,
-        help=f"Fraction of events which should be scheduled for other LPs, in [0,1].")
-    parser.add_argument(
-        '-m', '--minimum', action='store', type=float,
-        help=f"Minimum inter-event delay, in seconds."
-             f"Must be >0.")
-    parser.add_argument(
-        '-a', '--average', action='store', type=float,
-        help=f"Average additional inter-event delay, in seconds. "
+    def init_argparse(self) -> argparse.ArgumentParser:
+        script = os.path.basename(__file__)
+        parser = argparse.ArgumentParser(
+            usage=f"sst {script} [OPTION]...",
+            description="Execute the standard PHOLD benchmark.")
+        parser.add_argument(
+            '-r', '--remote', action='store', type=float,
+            help=f"Fraction of events which should be scheduled for other LPs, in [0,1].")
+        parser.add_argument(
+            '-m', '--minimum', action='store', type=float,
+            help=f"Minimum inter-event delay, in seconds.  Must be >0.")
+        parser.add_argument(
+            '-a', '--average', action='store', type=float,
+            help=f"Average additional inter-event delay, in seconds. "
              f"This will be added to the min delay, and must be >= 0")
-    parser.add_argument(
-        '-s', '--stop', action='store', type=float,
-        help=f"Total simulation time, in seconds. Must be > 0.")
-    parser.add_argument(
-        '-n', '--number', action='store', type=int,
-        help=f"Total number of LPs. Must be at least 2.")
-    parser.add_argument(
-        '-e', '--events', action='store', type=int,
-        help=f"Number of initial events per LP. Must be >= 1.")
-    parser.add_argument(
-        # '--verbose' conflicts with SST, even after --
-        '-v', '--pverbose', action='store_true',
-        help=f"Verbose output")
-    return parser
+        parser.add_argument(
+            '-s', '--stop', action='store', type=float,
+            help=f"Total simulation time, in seconds. Must be > 0.")
+        parser.add_argument(
+            '-n', '--number', action='store', type=int,
+            help=f"Total number of LPs. Must be at least 2.")
+        parser.add_argument(
+            '-e', '--events', action='store', type=int,
+            help=f"Number of initial events per LP. Must be >= 1.")
+        parser.add_argument(
+            # '--verbose' conflicts with SST, even after --
+            '-v', '--pverbose', action='store_true',
+            help=f"Verbose output")
+        return parser
+
+    def parse(self):
+        parser = self.init_argparse()
+        parser.parse_args(namespace=self)
+        if not self.validate:
+            parser.print_help()
+            sys.exit(1)
+        if ph.pverbose:
+            phPrint(f"  expect {ph}")
 
 
-def parse():
-    parser = init_argparse()
-    parser.parse_args(namespace=ph)
-    if not ph.validate:
-        parser.print_help()
-        sys.exit(1)
 # -- Main --
 
 print(f"\n")
@@ -102,7 +104,6 @@ phPrint(f"Creating PHOLD Benchmark")
 ph = PholdArgs()
 ph.parse()
 
-parse()
 
 # Create the LPs
 phPrint(f"Creating {ph.number} LPs")
