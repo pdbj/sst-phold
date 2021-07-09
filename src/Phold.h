@@ -137,7 +137,9 @@ private:
   void handleEvent(SST::Event *ev);
 
   // class static data members
-  static const char * TIMEBASE;
+
+  /** Default time base for component and associated links */
+  static constexpr char TIMEBASE[] = "1ns";
 
 
   static double m_remote;        /**< Remote event fraction */

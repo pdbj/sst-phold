@@ -31,8 +31,9 @@ namespace Phold {
     Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
 
 // Class static data members
-const char * Phold::TIMEBASE {"1ns"};
 const char Phold::PORT_NAME[];
+const char Phold::TIMEBASE[];
+
 double Phold::m_remote;
 double Phold::m_minimum;
 double Phold::m_average;
@@ -56,7 +57,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_number  = params.find<long>  ("number", 2);
   m_events  = params.find<long>  ("events", 2);
   auto stop = params.find<double>("stop", 100);
+  // \todo Use TIMEBASE for this conversion
   m_stop = static_cast<SST::SimTime_t>(1e9 * stop);
+  // Default time unit for Component and links
   registerTimeBase(TIMEBASE, true);
 
   std::stringstream ss;  // Declare here so we can reuse it below
