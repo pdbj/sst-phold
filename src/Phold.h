@@ -46,6 +46,8 @@ public:
   Phold( SST::ComponentId_t id, SST::Params& params );
   /** D'tor */
   ~Phold() noexcept override;
+
+  // Rest of Rule of 5 are deleted
   /** Copy c'tor, deleted. */
   Phold(const Phold &) = delete;
   /** Copy assignment, deleted. */
@@ -62,10 +64,10 @@ public:
   // Macro defined in sst-core/sst/core/component.h:
   SST_ELI_REGISTER_COMPONENT
   (
-   Phold,                      // !< class type (class Identifier)
-   "phold",                // !<  Module name (const char *)
-   "Phold",              // !< class name (const char *)
-   SST_ELI_ELEMENT_VERSION( 1, 0, 0 ),  // !< version number (Major, minor, patch)
+   Phold,       // !< class type (class Identifier)
+   "phold",     // !<  Module name (const char *)
+   "Phold",     // !< class name (const char *)
+   SST_ELI_ELEMENT_VERSION( 1, 0, 0 ),    // !< version number (Major, minor, patch)
    "PHOLD benchmark component for SST",   // !< description (const char *)
    COMPONENT_CATEGORY_PROCESSOR
    );

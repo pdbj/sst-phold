@@ -42,6 +42,7 @@ long   Phold::m_events;
 bool   Phold::m_verbose;
 SST::SimTime_t Phold::m_stop;
 
+
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
 {
@@ -186,7 +187,7 @@ Phold::SendEvent ()
                    delayS + m_minimum +
                    static_cast<double>(getCurrentSimTime("1s")));
 
-  // Send a new event
+  // Send a new event.  This is deleted in handleEvent
   auto ev = new PholdEvent();
   m_links[nextId]->send(delayNs, ev);
 }
