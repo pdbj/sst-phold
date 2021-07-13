@@ -81,23 +81,23 @@ public:
      "0.9"                                         // !< defaultValue (const char *)
    },
    { "minimum",
-     "Minimum delay when sending events, in seconds.",
+     "Minimum delay when sending events, in seconds. Must be >0.",
      "1"  // TODO - make this a time, such as seconds
    },
    { "average",
-     "Mean delay to be added to min when sending events, in seconds.",
+     "Mean delay to be added to min when sending events, in seconds. Must be >0.",
      "10"  // TODO - make this a time, such as seconds
    },
    { "stop",
-     "Maximum simulation time, in seconds.",
+     "Maximum simulation time, in seconds. Must be >0",
      "10"
    },
    { "number",
-     "Total number of LPs. Must be at least 2.",
+     "Total number of LPs. Must be at least >1.",
      "2"
    },
    { "events",
-     "Initial number of events per LP.",
+     "Initial number of events per LP. Must be > 0.",
      "1"
    },
    { "pverbose",
