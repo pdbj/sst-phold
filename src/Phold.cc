@@ -54,7 +54,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   auto pverb = params.find<std::string>  ("pverbose", "False");
   m_verbose = ( "True" == pverb);
   m_output.init("@t:Phold-" + getName() + " [@p (@f:@l)] -> ", m_verbose, 0, SST::Output::STDOUT);
-  VERBOSE("Full c'tor()\n");
+  VERBOSE("Full c'tor() @0x%p\n", this);
 
   m_remote  = params.find<double>("remote", 0.9);
   m_minimum = params.find<double>("minimum", 1.0);
@@ -82,9 +82,13 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   VERBOSE("Initializing RNGs\n");
   m_rng  = new Phold::RNG_t;
+  VERBOSE("  m_rng      @0x%p\n", m_rng);
   m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
+  VERBOSE("  m_remRng   @0x%p\n", m_remRng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
+  VERBOSE("  m_nodeRng  @0x%p\n", m_nodeRng);
   m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);
+  VERBOSE("  m_delayRng @0x%p\n", m_delayRng);
 
   // Configure ports/links
   VERBOSE("Configuring links:\n");
@@ -143,12 +147,17 @@ Phold::Phold() : SST::Component(-1)
 Phold::~Phold() noexcept
 {
   VERBOSE("Destructor()\n");
-  delete m_delayRng;
-  delete m_nodeRng;
-  delete m_remRng;
-  delete m_rng;
+#define DELETE(p) \
+  VERBOSE("  deleting %s @0x%p\n", #p, (p)); \
+  p = 0
+
+  DELETE(m_rng);
+  DELETE(m_remRng);
+  DELETE(m_nodeRng);
+  DELETE(m_delayRng);
 
   delete m_handler;
+#undef DELETE
 }
 
 void
@@ -190,7 +199,6 @@ Phold::SendEvent ()
 void
 Phold::handleEvent(SST::Event *ev)
 {
-  VERBOSE("\n");
   auto event = dynamic_cast<PholdEvent*>(ev);
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
   // Extract any useful data, then clean it up
@@ -200,10 +208,11 @@ Phold::handleEvent(SST::Event *ev)
   auto now = TIMEFACTOR * getCurrentSimTime(TIMEBASE);
   if (now < m_stop)
   {
+    VERBOSE("now: %f\n", now);
     SendEvent();
   } else
   {
-    VERBOSE("stopping: now: %f\n", now);
+    VERBOSE("now: %f, stopping\n", now);
     primaryComponentOKToEndSim();
   }
 }
