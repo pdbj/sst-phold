@@ -178,10 +178,10 @@ Phold::SendEvent ()
 
   // Time to event, in s
   auto delayS = m_delayRng->getNextDouble();
-  auto delayTb = delayS / TIMEFACTOR;
+  auto delayTb = static_cast<SST::SimTime_t>(delayS / TIMEFACTOR);
   // m_minimum is added by the link
   auto now = getCurrentSimTime("1s");
-  VERBOSE("  delay: %f (%f tb), total: %f => %f\n",
+  VERBOSE("  delay: %f (%llu tb), total: %f => %f\n",
           delayS, 
           delayTb,
           delayS + m_minimum,
@@ -202,14 +202,14 @@ Phold::handleEvent(SST::Event *ev)
   delete event;
 
   // Check the stopping condition
-  auto now = TIMEFACTOR * getCurrentSimTime();
+  auto now = getCurrentSimTime();
   if (now < m_stop)
   {
-    VERBOSE("now: %f\n", now);
+    VERBOSE("now: %llu\n", now);
     SendEvent();
   } else
   {
-    VERBOSE("now: %f, stopping\n", now);
+    VERBOSE("now: %llu, stopping\n", now);
     primaryComponentOKToEndSim();
   }
 }
