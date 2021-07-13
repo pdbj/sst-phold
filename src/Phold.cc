@@ -203,7 +203,7 @@ Phold::handleEvent(SST::Event *ev)
   delete event;
 
   // Check the stopping condition
-  auto now = TIMEFACTOR * getCurrentSimTime(TIMEBASE);
+  auto now = TIMEFACTOR * getCurrentSimTime();
   if (now < m_stop)
   {
     VERBOSE("now: %f\n", now);
