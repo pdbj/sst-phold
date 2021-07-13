@@ -119,7 +119,7 @@ for i in range(ph.number):
 latency = str(ph.minimum) + "s"
 
 # Add links
-phPrint(f"Creating complete graph")
+phPrint(f"Creating complete graph with latency {latency}")
 
 for i in range(ph.number):
     for j in range(i + 1, ph.number):
