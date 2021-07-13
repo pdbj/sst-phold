@@ -85,9 +85,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);
 
   // Configure ports/links
-  m_output.verbose(CALL_INFO, 1, 0,"Configuring links:\n");
+  m_output.verbose(CALL_INFO, 1, 0, "Configuring links:\n");
 
-  m_output.verbose(CALL_INFO, 1, 0,"  Creating handler\n");
+  m_output.verbose(CALL_INFO, 1, 0, "  Creating handler\n");
   m_handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
   ASSERT(m_handler, "Failed to create handler\n");
 
@@ -159,7 +159,7 @@ Phold::~Phold() noexcept
 void
 Phold::SendEvent ()
 {
-  m_output.verbose(CALL_INFO, 1, 0, "sendEvent():\n");
+  m_output.verbose(CALL_INFO, 1, 0, "\n");
 
   // Remote or local?
   SST::ComponentId_t nextId = getId();
@@ -197,9 +197,7 @@ Phold::SendEvent ()
 void
 Phold::handleEvent(SST::Event *ev)
 {
-  m_output.verbose(CALL_INFO, 1, 0,
-                   "handleEvent(): %lld ms\n",
-                   getCurrentSimTime("1ms"));
+  m_output.verbose(CALL_INFO, 1, 0, "\n");
   auto event = dynamic_cast<PholdEvent*>(ev);
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
   // Extract any useful data, then clean it up
@@ -220,7 +218,7 @@ Phold::handleEvent(SST::Event *ev)
 void
 Phold::setup() 
 {
-  m_output.verbose(CALL_INFO, 1, 0, "setup(): initial events: %ld\n", m_events);
+  m_output.verbose(CALL_INFO, 1, 0, "initial events: %ld\n", m_events);
 
   // Generate initial event set
   for (auto i = 0; i < m_events; ++i)
@@ -233,7 +231,7 @@ Phold::setup()
 void
 Phold::finish() 
 {
-  m_output.verbose(CALL_INFO, 1, 0, "finish()\n");
+  m_output.verbose(CALL_INFO, 1, 0, "\n");
 }
 
 }  // namespace Phold
