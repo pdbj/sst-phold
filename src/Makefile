@@ -1,15 +1,16 @@
 
+CC=$(shell sst-config --CC)
 CXX=$(shell sst-config --CXX)
 CXXFLAGS=$(shell sst-config --ELEMENT_CXXFLAGS)
 LDFLAGS=$(shell sst-config --ELEMENT_LDFLAGS)
 
 # Add hard-coded path to help out CLion
-CXXFLAGS+=-I${HOME}/local/include
+CXXFLAGS+=-I$(HOME)/local/include
 
 # Debug
 CXXFLAGS+=-g
 
-DISTDIR = ~/local/lib/sst-elements-library
+DISTDIR = $(HOME)/local/lib/sst-elements-library
 
 all: install
 	@:
@@ -19,6 +20,7 @@ HDRS = Phold.h PholdEvent.h
 ALL = $(SRCS) $(HDRS)
 
 OBJS = $(SRCS:%.cc=%.o)
+LIB=libphold.so
 
 # Generate dependency files .d
 DEPS = $(SRCS:%.cc=%.d)
@@ -30,15 +32,14 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $*.d
 $(DEPS):
 include $(wildcard $(DEPS))
 
-libphold.so: $(OBJS)
+$(LIB): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
-
-build-date: libphold.so
+build-date: $(LIB)
 	sst-register phold phold_LIBDIR=$(CURDIR)
-	sst-register phold SST_ELEMENT_SOURCE=$(CURDIR)
-	sst-register phold SST_ELEMENT_TESTS=$(CURDIR)/../tests
-	cp $< $(DISTDIR)/
+	sst-register SST_ELEMENT_SOURCE phold=$(CURDIR)
+	sst-register SST_ELEMENT_TESTS phold=$(CURDIR)/../tests
+	cp $< $(DISTDIR)
 	touch $@
 
 
@@ -54,6 +55,7 @@ info:
 	@echo "HDRS:         $(HDRS)"
 	@echo "ALL:          $(ALL)"
 	@echo "OBJS:         $(OBJS)"
+	@echo "LIB:          $(LIB)"
 	@echo "DEPS:         $(DEPS)"
 	@echo "CXX:          $(CXX)"
 	@echo "CXXFLAGS:     $(CXXFLAGS)"
