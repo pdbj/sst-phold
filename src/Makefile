@@ -31,7 +31,7 @@ $(DEPS):
 include $(wildcard $(DEPS))
 
 libphold.so: $(OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $<
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
 
 build-date: libphold.so
