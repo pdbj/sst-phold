@@ -92,33 +92,33 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   // Configure ports/links
   VERBOSE("Configuring links:\n");
-
-  VERBOSE("  Creating handler\n");
-  m_handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
-  ASSERT(m_handler, "Failed to create handler\n");
-
-  VERBOSE("  Self link\n");
-  m_self = configureSelfLink("self", m_handler);
-  ASSERT(m_self, "Failed to configure self link\n");
-
   VERBOSE("  Port links\n");
+  m_links.resize(m_number);
+
   // Set up the port labels
   auto pre = std::string(PORT_NAME);
   const auto prefix(pre.erase(pre.find('%')));
-  uint32_t i = 0;
-  std::string port = prefix + std::to_string(i);
-  while (isPortConnected(port))
+  std::string port;
+  for (uint32_t i = 0; i < m_number; ++i) {
+    ASSERT(m_links[i] == nullptr, "Initialized link %d (0x%p) is not null!\n", i, m_links[i]);
+    port = prefix + std::to_string(i);
+    if (i != getId())
     {
-      VERBOSE("    link %d: %s\n", i, port.c_str());
-      auto link = configureLink(port, TIMEBASE, m_handler);
-      ASSERT(link, "Failed to configure link %d\n", i);
-      m_links.push_back(link);
-
-      // Set up for next round
-      ++i;
-      port = prefix + std::to_string(i);
+      ASSERT(isPortConnected(port), "Port %s is not connected\n", port.c_str());
+      // Each link needs it's own handler.  SST manages the destruction.
+      auto handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
+      ASSERT(handler, "Failed to create handler\n");
+      m_links[i] = configureLink(port, handler);
+      ASSERT(m_links[i], "Failed to configure link %d\n", i);
+      VERBOSE("    link %d: %s @0x%p with handler @0x%p\n", i, port.c_str(), m_links[i], handler);
+    } else {
+      auto handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
+      ASSERT(handler, "Failed to create handler\n");
+      m_links[i] = configureSelfLink("self", handler);
+      ASSERT(m_links[i], "Failed to configure self link\n");
+      VERBOSE("    link %d: self   @0x%p with handler @0x%p\n", i, m_links[i], handler);
     }
-    VERBOSE("    created %d links\n", i);
+  }
 
   // Initial events created in setup()
 
@@ -141,7 +141,6 @@ Phold::Phold() : SST::Component(-1)
   m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);
-  m_handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
 }
 
 Phold::~Phold() noexcept
@@ -156,7 +155,6 @@ Phold::~Phold() noexcept
   DELETE(m_nodeRng);
   DELETE(m_delayRng);
 
-  delete m_handler;
 #undef DELETE
 }
 

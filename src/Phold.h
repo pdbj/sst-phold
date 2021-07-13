@@ -161,11 +161,7 @@ private:
 
   // class instance data members
   SST::Output m_output;              /**< Output stream for verbose output */
-
-  SST::Link * m_self;                /**< The link to self */
   std::vector<SST::Link *> m_links;  /**< The list of links to other LPs */
-  SST::Event::Handler<Phold> * m_handler;  /**< The event handler */
-
   /** Choice of underlying RNG: SST::RNG::MersenneRNG or SST::RNG::MarsagliaRNG */
   typedef SST::RNG::MarsagliaRNG RNG_t;
 
