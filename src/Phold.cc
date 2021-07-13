@@ -35,15 +35,15 @@ namespace Phold {
   m_output.verbose(CALL_INFO, 1, 0, __VA_ARGS__)
 
 // Class static data members
-const char Phold::PORT_NAME[];
-const char Phold::TIMEBASE[];
+const char     Phold::PORT_NAME[];
+const char     Phold::TIMEBASE[];
 
-double Phold::m_remote;
-double Phold::m_minimum;
-double Phold::m_average;
-long   Phold::m_number;
-long   Phold::m_events;
-bool   Phold::m_verbose;
+double         Phold::m_remote;
+double         Phold::m_minimum;
+double         Phold::m_average;
+long           Phold::m_number;
+long           Phold::m_events;
+uint32_t       Phold::m_verbose;
 SST::SimTime_t Phold::m_stop;
 
 
@@ -56,12 +56,13 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_output.init("@t:Phold-" + getName() + " [@p (@f:@l)] -> ", m_verbose, 0, SST::Output::STDOUT);
   VERBOSE("Full c'tor() @0x%p\n", this);
 
-  m_remote  = params.find<double>("remote", 0.9);
-  m_minimum = params.find<double>("minimum", 1.0);
+  m_remote  = params.find<double>("remote",   0.9);
+  m_minimum = params.find<double>("minimum",  1.0);
   m_average = params.find<double>("average", 10);
-  m_stop    = params.find<double>("stop", 10);
-  m_number  = params.find<long>  ("number", 2);
-  m_events  = params.find<long>  ("events", 1);
+  auto stop = params.find<double>("stop",    10)  / TIMEFACTOR;
+  m_stop    = static_cast<SST::SimTime_t>(stop);
+  m_number  = params.find<long>  ("number",   2);
+  m_events  = params.find<long>  ("events",   1);
 
   // Default time unit for Component and links
   registerTimeBase(TIMEBASE, true);

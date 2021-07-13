@@ -147,25 +147,25 @@ private:
   // class static data members
 
   /** Default time base for component and associated links */
-  static constexpr char TIMEBASE[] = "1us";
-  static constexpr double TIMEFACTOR = 1e-6;
+  static constexpr char    TIMEBASE[] = "1us";
+  static constexpr double  TIMEFACTOR = 1e-6;
 
 
-  static double m_remote;        /**< Remote event fraction */
-  static double m_minimum;       /**< Minimum event delay */
-  static double m_average;       /**< Mean event delay, added to m_minimum */
-  static SST::SimTime_t m_stop;  /**< Stop time */
-  static long   m_number;        /**< Total number of LPs */
-  static long   m_events;        /**< Initial number of events per LP */
   static bool   m_verbose;       /**< Verbose output flag */
+  static double            m_remote;     /**< Remote event fraction */
+  static double            m_minimum;    /**< Minimum event delay */
+  static double            m_average;    /**< Mean event delay, added to m_minimum */
+  static SST::SimTime_t    m_stop;       /**< Stop time */
+  static long              m_number;     /**< Total number of LPs */
+  static long              m_events;     /**< Initial number of events per LP */
 
   // class instance data members
-  SST::Output m_output;              /**< Output stream for verbose output */
-  std::vector<SST::Link *> m_links;  /**< The list of links to other LPs */
+  SST::Output              m_output;     /**< Output stream for verbose output */
+  std::vector<SST::Link *> m_links;      /**< The list of links to other LPs */
   /** Choice of underlying RNG: SST::RNG::MersenneRNG or SST::RNG::MarsagliaRNG */
   typedef SST::RNG::MarsagliaRNG RNG_t;
 
-  RNG_t * m_rng;    /**< Base RNG instance */
+  RNG_t                            * m_rng;          /**< Base RNG instance */
   SST::RNG::SSTUniformDistribution * m_remRng;       /**< Uniform RNG for deciding if event should be remote */
   SST::RNG::SSTUniformDistribution * m_nodeRng;      /**< Uniform RNG for picking remote LPs */
   SST::RNG::SSTExponentialDistribution * m_delayRng; /**< Poisson RNG for picking delay times */
