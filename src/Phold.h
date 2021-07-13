@@ -120,6 +120,12 @@ public:
   SST_ELI_DOCUMENT_PORTS
   (
    // struct SST::ElementInfoPort2 from sst-core/src/core/eli/elibase.h:
+   /*
+   { "self",
+     "port for link to self",
+     {"phold.PHoldEvent", ""}
+   },
+   */
    { PORT_NAME,                  //!< name (const char *)
      "Representative port",      //!< description (const char *)
      {"phold.PholdEvent", ""}    //!< validEvents (std::vector<std::string>)
@@ -141,7 +147,8 @@ private:
   // class static data members
 
   /** Default time base for component and associated links */
-  static constexpr char TIMEBASE[] = "1ns";
+  static constexpr char TIMEBASE[] = "1us";
+  static constexpr double TIMEFACTOR = 1e-6;
 
 
   static double m_remote;        /**< Remote event fraction */
@@ -154,6 +161,8 @@ private:
 
   // class instance data members
   SST::Output m_output;              /**< Output stream for verbose output */
+
+  SST::Link * m_self;                /**< The link to self */
   std::vector<SST::Link *> m_links;  /**< The list of links to other LPs */
   SST::Event::Handler<Phold> * m_handler;  /**< The event handler */
 

@@ -59,9 +59,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_remote  = params.find<double>("remote", 0.9);
   m_minimum = params.find<double>("minimum", 1.0);
   m_average = params.find<double>("average", 10);
-  auto stop = params.find<double>("stop", 10);
-  // \todo Use TIMEBASE for this conversion
-  m_stop = static_cast<SST::SimTime_t>(1e9 * stop);
+  m_stop    = params.find<double>("stop", 10);
   m_number  = params.find<long>  ("number", 2);
   m_events  = params.find<long>  ("events", 1);
 
@@ -95,35 +93,28 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
   ASSERT(m_handler, "Failed to create handler\n");
 
-  m_output.verbose(CALL_INFO, 1, 0, "  Port links\n");
-  m_links.reserve(m_number);
+  VERBOSE("  Self link\n");
+  m_self = configureSelfLink("self", m_handler);
+  ASSERT(m_self, "Failed to configure self link\n");
 
-  // Set up the ss with the prefix  
+  VERBOSE("  Port links\n");
+  // Set up the port labels
   auto pre = std::string(PORT_NAME);
-  pre.erase(pre.find('%'));
-  const auto prefix(pre);
-  const auto end = prefix.size();
-  ss.clear();
-  for (uint32_t i = 0; i < m_number; ++i)
+  const auto prefix(pre.erase(pre.find('%')));
+  uint32_t i = 0;
+  std::string port = prefix + std::to_string(i);
+  while (isPortConnected(port))
     {
-      ss.str(prefix);
-      ss.seekp(end) << i;
+      VERBOSE("    link %d: %s\n", i, port.c_str());
+      auto link = configureLink(port, TIMEBASE, m_handler);
+      ASSERT(link, "Failed to configure link %d\n", i);
+      m_links.push_back(link);
 
-      if (i  != getId())
-        {
-          m_output.verbose(CALL_INFO, 1, 0, "    link %d: %s\n", 
-                           i, ss.str().c_str());
-          m_links[i] = configureLink(ss.str(), m_handler);
-          ASSERT(m_links[i], "Failed to configure link %d\n", i);
-        }
-      else
-        {
-          m_output.verbose(CALL_INFO, 1, 0, "    link %d: %s (%s)\n", 
-                           i, ss.str().c_str(), "self");
-          m_links[i] = configureSelfLink(ss.str(), m_handler);
-          ASSERT(m_links[i], "Failed to configure self link %d\n", i);
-        }
+      // Set up for next round
+      ++i;
+      port = prefix + std::to_string(i);
     }
+    VERBOSE("    created %d links\n", i);
 
   // Initial events created in setup()
 
@@ -181,19 +172,18 @@ Phold::SendEvent ()
 
   // Time to event, in s
   auto delayS = m_delayRng->getNextDouble();
-  auto delayNs = getTimeConverterNano()->convertToCoreTime(delayS);
-
+  auto delayTb = delayS / TIMEFACTOR;
   // m_minimum is added by the link
-
-  m_output.verbose(CALL_INFO, 1, 0,
-                   "  delay: %f, total: %f => %f\n",
-                   delayS, delayS + m_minimum,
-                   delayS + m_minimum +
-                   static_cast<double>(getCurrentSimTime("1s")));
+  auto now = getCurrentSimTime("1s");
+  VERBOSE("  delay: %f (%f tb), total: %f => %f\n",
+          delayS, 
+          delayTb,
+          delayS + m_minimum,
+          delayS + m_minimum + now);
 
   // Send a new event.  This is deleted in handleEvent
   auto ev = new PholdEvent();
-  m_links[nextId]->send(delayNs, ev);
+  m_links[nextId]->send(delayTb, ev);
 }
 
 
@@ -207,7 +197,7 @@ Phold::handleEvent(SST::Event *ev)
   delete event;
 
   // Check the stopping condition
-  auto now = getCurrentSimTime(TIMEBASE);
+  auto now = TIMEFACTOR * getCurrentSimTime(TIMEBASE);
   if (now < m_stop)
   {
     SendEvent();
