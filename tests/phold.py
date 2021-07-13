@@ -21,7 +21,7 @@ class PholdArgs(dict):
         self.stop = 10
         self.number = 2
         self.events = 1
-        self.pverbose = False
+        self.pverbose = 0
 
     def __str__(self):
         return f"remote: {self.remote}, " \
@@ -81,7 +81,7 @@ class PholdArgs(dict):
             help=f"Number of initial events per LP. Must be >= 1.")
         parser.add_argument(
             # '--verbose' conflicts with SST, even after --
-            '-v', '--pverbose', action='store_true',
+            '-v', '--pverbose', action='count',
             help=f"Verbose output")
         return parser
 

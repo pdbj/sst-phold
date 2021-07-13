@@ -49,8 +49,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
 {
   // SST::Params doesn't understand Python bools
-  auto pverb = params.find<std::string>  ("pverbose", "False");
-  m_verbose = ( "True" == pverb);
+  m_verbose = params.find<long>  ("pverbose", 0);
   m_output.init("@t:Phold-" + getName() + " [@p (@f:@l)] -> ", m_verbose, 0, SST::Output::STDOUT);
   VERBOSE("Full c'tor() @0x%p\n", this);
 
@@ -74,7 +73,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
        << ", num="  << m_number
        << ", ev="   << m_events
        << ", st="   << m_stop
-       << (m_verbose ? " VERBOSE" : "");
+       << ", v="    << m_verbose;
 
     VERBOSE("%s\n", ss.str().c_str());
   }

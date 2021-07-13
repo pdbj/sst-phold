@@ -151,13 +151,13 @@ private:
   static constexpr double  TIMEFACTOR = 1e-6;
 
 
-  static bool   m_verbose;       /**< Verbose output flag */
   static double            m_remote;     /**< Remote event fraction */
   static double            m_minimum;    /**< Minimum event delay */
   static double            m_average;    /**< Mean event delay, added to m_minimum */
   static SST::SimTime_t    m_stop;       /**< Stop time */
   static long              m_number;     /**< Total number of LPs */
   static long              m_events;     /**< Initial number of events per LP */
+  static uint32_t          m_verbose;    /**< Verbose output flag */
 
   // class instance data members
   SST::Output              m_output;     /**< Output stream for verbose output */
