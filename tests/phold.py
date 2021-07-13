@@ -115,12 +115,15 @@ for i in range(ph.number):
     lp.addParams(vars(ph))  # pass ph as simple dictionary
     lps.append(lp)
 
-# Add links
-phPrint(f"Creating complete graph")
 # min latency
 latency = str(ph.minimum) + "s"
+
+# Add links
+phPrint(f"Creating complete graph")
+
 for i in range(ph.number):
     for j in range(i + 1, ph.number):
+
         if ph.pverbose:
             phPrint(f"  Creating link {i}_{j}")
         link = sst.Link(str(i) + "_" + str(j))
@@ -135,6 +138,7 @@ for i in range(ph.number):
             phPrint(f"      {lj}")
             phPrint(f"    connecting {i} to {j}")
         link.connect(li, lj)
+
 
 phPrint(f"Done")
 
