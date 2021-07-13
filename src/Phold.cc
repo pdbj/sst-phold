@@ -100,9 +100,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   std::string port;
   for (uint32_t i = 0; i < m_number; ++i) {
     ASSERT(m_links[i] == nullptr, "Initialized link %d (0x%p) is not null!\n", i, m_links[i]);
-    port = prefix + std::to_string(i);
     if (i != getId())
     {
+      port = prefix + std::to_string(i);
       ASSERT(isPortConnected(port), "Port %s is not connected\n", port.c_str());
       // Each link needs it's own handler.  SST manages the destruction.
       auto handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
