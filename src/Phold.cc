@@ -30,6 +30,10 @@ namespace Phold {
 #define ASSERT(condition, ...) \
     Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
 
+// Simplify logging
+#define VERBOSE(...) \
+  m_output.verbose(CALL_INFO, 1, 0, __VA_ARGS__)
+
 // Class static data members
 const char Phold::PORT_NAME[];
 const char Phold::TIMEBASE[];
@@ -50,7 +54,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   auto pverb = params.find<std::string>  ("pverbose", "False");
   m_verbose = ( "True" == pverb);
   m_output.init("@t:Phold-" + getName() + " [@p (@f:@l)] -> ", m_verbose, 0, SST::Output::STDOUT);
-  m_output.verbose(CALL_INFO, 1, 0, "Full c'tor()\n");
+  VERBOSE("Full c'tor()\n");
 
   m_remote  = params.find<double>("remote", 0.9);
   m_minimum = params.find<double>("minimum", 1.0);
@@ -75,19 +79,19 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
        << ", st="   << m_stop
        << (m_verbose ? " VERBOSE" : "");
 
-    m_output.verbose(CALL_INFO, 1, 0, "%s\n", ss.str().c_str());
+    VERBOSE("%s\n", ss.str().c_str());
   }
 
-  m_output.verbose(CALL_INFO, 1, 0, "Initializing RNGs\n");
+  VERBOSE("Initializing RNGs\n");
   m_rng  = new Phold::RNG_t;
   m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);
 
   // Configure ports/links
-  m_output.verbose(CALL_INFO, 1, 0, "Configuring links:\n");
+  VERBOSE("Configuring links:\n");
 
-  m_output.verbose(CALL_INFO, 1, 0, "  Creating handler\n");
+  VERBOSE("  Creating handler\n");
   m_handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
   ASSERT(m_handler, "Failed to create handler\n");
 
@@ -131,7 +135,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
 Phold::Phold() : SST::Component(-1)
 {
-  m_output.verbose(CALL_INFO, 1, 0, "Default c'tor()\n");
+  VERBOSE("Default c'tor()\n");
   /*
    * \todo How to initialize a Component after deserialization?
    * Here we need m_number, m_average
@@ -147,7 +151,7 @@ Phold::Phold() : SST::Component(-1)
 
 Phold::~Phold() noexcept
 {
-  m_output.verbose(CALL_INFO, 1, 0, "Destructor()\n");
+  VERBOSE("Destructor()\n");
   delete m_delayRng;
   delete m_nodeRng;
   delete m_remRng;
@@ -159,20 +163,19 @@ Phold::~Phold() noexcept
 void
 Phold::SendEvent ()
 {
-  m_output.verbose(CALL_INFO, 1, 0, "\n");
+  VERBOSE("\n");
 
   // Remote or local?
   SST::ComponentId_t nextId = getId();
   auto rem = m_remRng->getNextDouble() / UINT32_MAX;
-  m_output.verbose(CALL_INFO, 1, 0, "  next rng: %f\n", rem);
   if (rem < m_remote)
   {
     nextId = static_cast<SST::ComponentId_t>(m_nodeRng->getNextDouble());
-    m_output.verbose(CALL_INFO, 1, 0, "  remote %lld\n", nextId);
+    VERBOSE("  next rng: %f, remote %lld\n", rem, nextId);
   }
   else
   {
-    m_output.verbose(CALL_INFO, 1, 0, "  self   %lld\n", nextId);
+    VERBOSE("  next rng: %f, self   %lld\n", rem, nextId);
   }
   ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %lld\n", nextId);
 
@@ -197,7 +200,7 @@ Phold::SendEvent ()
 void
 Phold::handleEvent(SST::Event *ev)
 {
-  m_output.verbose(CALL_INFO, 1, 0, "\n");
+  VERBOSE("\n");
   auto event = dynamic_cast<PholdEvent*>(ev);
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
   // Extract any useful data, then clean it up
@@ -210,6 +213,7 @@ Phold::handleEvent(SST::Event *ev)
     SendEvent();
   } else
   {
+    VERBOSE("stopping: now: %f\n", now);
     primaryComponentOKToEndSim();
   }
 }
@@ -218,7 +222,7 @@ Phold::handleEvent(SST::Event *ev)
 void
 Phold::setup() 
 {
-  m_output.verbose(CALL_INFO, 1, 0, "initial events: %ld\n", m_events);
+  VERBOSE("initial events: %ld\n", m_events);
 
   // Generate initial event set
   for (auto i = 0; i < m_events; ++i)
@@ -231,7 +235,7 @@ Phold::setup()
 void
 Phold::finish() 
 {
-  m_output.verbose(CALL_INFO, 1, 0, "\n");
+  VERBOSE("\n");
 }
 
 }  // namespace Phold
