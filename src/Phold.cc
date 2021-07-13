@@ -14,10 +14,8 @@
 
 #include <cstdint>  // UINT32_MAX
 #include <iostream>
-#include <iomanip>
 #include <string>  // to_string()
 #include <utility> // swap()
-#include <vector>
 
 /**
  * \file
