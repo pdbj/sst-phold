@@ -103,13 +103,13 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       port = prefix + std::to_string(i);
       ASSERT(isPortConnected(port), "Port %s is not connected\n", port.c_str());
       // Each link needs it's own handler.  SST manages the destruction.
-      auto handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
+      auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
       ASSERT(handler, "Failed to create handler\n");
       m_links[i] = configureLink(port, handler);
       ASSERT(m_links[i], "Failed to configure link %d\n", i);
       VERBOSE(3, "    link %d: %s @0x%p with handler @0x%p\n", i, port.c_str(), m_links[i], handler);
     } else {
-      auto handler = new SST::Event::Handler<Phold>(this, &Phold::handleEvent);
+      auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
       ASSERT(handler, "Failed to create handler\n");
       m_links[i] = configureSelfLink("self", handler);
       ASSERT(m_links[i], "Failed to configure self link\n");
@@ -192,22 +192,23 @@ Phold::SendEvent ()
 
 
 void
-Phold::handleEvent(SST::Event *ev)
+Phold::handleEvent(SST::Event *ev, uint32_t from)
 {
   auto event = dynamic_cast<PholdEvent*>(ev);
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
   // Extract any useful data, then clean it up
+  auto sendTime = event->getSendTime();
   delete event;
 
   // Check the stopping condition
   auto now = getCurrentSimTime();
   if (now < m_stop)
   {
-    VERBOSE(1, "now: %llu\n", now);
+    VERBOSE(1, "now: %llu, from %u @ %llu\n", now, from, sendTime);
     SendEvent();
   } else
   {
-    VERBOSE(1, "now: %llu, stopping\n", now);
+    VERBOSE(1, "now: %llu, from %u @ %llu, stopping\n", now, from, sendTime);
     primaryComponentOKToEndSim();
   }
 }

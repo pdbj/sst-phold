@@ -138,11 +138,13 @@ private:
 
   /** Send a new event to a random LP. */
   void SendEvent ();
+
   /**
    * Incoming event handler
    * @param ev The incoming event.
+   * @param from The sending LP id.
    */
-  void handleEvent(SST::Event *ev);
+  void handleEvent(SST::Event *ev, uint32_t from);
 
   // class static data members
 
