@@ -29,9 +29,15 @@ namespace Phold {
     Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
 
 // Simplify logging
-#define VERBOSE(l, ...)                                  \
-  m_output.verbose(CALL_INFO, l, 0, __VA_ARGS__)
+static std::string VERBOSE_PREFIX;
 
+#define VERBOSE(l, ...)                                                 \
+  m_output.verbosePrefix(VERBOSE_PREFIX.c_str(), \
+                         CALL_INFO, l, 0, __VA_ARGS__)
+
+#define OUTPUT(...)                             \
+  if (m_verbose > 0) m_output.output(CALL_INFO, __VA_ARGS__)
+  
 // Class static data members
 const char     Phold::PORT_NAME[];
 const char     Phold::TIMEBASE[];
@@ -50,7 +56,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 {
   // SST::Params doesn't understand Python bools
   m_verbose = params.find<long>  ("pverbose", 0);
-  m_output.init("@t:Phold-" + getName() + " [@p (@f:@l)] -> ", m_verbose, 0, SST::Output::STDOUT);
+  m_output.init("@t:@X Phold-" + getName() + " [@p()] -> ", 
+                m_verbose, 0, SST::Output::STDOUT);
+  VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
   VERBOSE(2, "Full c'tor() @0x%p\n", this);
 
   m_remote  = params.find<double>("remote",   0.9);
@@ -207,6 +215,11 @@ Phold::SendEvent (uint32_t from, SST::SimTime_t sendTime)
               delayTb,
               totDelayS + now * TIMEFACTOR);
     }
+
+  // Log the event
+  delayS += m_minimum + now * TIMEFACTOR;
+  OUTPUT("from %u @ %llu, delay: %llu tb -> %lld @ %f\n", 
+         from, sendTime, delayTb, nextId, delayS);
 
   // Send a new event.  This is deleted in handleEvent
   auto ev = new PholdEvent(getCurrentSimTime());
