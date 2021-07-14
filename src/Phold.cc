@@ -163,14 +163,23 @@ Phold::SendEvent ()
   // Remote or local?
   SST::ComponentId_t nextId = getId();
   auto rem = m_remRng->getNextDouble() / UINT32_MAX;
+  // Whether the event is local or remote
+  bool local = false;
   if (rem < m_remote)
   {
-    nextId = static_cast<SST::ComponentId_t>(m_nodeRng->getNextDouble());
-    VERBOSE(2, "  next rng: %f, remote %lld\n", rem, nextId);
+    auto reps = 0;
+    do
+      {
+        nextId = static_cast<SST::ComponentId_t>(m_nodeRng->getNextDouble());
+        ++reps;
+      } while (nextId == getId());
+
+      VERBOSE(2, "  next rng: %f, remote (%d tries) %lld\n", rem, reps, nextId);
   }
   else
   {
-    VERBOSE(2, "  next rng: %f, self   %lld\n", rem, nextId);
+    local = true;
+    VERBOSE(2, "  next rng: %f, self             %lld\n", rem, nextId);
   }
   ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %lld\n", nextId);
 
