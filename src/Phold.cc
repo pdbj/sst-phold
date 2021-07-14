@@ -156,7 +156,7 @@ Phold::~Phold() noexcept
 }
 
 void
-Phold::SendEvent ()
+Phold::SendEvent (uint32_t from, SST::SimTime_t sendTime)
 {
   VERBOSE(2, "\n");
 
@@ -228,8 +228,8 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   auto now = getCurrentSimTime();
   if (now < m_stop)
   {
-    SendEvent();
     VERBOSE(2, "now: %llu, from %u @ %llu\n", now, from, sendTime);
+    SendEvent(from, sendTime);
   } else
   {
     VERBOSE(2, "now: %llu, from %u @ %llu, stopping\n", now, from, sendTime);
@@ -246,7 +246,7 @@ Phold::setup()
   // Generate initial event set
   for (auto i = 0; i < m_events; ++i)
   {
-    SendEvent();
+    SendEvent(getId(), 0);
   }
 }
 

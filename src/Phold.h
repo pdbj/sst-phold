@@ -137,7 +137,7 @@ private:
   Phold();
 
   /** Send a new event to a random LP. */
-  void SendEvent ();
+  void SendEvent (uint32_t from, SST::SimTime_t sendTime);
 
   /**
    * Incoming event handler
