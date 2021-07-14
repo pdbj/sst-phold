@@ -184,15 +184,30 @@ Phold::SendEvent ()
   ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %lld\n", nextId);
 
   // Time to event, in s
+  auto now = getCurrentSimTime();
   auto delayS = m_delayRng->getNextDouble();
   auto delayTb = static_cast<SST::SimTime_t>(delayS / TIMEFACTOR);
-  // m_minimum is added by the link
-  auto now = getCurrentSimTime("1s");
-  VERBOSE(2, "  delay: %f (%llu tb), total: %f => %f\n",
-          delayS, 
-          delayTb,
-          delayS + m_minimum,
-          delayS + m_minimum + now);
+  if ( ! local)
+    {
+      // For remotes m_minimum is added by the link
+      VERBOSE(2, "  delay: %f (%llu tb), total: %f => %f\n",
+              delayS, 
+              delayTb,
+              delayS + m_minimum,
+              delayS + m_minimum + now * TIMEFACTOR);
+
+    } else
+    {
+      // self links don't have a min latency configured, so add it now
+      auto netDelayS = delayS + m_minimum;
+      delayTb = static_cast<SST::SimTime_t>(netDelayS / TIMEFACTOR);
+      VERBOSE(2, "  delay: %f + %f = %f (%llu tb) => %f\n",
+              delayS, 
+              m_minimum,
+              netDelayS,
+              delayTb,
+              netDelayS + now * TIMEFACTOR);
+    }
 
   // Send a new event.  This is deleted in handleEvent
   auto ev = new PholdEvent(getCurrentSimTime());
