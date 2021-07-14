@@ -85,7 +85,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   VERBOSE(3, "  m_remRng   @0x%p\n", m_remRng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   VERBOSE(3, "  m_nodeRng  @0x%p\n", m_nodeRng);
-  m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);
+  m_delayRng = new SST::RNG::SSTExponentialDistribution(1.0 / m_average, m_rng);
   VERBOSE(3, "  m_delayRng @0x%p\n", m_delayRng);
 
   // Configure ports/links
