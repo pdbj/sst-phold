@@ -149,8 +149,8 @@ private:
   // class static data members
 
   /** Default time base for component and associated links */
-  static constexpr char    TIMEBASE[] = "1us";
-  static constexpr double  TIMEFACTOR = 1e-6;
+  static constexpr char    TIMEBASE[] = "1ms";
+  static constexpr double  TIMEFACTOR = 1e-3;
 
 
   static double            m_remote;     /**< Remote event fraction */
