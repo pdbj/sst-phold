@@ -8,8 +8,10 @@ import sys
 
 ME = "Phold.py: "
 
-def phPrint (args):
+
+def phprint (args):
     print(ME, args)
+
 
 # PHOLD parameters
 class PholdArgs(dict):
@@ -36,24 +38,23 @@ class PholdArgs(dict):
     def validate(self):
         valid = True
         if self.remote < 0 or self.remote > 1:
-            phPrint(f"Invalid remote fraction: {self.remote}, must be in [0,1]")
+            phprint(f"Invalid remote fraction: {self.remote}, must be in [0,1]")
             valid = False
         if self.minimum <= 0:
-            phPrint(f"Invalid minimum delay: {self.minimum}, must be > 0")
+            phprint(f"Invalid minimum delay: {self.minimum}, must be > 0")
             valid = False
         if self.average < 0:
-            phPrint(f"Invalid average delay: {self.average}, must be >= 0")
+            phprint(f"Invalid average delay: {self.average}, must be >= 0")
             valid = False
         if self.stop < 0:
-            phPrint(f"Invalid stop time: {self.stop}, must be > 0")
+            phprint(f"Invalid stop time: {self.stop}, must be > 0")
         if self.number < 2:
-            phPrint(f"Invalid number: {self.number}, need at least 2")
+            phprint(f"Invalid number: {self.number}, need at least 2")
             valid = False
         if self.events < 1:
-            phPrint(f"Invalid initial events: {self.events}, need at least 1")
+            phprint(f"Invalid initial events: {self.events}, need at least 1")
             valid = False
         return valid
-
 
     def init_argparse(self) -> argparse.ArgumentParser:
         script = os.path.basename(__file__)
@@ -92,13 +93,13 @@ class PholdArgs(dict):
             parser.print_help()
             sys.exit(1)
         if ph.pverbose:
-            phPrint(f"  expect {ph}")
+            phprint(f"  expect {ph}")
 
 
 # -- Main --
 
 print(f"\n")
-phPrint(f"Creating PHOLD Benchmark")
+phprint(f"Creating PHOLD Benchmark")
 
 # Phold arguments instance
 ph = PholdArgs()
@@ -106,11 +107,11 @@ ph.parse()
 
 
 # Create the LPs
-phPrint(f"Creating {ph.number} LPs")
+phprint(f"Creating {ph.number} LPs")
 lps = []
 for i in range(ph.number):
     if ph.pverbose:
-        phPrint(f"  Creating LP {i}")
+        phprint(f"  Creating LP {i}")
     lp = sst.Component(str(i), "phold.Phold")
     lp.addParams(vars(ph))  # pass ph as simple dictionary
     lps.append(lp)
@@ -119,26 +120,26 @@ for i in range(ph.number):
 latency = str(ph.minimum) + "s"
 
 # Add links
-phPrint(f"Creating complete graph with latency {latency}")
+phprint(f"Creating complete graph with latency {latency}")
 
 for i in range(ph.number):
     for j in range(i + 1, ph.number):
 
         if ph.pverbose:
-            phPrint(f"  Creating link {i}_{j}")
+            phprint(f"  Creating link {i}_{j}")
         link = sst.Link(str(i) + "_" + str(j))
         if ph.pverbose:
-            phPrint(f"    creating tuples")
+            phprint(f"    creating tuples")
         # links cross connect ports: 
         # port number gives the LP id on the other side of the link
         li = lps[i], "port_" + str(j), latency
         lj = lps[j], "port_" + str(i), latency
         if ph.pverbose:
-            phPrint(f"      {li}")
-            phPrint(f"      {lj}")
-            phPrint(f"    connecting {i} to {j}")
+            phprint(f"      {li}")
+            phprint(f"      {lj}")
+            phprint(f"    connecting {i} to {j}")
         link.connect(li, lj)
 
 
-phPrint(f"Done")
+phprint(f"Done")
 

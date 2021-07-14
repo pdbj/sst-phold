@@ -217,7 +217,7 @@ Phold::SendEvent (uint32_t from, SST::SimTime_t sendTime)
     }
 
   // Log the event
-  delayS += m_minimum + now * TIMEFACTOR;
+  delayS += m_minimum + static_cast<double>(now) * TIMEFACTOR;
   OUTPUT("from %u @ %llu, delay: %llu tb -> %lld @ %f\n", 
          from, sendTime, delayTb, nextId, delayS);
 

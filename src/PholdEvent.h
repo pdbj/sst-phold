@@ -12,7 +12,8 @@ namespace Phold {
 class PholdEvent : public SST::Event
 {
 public:
-  PholdEvent(SST::SimTime_t sendTime) 
+  explicit
+  PholdEvent(SST::SimTime_t sendTime)
     : SST::Event(),
       m_sendTime (sendTime)
     {};
