@@ -51,7 +51,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   // SST::Params doesn't understand Python bools
   m_verbose = params.find<long>  ("pverbose", 0);
   m_output.init("@t:Phold-" + getName() + " [@p (@f:@l)] -> ", m_verbose, 0, SST::Output::STDOUT);
-  VERBOSE(1, "Full c'tor() @0x%p\n", this);
+  VERBOSE(2, "Full c'tor() @0x%p\n", this);
 
   m_remote  = params.find<double>("remote",   0.9);
   m_minimum = params.find<double>("minimum",  1.0);
@@ -75,21 +75,21 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
        << ", st="   << m_stop
        << ", v="    << m_verbose;
 
-    VERBOSE(1, "%s\n", ss.str().c_str());
+    VERBOSE(2, "%s\n", ss.str().c_str());
   }
 
-  VERBOSE(1, "Initializing RNGs\n");
+  VERBOSE(2, "Initializing RNGs\n");
   m_rng  = new Phold::RNG_t;
-  VERBOSE(3, "  m_rng      @0x%p\n", m_rng);
+  VERBOSE(4, "  m_rng      @0x%p\n", m_rng);
   m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
-  VERBOSE(3, "  m_remRng   @0x%p\n", m_remRng);
+  VERBOSE(4, "  m_remRng   @0x%p\n", m_remRng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
-  VERBOSE(3, "  m_nodeRng  @0x%p\n", m_nodeRng);
+  VERBOSE(4, "  m_nodeRng  @0x%p\n", m_nodeRng);
   m_delayRng = new SST::RNG::SSTExponentialDistribution(1.0 / m_average, m_rng);
-  VERBOSE(3, "  m_delayRng @0x%p\n", m_delayRng);
+  VERBOSE(4, "  m_delayRng @0x%p\n", m_delayRng);
 
   // Configure ports/links
-  VERBOSE(1, "Configuring links:\n");
+  VERBOSE(2, "Configuring links:\n");
   m_links.resize(m_number);
 
   // Set up the port labels
@@ -107,13 +107,13 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       ASSERT(handler, "Failed to create handler\n");
       m_links[i] = configureLink(port, handler);
       ASSERT(m_links[i], "Failed to configure link %d\n", i);
-      VERBOSE(3, "    link %d: %s @0x%p with handler @0x%p\n", i, port.c_str(), m_links[i], handler);
+      VERBOSE(4, "    link %d: %s @0x%p with handler @0x%p\n", i, port.c_str(), m_links[i], handler);
     } else {
       auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
       ASSERT(handler, "Failed to create handler\n");
       m_links[i] = configureSelfLink("self", handler);
       ASSERT(m_links[i], "Failed to configure self link\n");
-      VERBOSE(3, "    link %d: self   @0x%p with handler @0x%p\n", i, m_links[i], handler);
+      VERBOSE(4, "    link %d: self   @0x%p with handler @0x%p\n", i, m_links[i], handler);
     }
   }
 
@@ -127,7 +127,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
 Phold::Phold() : SST::Component(-1)
 {
-  VERBOSE(1, "Default c'tor()\n");
+  VERBOSE(2, "Default c'tor()\n");
   /*
    * \todo How to initialize a Component after deserialization?
    * Here we need m_number, m_average
@@ -142,9 +142,9 @@ Phold::Phold() : SST::Component(-1)
 
 Phold::~Phold() noexcept
 {
-  VERBOSE(1, "Destructor()\n");
+  VERBOSE(2, "Destructor()\n");
 #define DELETE(p) \
-  VERBOSE(3, "  deleting %s @0x%p\n", #p, (p));  \
+  VERBOSE(4, "  deleting %s @0x%p\n", #p, (p));  \
   p = 0
 
   DELETE(m_rng);
@@ -158,7 +158,7 @@ Phold::~Phold() noexcept
 void
 Phold::SendEvent ()
 {
-  VERBOSE(1, "\n");
+  VERBOSE(2, "\n");
 
   // Remote or local?
   SST::ComponentId_t nextId = getId();
@@ -174,12 +174,12 @@ Phold::SendEvent ()
         ++reps;
       } while (nextId == getId());
 
-      VERBOSE(2, "  next rng: %f, remote (%d tries) %lld\n", rem, reps, nextId);
+      VERBOSE(3, "  next rng: %f, remote (%d tries) %lld\n", rem, reps, nextId);
   }
   else
   {
     local = true;
-    VERBOSE(2, "  next rng: %f, self             %lld\n", rem, nextId);
+    VERBOSE(3, "  next rng: %f, self             %lld\n", rem, nextId);
   }
   ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %lld\n", nextId);
 
@@ -190,7 +190,7 @@ Phold::SendEvent ()
   if ( ! local)
     {
       // For remotes m_minimum is added by the link
-      VERBOSE(2, "  delay: %f (%llu tb), total: %f => %f\n",
+      VERBOSE(3, "  delay: %f (%llu tb), total: %f => %f\n",
               delayS, 
               delayTb,
               delayS + m_minimum,
@@ -201,7 +201,7 @@ Phold::SendEvent ()
       // self links don't have a min latency configured, so add it now
       auto netDelayS = delayS + m_minimum;
       delayTb = static_cast<SST::SimTime_t>(netDelayS / TIMEFACTOR);
-      VERBOSE(2, "  delay: %f + %f = %f (%llu tb) => %f\n",
+      VERBOSE(3, "  delay: %f + %f = %f (%llu tb) => %f\n",
               delayS, 
               m_minimum,
               netDelayS,
@@ -228,11 +228,11 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   auto now = getCurrentSimTime();
   if (now < m_stop)
   {
-    VERBOSE(1, "now: %llu, from %u @ %llu\n", now, from, sendTime);
     SendEvent();
+    VERBOSE(2, "now: %llu, from %u @ %llu\n", now, from, sendTime);
   } else
   {
-    VERBOSE(1, "now: %llu, from %u @ %llu, stopping\n", now, from, sendTime);
+    VERBOSE(2, "now: %llu, from %u @ %llu, stopping\n", now, from, sendTime);
     primaryComponentOKToEndSim();
   }
 }
@@ -241,7 +241,7 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
 void
 Phold::setup() 
 {
-  VERBOSE(1, "initial events: %ld\n", m_events);
+  VERBOSE(2, "initial events: %ld\n", m_events);
 
   // Generate initial event set
   for (auto i = 0; i < m_events; ++i)
@@ -254,7 +254,7 @@ Phold::setup()
 void
 Phold::finish() 
 {
-  VERBOSE(1, "\n");
+  VERBOSE(2, "\n");
 }
 
 }  // namespace Phold
