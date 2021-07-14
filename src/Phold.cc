@@ -196,17 +196,16 @@ Phold::SendEvent (uint32_t from, SST::SimTime_t sendTime)
               delayS + m_minimum,
               delayS + m_minimum + now * TIMEFACTOR);
 
-    } else
-    {
+    } else {
       // self links don't have a min latency configured, so add it now
-      auto netDelayS = delayS + m_minimum;
-      delayTb = static_cast<SST::SimTime_t>(netDelayS / TIMEFACTOR);
+      auto totDelayS = delayS + m_minimum;
+      delayTb = static_cast<SST::SimTime_t>(totDelayS / TIMEFACTOR);
       VERBOSE(3, "  delay: %f + %f = %f (%llu tb) => %f\n",
               delayS, 
               m_minimum,
-              netDelayS,
+              totDelayS,
               delayTb,
-              netDelayS + now * TIMEFACTOR);
+              totDelayS + now * TIMEFACTOR);
     }
 
   // Send a new event.  This is deleted in handleEvent
