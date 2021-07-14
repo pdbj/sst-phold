@@ -186,7 +186,7 @@ Phold::SendEvent ()
           delayS + m_minimum + now);
 
   // Send a new event.  This is deleted in handleEvent
-  auto ev = new PholdEvent();
+  auto ev = new PholdEvent(getCurrentSimTime());
   m_links[nextId]->send(delayTb, ev);
 }
 
