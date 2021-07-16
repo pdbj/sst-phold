@@ -3,15 +3,43 @@
 import sst
 
 import argparse
+import math
 import os
 import sys
 
 ME = "Phold.py: "
 
 
-def phprint (args):
+def phprint(args):
     print(ME, args)
 
+def vprint(l, args):
+    if ph.pyVerbose >= l: phprint(args)
+
+# Print dots to show progress
+class Dot():
+    def __init__(self, N):
+        # limit dots to a single 80 char line
+        self.nDots = math.ceil(N / 79.0)
+        self.dotCount = 0
+        self.dotted = False
+
+    def dot(self, level, show = True):
+        if show: self.dotCount += 1
+        if ph.pyVerbose < level:
+            if self.dotCount >= self.nDots :
+                if show: 
+                    print('.', end='', flush=True)
+                    self.dotted = True
+                self.dotCount = 0
+            return False
+        else:
+            return True
+        
+    def done(self):
+        if self.dotted: print("")
+
+        
 
 # PHOLD parameters
 class PholdArgs(dict):
@@ -24,15 +52,27 @@ class PholdArgs(dict):
         self.number = 2
         self.events = 1
         self.pverbose = 0
+        self.pyVerbose = 0
 
     def __str__(self):
         return f"remote: {self.remote}, " \
                f"min: {self.minimum}, " \
                f"avg: {self.average}, " \
-               f"st: {self.stop}, " \
-               f"n: {self.number}, " \
-               f"ev: {self.events}, " \
-               f"v: {self.pverbose}, " \
+               f"stop: {self.stop}, " \
+               f"nodes: {self.number}, " \
+               f"events: {self.events}, " \
+               f"verbose: {self.pverbose}, " \
+               f"pyVerbose: {self.pyVerbose}"
+
+    def print(self):
+        print(f"    Remote LP fraction:                   {self.remote}")
+        print(f"    Minimum inter-event delay:            {self.minimum} s")
+        print(f"    Additional Exponential average delay: {self.average} s")
+        print(f"    Stop time:                            {self.stop} s")
+        print(f"    Number of LPs:                        {self.number}")
+        print(f"    Number of initial events per LP:      {self.events}")
+        print(f"    Verbosity level:                      {self.pverbose}")
+        print(f"    Python script verbosity level:        {self.pyVerbose}")
 
     @property
     def validate(self):
@@ -48,9 +88,13 @@ class PholdArgs(dict):
             valid = False
         if self.stop < 0:
             phprint(f"Invalid stop time: {self.stop}, must be > 0")
+
+        self.number = int(self.number)
         if self.number < 2:
             phprint(f"Invalid number: {self.number}, need at least 2")
             valid = False
+
+        self.events = int(self.events)
         if self.events < 1:
             phprint(f"Invalid initial events: {self.events}, need at least 1")
             valid = False
@@ -75,15 +119,18 @@ class PholdArgs(dict):
             '-s', '--stop', action='store', type=float,
             help=f"Total simulation time, in seconds. Must be > 0.")
         parser.add_argument(
-            '-n', '--number', action='store', type=int,
-            help=f"Total number of LPs. Must be at least 2.")
+            '-n', '--number', action='store', type=float,
+            help=f"Total number of LPs. Must be > 1.")
         parser.add_argument(
-            '-e', '--events', action='store', type=int,
-            help=f"Number of initial events per LP. Must be >= 1.")
+            '-e', '--events', action='store', type=float,
+            help=f"Number of initial events per LP. Must be > 0.")
         parser.add_argument(
             # '--verbose' conflicts with SST, even after --
             '-v', '--pverbose', action='count',
-            help=f"Verbose output")
+            help=f"Phold module verbosity")
+        parser.add_argument(
+            '-V', '--pyVerbose', action='count',
+            help=f"Python script verbosity")
         return parser
 
     def parse(self):
@@ -92,8 +139,9 @@ class PholdArgs(dict):
         if not self.validate:
             parser.print_help()
             sys.exit(1)
-        if ph.pverbose:
-            phprint(f"  expect {ph}")
+            
+        phprint(f"Configuration:")
+        self.print()
 
 
 # -- Main --
@@ -108,38 +156,40 @@ ph.parse()
 
 # Create the LPs
 phprint(f"Creating {ph.number} LPs")
+dotter = Dot(ph.number)
 lps = []
 for i in range(ph.number):
-    if ph.pverbose:
-        phprint(f"  Creating LP {i}")
+    if dotter.dot(1): vprint(1, f"  Creating LP {i}")
     lp = sst.Component(str(i), "phold.Phold")
     lp.addParams(vars(ph))  # pass ph as simple dictionary
     lps.append(lp)
+dotter.done()
 
 # min latency
 latency = str(ph.minimum) + "s"
 
 # Add links
-phprint(f"Creating complete graph with latency {latency}")
-
+nLinks = int(ph.number * (ph.number - 1) / 2)
+phprint(f"Creating complete graph with latency {latency} ({nLinks} total)")
+dotter = Dot(nLinks)
 for i in range(ph.number):
     for j in range(i + 1, ph.number):
 
-        if ph.pverbose:
-            phprint(f"  Creating link {i}_{j}")
         link = sst.Link(str(i) + "_" + str(j))
-        if ph.pverbose:
-            phprint(f"    creating tuples")
+
+        if dotter.dot(2, False): vprint(2, f"  Creating link {i}_{j}")
         # links cross connect ports: 
         # port number gives the LP id on the other side of the link
         li = lps[i], "port_" + str(j), latency
         lj = lps[j], "port_" + str(i), latency
-        if ph.pverbose:
-            phprint(f"      {li}")
-            phprint(f"      {lj}")
-            phprint(f"    connecting {i} to {j}")
+
+        if dotter.dot(3):
+            vprint(3, f"    creating tuples")
+            vprint(3, f"      {li}")
+            vprint(3, f"      {lj}")
+            vprint(3, f"    connecting {i} to {j}")
+
         link.connect(li, lj)
+dotter.done()
 
-
-phprint(f"Done")
-
+phprint(f"Done\n")
