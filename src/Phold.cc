@@ -191,6 +191,20 @@ Phold::SendEvent (uint32_t from, SST::SimTime_t sendTime)
 {
   VERBOSE(2, "\n");
 
+  // Time to event, in s
+  auto now = getCurrentSimTime();
+  auto delayS = m_delayRng->getNextDouble();
+  auto delayTotS = delayS + m_minimum;
+  auto delayTb = static_cast<SST::SimTime_t>(delayS / TIMEFACTOR);
+  auto delayTotTb = static_cast<SST::SimTime_t>(delayTotS / TIMEFACTOR);
+  if (now + delayTotTb > m_stop)
+    {
+      // Event would be beyond end time, so don't generate it and stop this LP
+      VERBOSE(2, "now: %llu, next delay %f beyond stop\n", now, delayS);
+      primaryComponentOKToEndSim();
+      return;
+    }
+
   // Remote or local?
   SST::ComponentId_t nextId = getId();
   auto rem = m_remRng->getNextDouble() / UINT32_MAX;
@@ -214,11 +228,8 @@ Phold::SendEvent (uint32_t from, SST::SimTime_t sendTime)
   }
   ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %lld\n", nextId);
 
-  // Time to event, in s
-  auto now = getCurrentSimTime();
-  auto delayS = m_delayRng->getNextDouble();
+  // Log and clean up delay
   m_delays->addData(delayS);
-  auto delayTb = static_cast<SST::SimTime_t>(delayS / TIMEFACTOR);
   if ( ! local)
     {
       // For remotes m_minimum is added by the link
@@ -271,6 +282,7 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   {
     VERBOSE(2, "now: %llu, from %u @ %llu, stopping\n", now, from, sendTime);
     primaryComponentOKToEndSim();
+    ASSERT(0, "Shouldn't be here handling a post-stop event\n");
   }
 }
 
