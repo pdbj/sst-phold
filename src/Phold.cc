@@ -47,6 +47,7 @@ double         Phold::m_minimum;
 double         Phold::m_average;
 long           Phold::m_number;
 long           Phold::m_events;
+bool           Phold::m_delaysOut;
 uint32_t       Phold::m_verbose;
 SST::SimTime_t Phold::m_stop;
 
@@ -68,6 +69,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_stop    = static_cast<SST::SimTime_t>(stop);
   m_number  = params.find<long>  ("number",   2);
   m_events  = params.find<long>  ("events",   1);
+  // SST::Params doesn't understand Python bools
+  auto delaysOut = params.find<std::string>  ("delays", "False");
+  m_delaysOut = ( "True" == delaysOut);
 
   // Default time unit for Component and links
   registerTimeBase(TIMEBASE, true);
@@ -124,6 +128,25 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       VERBOSE(4, "    link %d: self   @0x%p with handler @0x%p\n", i, m_links[i], handler);
     }
   }
+
+  // Register statistics
+  VERBOSE(2, "Initializing statistics\n");
+  m_count = registerStatistic<uint64_t>("Count");
+  ASSERT(m_count, "Failed to register Count statistic");
+  m_count->setFlagOutputAtEndOfSim(true);
+  ASSERT(m_count->isEnabled(), "Count statistic is not enabled!\n");
+  ASSERT( ! m_count->isNullStatistic(), "Count statistic is Null!\n");
+  VERBOSE(4, "  m_count    @0x%p\n", m_count);
+
+  m_delays = registerStatistic<float>("Delays");
+  ASSERT(m_delays, "Failed to register Delays statistic\n");
+  m_delays->setFlagOutputAtEndOfSim(true);
+  if (m_delaysOut)
+    {
+      ASSERT(m_delays->isEnabled(), "Delays statistic is not enabled!\n");
+      ASSERT( ! m_count->isNullStatistic(), "Delays statistic is Null!\n");
+    }
+  VERBOSE(4, "  m_delays   @0x%p\n", m_delays);
 
   // Initial events created in setup()
 
@@ -194,6 +217,7 @@ Phold::SendEvent (uint32_t from, SST::SimTime_t sendTime)
   // Time to event, in s
   auto now = getCurrentSimTime();
   auto delayS = m_delayRng->getNextDouble();
+  m_delays->addData(delayS);
   auto delayTb = static_cast<SST::SimTime_t>(delayS / TIMEFACTOR);
   if ( ! local)
     {
@@ -241,6 +265,7 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   if (now < m_stop)
   {
     VERBOSE(2, "now: %llu, from %u @ %llu\n", now, from, sendTime);
+    m_count->addData(1);
     SendEvent(from, sendTime);
   } else
   {

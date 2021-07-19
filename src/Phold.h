@@ -18,6 +18,7 @@
 #include <sst/core/rng/marsaglia.h>
 #include <sst/core/rng/uniform.h>
 #include <sst/core/rng/expon.h>
+#include <sst/core/eli/statsInfo.h>
 
 #include <vector>
 
@@ -148,13 +149,42 @@ public:
      "Initial number of events per LP. Must be > 0.",
      "1"
    },
+   { "delays",
+     "Output delay histogram.",
+     "false"
+   },
    { "pverbose",
      "Verbose output",
      "false"
    }
   );
 
-  // SST_ELI_DOCUMENT_STATISTICS();
+  SST_ELI_DOCUMENT_STATISTICS
+  (
+   /*
+     Macro defined in sst-core/src/sst/core/eli/statsInfo.h:
+     static const std::vector<SST::ElementInfoStatistic>& ELI_getStatistics();
+
+     struct SST::ElementInfoStatistic from sst-core/src/sst/core/eli/elibase.h
+     {
+       const char* name;               //!< Name of the Statistic to be Enabled
+       const char* description;        //!< Brief description of the Statistic
+       const char* units;              //!< Units associated with this Statistic value
+       const uint8_t enableLevel;      //!< Level to meet to enable statistic 0 = disabled 
+     }
+   */
+
+   { "Count",
+     "Count of events handled before stop time.",
+     "events",
+     1
+   },
+   { "Delays",
+     "Histogram of sampled delay times.",
+     "s",
+     2
+   }
+   );
 
   /**
    * Format for dynamic ports 'port_x'. The number of ports created
@@ -215,6 +245,7 @@ private:
   static SST::SimTime_t    m_stop;       /**< Stop time */
   static long              m_number;     /**< Total number of LPs */
   static long              m_events;     /**< Initial number of events per LP */
+  static bool              m_delaysOut;  /**< Output delays histogram */
   static uint32_t          m_verbose;    /**< Verbose output flag */
 
 
@@ -240,6 +271,11 @@ private:
   /**< Poisson RNG for picking delay times */
   SST::RNG::SSTExponentialDistribution * m_delayRng;
 
+  // Class instance statistics
+  /** Count of events handled. */
+  Statistic<uint64_t> * m_count;
+  /** Histogram of delay times. */
+  Statistic<float>   * m_delays;
 };
 
 }  // namespace Phold

@@ -51,6 +51,7 @@ class PholdArgs(dict):
         self.stop = 10
         self.number = 2
         self.events = 1
+        self.delays = False
         self.pverbose = 0
         self.pyVerbose = 0
 
@@ -61,6 +62,7 @@ class PholdArgs(dict):
                f"stop: {self.stop}, " \
                f"nodes: {self.number}, " \
                f"events: {self.events}, " \
+               f"delays: {self.delays}, " \
                f"verbose: {self.pverbose}, " \
                f"pyVerbose: {self.pyVerbose}"
 
@@ -71,6 +73,7 @@ class PholdArgs(dict):
         print(f"    Stop time:                            {self.stop} s")
         print(f"    Number of LPs:                        {self.number}")
         print(f"    Number of initial events per LP:      {self.events}")
+        print(f"    Output delay histogram:               {self.delays}")
         print(f"    Verbosity level:                      {self.pverbose}")
         print(f"    Python script verbosity level:        {self.pyVerbose}")
 
@@ -128,6 +131,9 @@ class PholdArgs(dict):
             # '--verbose' conflicts with SST, even after --
             '-v', '--pverbose', action='count',
             help=f"Phold module verbosity")
+        parser.add_argument(
+            '-d', '--delays', action='store_true',
+            help=f"Output delay histogram")
         parser.add_argument(
             '-V', '--pyVerbose', action='count',
             help=f"Python script verbosity")
@@ -191,5 +197,24 @@ for i in range(ph.number):
 
         link.connect(li, lj)
 dotter.done()
+
+# Enable statistics
+statLevel = 1 + ph.delays
+phprint(f"Enabling statistics at level {statLevel}")
+sst.setStatisticLoadLevel(statLevel)
+sst.setStatisticOutput("sst.statOutputConsole")
+
+# Always enable Count, report only at end
+# Stat type accumulator is the default
+sst.enableStatisticsForComponentType("phold.Phold", ["Count"],
+                                     {"rate" : "0ns"})
+
+if ph.delays:
+    sst.enableStatisticsForComponentType("phold.Phold", ["Delays"],
+                                         {"type" : "sst.HistogramStatistic",
+                                          "rate" : "0ns",
+                                          "minvalue" : "0",
+                                          "binwidth" : "1",
+                                          "numbins" : "50" } )
 
 phprint(f"Done\n")
