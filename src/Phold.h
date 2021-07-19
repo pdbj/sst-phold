@@ -61,24 +61,72 @@ public:
   void setup() override;
   void finish() override;
 
-  // Macro defined in sst-core/sst/core/component.h:
   SST_ELI_REGISTER_COMPONENT
   (
-   Phold,       // !< class type (class Identifier)
-   "phold",     // !<  Module name (const char *)
-   "Phold",     // !< class name (const char *)
-   SST_ELI_ELEMENT_VERSION( 1, 0, 0 ),    // !< version number (Major, minor, patch)
-   "PHOLD benchmark component for SST",   // !< description (const char *)
-   COMPONENT_CATEGORY_PROCESSOR
+   /* 
+      Long macro chain starting in sst-core/sst/core/component.h:
+      SST_ELI_REGISTER_COMPONENT(cls,lib,name,ELI_FORWARD_AS_ONE(version),desc)
+
+      Defines class static info functions:
+
+      Return type                     Function name            Macro arg
+      ------------------------------  ---------------------    ----------------
+      static const std::string &      ELI_getCompileDate();    implicit
+      static const std::string        ELI_getCompileFile();    implicit
+      static constexpr unsigned       majorVersion();          from version arg
+      static constexpr unsigned       minorVersion();          from version arg
+      static constexpr unsigned       tertiaryVersion();       from version arg
+      static const std::vector<int> & ELI_getVersion();        version
+      static const char *             ELI_getLibrary();        lib
+      static const char *             ELI_getName();           cls
+      static const char *             ELI_getDescription();    desc
+      static uint32_t                 ELI_getCategory();       category tag
+
+      (Implicit args are derived during compilation.)
+
+      As if there was a struct (but the information isn't stored that way):
+
+      template<class T> struct
+      {
+        <T>  cls;                   // !< Component class type, used in InstantiateBuilder templates
+        const char* lib;            // !< Module (library) name
+        const char* name;           // !< Class name, as a string (could be different from '# cls'
+        const unsigned major;       // !< Major version number
+        const unsigned minor;       // !< Minor version number
+        const unsigned tertiary;    // !< Version patch level
+        const char* desc;           // !< Descriptive string
+        const CATEGORY_T category;  // !< Component category type
+        
+        const std::string compDate; // !< Compile date
+        const std::string file;     // !< File (compilation unit)
+      },
+   */
+
+   Phold,
+   "phold",
+   "Phold",
+   SST_ELI_ELEMENT_VERSION( 1, 0, 0 ),
+   "PHOLD benchmark component for SST",
+   COMPONENT_CATEGORY_UNCATEGORIZED
    );
 
-  // Macro defined in sst-core/src/core/eli/paramsInfo.h:
-  // std::vector<SST::ElementInfoParam>
   SST_ELI_DOCUMENT_PARAMS
-  ( // struct SST::ElementInfoParam from sst-core/src/core/eli/elibase.h:
-   { "remote",                                     // !< name (const char *)
-     "Fraction of events which should be remote",  // !< description (const char *)
-     "0.9"                                         // !< defaultValue (const char *)
+  ( 
+   /* 
+      Macro defined in sst-core/src/sst/core/eli/paramsInfo.h:
+      static const std::vector<SST::ElementInfoParam> & ELI_getParams();
+
+      struct SST::ElementInfoParam from sst-core/src/sst/core/eli/elibase.h:
+      {
+        const char * name;          // !< Name, as used in calls to Params::find().
+        const char * description;   // !< Description as reported by sst-info.
+        const char * defaultValue;  // !< Default value if not set explicitly.
+      }
+     */
+
+   { "remote",
+     "Fraction of events which should be remote",
+     "0.9"
    },
    { "minimum",
      "Minimum delay when sending events, in seconds. Must be >0.",
@@ -114,21 +162,29 @@ public:
    */
   static constexpr char PORT_NAME[]   = "port_%(number)d";
 
-  // Macro defined in sst-core/src/core/eli/portsInfo.h:
-  // std::vector<SST::ElementInfoPort2>
-  // A fixed list of port declarations would look like this:
   SST_ELI_DOCUMENT_PORTS
   (
-   // struct SST::ElementInfoPort2 from sst-core/src/core/eli/elibase.h:
    /*
-   { "self",
-     "port for link to self",
-     {"phold.PHoldEvent", ""}
-   },
+     Macro defined in sst-core/src/sst/core/eli/portsInfo.h:
+     static const std::vector<SST::ElementInfoPort2>& ELI_getPorts();
+     
+     struct SST::ElementInfoPort2 from sst-core/src/sst/core/eli/elibase.h:
+     { 
+       /// Name of the port. Can contain d for a dynamic port, 
+       /// also %(xxx)d for dynamic port with xxx being the 
+       /// controlling component parameter
+       const char* name;
+       /// Brief description of the port (ie, what it is used for)
+       const char* description;
+       /// List of fully-qualified event types that this Port expects 
+       /// to send or receive
+       const std::vector<std::string> validEvents;
+       };
    */
-   { PORT_NAME,                  //!< name (const char *)
-     "Representative port",      //!< description (const char *)
-     {"phold.PholdEvent", ""}    //!< validEvents (std::vector<std::string>)
+
+   { PORT_NAME,                  
+     "Representative port",      
+     {"phold.PholdEvent", ""}    
     }
   );
   
@@ -161,16 +217,28 @@ private:
   static long              m_events;     /**< Initial number of events per LP */
   static uint32_t          m_verbose;    /**< Verbose output flag */
 
+
   // class instance data members
-  SST::Output              m_output;     /**< Output stream for verbose output */
-  std::vector<SST::Link *> m_links;      /**< The list of links to other LPs */
-  /** Choice of underlying RNG: SST::RNG::MersenneRNG or SST::RNG::MarsagliaRNG */
+  /**< Output stream for verbose output */
+  SST::Output              m_output;
+  /**< The list of links to other LPs */
+  std::vector<SST::Link *> m_links;     
+ 
+  /** 
+   * Choice of underlying RNG: 
+   * * SST::RNG::MersenneRNG or 
+   * * SST::RNG::MarsagliaRNG 
+   */
   typedef SST::RNG::MarsagliaRNG RNG_t;
 
-  RNG_t                            * m_rng;          /**< Base RNG instance */
-  SST::RNG::SSTUniformDistribution * m_remRng;       /**< Uniform RNG for deciding if event should be remote */
-  SST::RNG::SSTUniformDistribution * m_nodeRng;      /**< Uniform RNG for picking remote LPs */
-  SST::RNG::SSTExponentialDistribution * m_delayRng; /**< Poisson RNG for picking delay times */
+  /**< Base RNG instance */
+  RNG_t                            * m_rng;
+  /**< Uniform RNG for deciding if event should be remote */
+  SST::RNG::SSTUniformDistribution * m_remRng;
+  /**< Uniform RNG for picking remote LPs */
+  SST::RNG::SSTUniformDistribution * m_nodeRng;
+  /**< Poisson RNG for picking delay times */
+  SST::RNG::SSTExponentialDistribution * m_delayRng;
 
 };
 
