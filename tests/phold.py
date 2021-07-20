@@ -1,6 +1,6 @@
 #!python3
 
-import sst
+# import sst is managed below
 
 import argparse
 import math
@@ -151,14 +151,25 @@ class PholdArgs(dict):
 
 
 # -- Main --
-
 print(f"\n")
 phprint(f"Creating PHOLD Benchmark")
+
+# If sst not found, we're just debugging this script
+try:
+    import sst
+    just_script = False
+    phprint(f"Importing SST module")
+except:
+    just_script = True
+    phprint(f"No SST module, just debugging this script")
+
 
 # Phold arguments instance
 ph = PholdArgs()
 ph.parse()
 
+if just_script:
+    sys.exit(1)
 
 # Create the LPs
 phprint(f"Creating {ph.number} LPs")
