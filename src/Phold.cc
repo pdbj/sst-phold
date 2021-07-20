@@ -25,12 +25,13 @@
 namespace Phold {
 
 // Simplify use of sst_assert
-#define ASSERT(condition, ...) \
-    Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
+#define ASSERT(condition, args...) \
+    Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
 
-#define VERBOSE(l, ...)                                                 \
-  m_output.verbosePrefix(VERBOSE_PREFIX.c_str(), \
-                         CALL_INFO, l, 0, __VA_ARGS__)
+#define VERBOSE(l, f, args...)                          \
+  m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),        \
+                         CALL_INFO, l, 0,               \
+                         "[%d] " f, l, ##args)
 
 #define OUTPUT(...)                             \
   if (m_verbose > 0) m_output.output(CALL_INFO, __VA_ARGS__)
@@ -210,8 +211,8 @@ Phold::SendEvent ()
   auto nextEventTime = delayTotal + now;
   if (nextEventTime > m_stop)
     {
-      // Event would be beyond end time, so don't generate it and stop this LP
-      VERBOSE(2, "now: %llu + next delay %llu = %llu beyond stop %llu\n", 
+      // Event would be beyond end time, so don't generate it
+      VERBOSE(3, "now: %llu + next delay %llu = %llu beyond stop %llu\n", 
               now, delayTotal, nextEventTime, m_stop);
       // Only signal stop if we've actually started
       if (0 < now)
@@ -315,7 +316,7 @@ Phold::setup()
     nSent += sent;
     if (! sent)
       {
-        VERBOSE(3, "attempt %d did not send, retrying\n", nTries);
+        VERBOSE(4, "attempt %d did not send, retrying\n", nTries);
       }
     ++nTries;
   }
