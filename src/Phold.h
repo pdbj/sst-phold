@@ -222,12 +222,8 @@ private:
   /** Default c'tor for serialization only. */
   Phold();
 
-  /** 
-   * Send a new event to a random LP. 
-   * @from [in] This LP id.
-   * @sendTime [in] The current time
-   */
-  void SendEvent (uint32_t from, SST::SimTime_t sendTime);
+  /** Send a new event to a random LP. */
+  bool SendEvent ();
 
   /**
    * Incoming event handler

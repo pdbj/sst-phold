@@ -189,8 +189,8 @@ Phold::~Phold() noexcept
 #undef DELETE
 }
 
-void
-Phold::SendEvent (uint32_t from, SST::SimTime_t sendTime)
+bool
+Phold::SendEvent ()
 {
   VERBOSE(2, "\n");
 
@@ -205,7 +205,7 @@ Phold::SendEvent (uint32_t from, SST::SimTime_t sendTime)
       // Event would be beyond end time, so don't generate it and stop this LP
       VERBOSE(2, "now: %llu, next delay %f beyond stop\n", now, delayS);
       primaryComponentOKToEndSim();
-      return;
+      return false;
     }
 
   // Remote or local?
@@ -262,6 +262,7 @@ Phold::SendEvent (uint32_t from, SST::SimTime_t sendTime)
   // Send a new event.  This is deleted in handleEvent
   auto ev = new PholdEvent(getCurrentSimTime());
   m_links[nextId]->send(delayTb, ev);
+  return true;
 }
 
 
@@ -280,7 +281,7 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   {
     VERBOSE(2, "now: %llu, from %u @ %llu\n", now, from, sendTime);
     m_count->addData(1);
-    SendEvent(from, sendTime);
+    SendEvent();
   } else
   {
     VERBOSE(2, "now: %llu, from %u @ %llu, stopping\n", now, from, sendTime);
@@ -298,7 +299,7 @@ Phold::setup()
   // Generate initial event set
   for (auto i = 0; i < m_events; ++i)
   {
-    SendEvent(getId(), 0);
+    SendEvent();
   }
 }
 
