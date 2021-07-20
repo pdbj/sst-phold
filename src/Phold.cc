@@ -213,7 +213,12 @@ Phold::SendEvent ()
       // Event would be beyond end time, so don't generate it and stop this LP
       VERBOSE(2, "now: %llu + next delay %llu = %llu beyond stop %llu\n", 
               now, delayTotal, nextEventTime, m_stop);
-      primaryComponentOKToEndSim();
+      // Only signal stop if we've actually started
+      if (0 < now)
+        {
+          primaryComponentOKToEndSim();
+          VERBOSE(2, "next event would be beyond stop, ok to end sim\n");
+        }
       return false;
     }
 
