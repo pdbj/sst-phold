@@ -66,12 +66,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_stop    = static_cast<SST::SimTime_t>(stop);
   m_number  = params.find<long>  ("number",   2);
   m_events  = params.find<long>  ("events",   1);
-  // SST::Params doesn't understand Python bools, but it should
-  // see sst-core/src/sst/from_string.h:44
-  auto delaysOut = params.find<std::string>  ("delays", "False");
-  auto delaysOutBool = params.find<bool> ("delays", false);
-  VERBOSE(2, "delays: %s (string), %u (bool)\n", delaysOut, delaysOutBool);
-  m_delaysOut = ( "True" == delaysOut);
+  m_delaysOut = params.find<bool> ("delays", false);
 
   // Default time unit for Component and links
   registerTimeBase(TIMEBASE, true);
@@ -85,6 +80,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
        << ", num="  << m_number
        << ", ev="   << m_events
        << ", st="   << m_stop
+       << ", dly="  << m_delaysOut
        << ", v="    << m_verbose;
 
     VERBOSE(2, "%s\n", ss.str().c_str());
