@@ -40,15 +40,14 @@ class Dot():
         if self.dotted: print("")
 
         
-
 # PHOLD parameters
 class PholdArgs(dict):
     def __init__(self):
         super().__init__()
         self.remote = 0.9
-        self.minimum = "1 s"
-        self.average = "10 s"
-        self.stop = "10 s"
+        self.minimum = 1
+        self.average = 10
+        self.stop = 10
         self.number = 2
         self.events = 1
         self.delays = False
