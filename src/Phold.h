@@ -252,7 +252,7 @@ private:
   // Class instance data members
   /** Output stream for verbose output */
   SST::Output              m_output;
-  /**< The list of links to other LPs */
+  /** The list of links to other LPs */
   std::vector<SST::Link *> m_links;     
  
   /** 
