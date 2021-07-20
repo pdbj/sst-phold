@@ -36,7 +36,7 @@ namespace Phold {
   if (m_verbose > 0) m_output.output(CALL_INFO, __VA_ARGS__)
   
 // Class static data members
-const char     Phold::PORT_NAME[];
+const char     Phold::PORT_NAME[];  // constexpr initialized in Phold.h
 const char     Phold::TIMEBASE[];
 
 double         Phold::m_remote;
@@ -54,7 +54,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 {
   // SST::Params doesn't understand Python bools
   m_verbose = params.find<long>  ("pverbose", 0);
-  m_output.init("@t:@X Phold-" + getName() + " [@p()] -> ", 
+  m_output.init("@t:@X:Phold-" + getName() + " [@p()] -> ", 
                 m_verbose, 0, SST::Output::STDOUT);
   VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
   VERBOSE(2, "Full c'tor() @0x%p\n", this);
