@@ -252,6 +252,11 @@ private:
   // Class instance data members
   /** Output stream for verbose output */
   SST::Output              m_output;
+  /** 
+   * Verbose output prefix, 
+   * per instance since it includes the component name. 
+   */
+  std::string VERBOSE_PREFIX;
   /** The list of links to other LPs */
   std::vector<SST::Link *> m_links;     
  

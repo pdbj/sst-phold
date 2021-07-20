@@ -28,9 +28,6 @@ namespace Phold {
 #define ASSERT(condition, ...) \
     Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
 
-// Simplify logging
-static std::string VERBOSE_PREFIX;
-
 #define VERBOSE(l, ...)                                                 \
   m_output.verbosePrefix(VERBOSE_PREFIX.c_str(), \
                          CALL_INFO, l, 0, __VA_ARGS__)
