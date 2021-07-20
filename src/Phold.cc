@@ -71,8 +71,8 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   // Default time unit for Component and links
   registerTimeBase(TIMEBASE, true);
 
-  std::stringstream ss;  // Declare here so we can reuse it below
   if (m_verbose) {
+    std::stringstream ss;  // Declare here so we can reuse it below
     ss << "  Config: "
        << "remote=" << m_remote
        << ", min="  << m_minimum
