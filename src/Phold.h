@@ -219,10 +219,14 @@ public:
   );
   
 private:
-  /**< Default c'tor for serialization only. */
+  /** Default c'tor for serialization only. */
   Phold();
 
-  /** Send a new event to a random LP. */
+  /** 
+   * Send a new event to a random LP. 
+   * @from [in] This LP id.
+   * @sendTime [in] The current time
+   */
   void SendEvent (uint32_t from, SST::SimTime_t sendTime);
 
   /**
@@ -232,7 +236,7 @@ private:
    */
   void handleEvent(SST::Event *ev, uint32_t from);
 
-  // class static data members
+  // Class static data members
 
   /** Default time base for component and associated links */
   static constexpr char    TIMEBASE[] = "1ms";
@@ -249,8 +253,8 @@ private:
   static uint32_t          m_verbose;    /**< Verbose output flag */
 
 
-  // class instance data members
-  /**< Output stream for verbose output */
+  // Class instance data members
+  /** Output stream for verbose output */
   SST::Output              m_output;
   /**< The list of links to other LPs */
   std::vector<SST::Link *> m_links;     
