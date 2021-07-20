@@ -88,6 +88,8 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   VERBOSE(2, "Initializing RNGs\n");
   m_rng  = new Phold::RNG_t;
+  // seed() doesn't check validity of arg, can't be 0
+  m_rng->seed(1 + getId());
   VERBOSE(4, "  m_rng      @0x%p\n", m_rng);
   m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
   VERBOSE(4, "  m_remRng   @0x%p\n", m_remRng);
