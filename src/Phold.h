@@ -248,6 +248,8 @@ private:
   static bool              m_delaysOut;  /**< Output delays histogram */
   static uint32_t          m_verbose;    /**< Verbose output flag */
 
+  static SST::TimeConverter * m_timeConverter;
+
 
   // Class instance data members
   /** Output stream for verbose output */

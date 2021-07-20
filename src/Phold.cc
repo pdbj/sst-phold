@@ -47,6 +47,7 @@ long           Phold::m_events;
 bool           Phold::m_delaysOut;
 uint32_t       Phold::m_verbose;
 SST::SimTime_t Phold::m_stop;
+SST::TimeConverter * Phold::m_timeConverter;
 
 
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
@@ -69,7 +70,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_delaysOut = params.find<bool> ("delays", false);
 
   // Default time unit for Component and links
-  registerTimeBase(TIMEBASE, true);
+  m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
 
   if (m_verbose) {
     std::stringstream ss;  // Declare here so we can reuse it below
