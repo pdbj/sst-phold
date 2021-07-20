@@ -37,11 +37,12 @@ namespace Phold {
   
 // Class static data members
 const char     Phold::PORT_NAME[];  // constexpr initialized in Phold.h
-const char     Phold::TIMEBASE[];
+/* const */ SST::UnitAlgebra Phold::TIMEBASE("1 ms");
+/* const */ double Phold::TIMEFACTOR;
 
 double         Phold::m_remote;
-double         Phold::m_minimum;
-double         Phold::m_average;
+SST::SimTime_t Phold::m_minimum;
+SST::UnitAlgebra  Phold::m_average;
 long           Phold::m_number;
 long           Phold::m_events;
 bool           Phold::m_delaysOut;
@@ -49,6 +50,12 @@ uint32_t       Phold::m_verbose;
 SST::SimTime_t Phold::m_stop;
 SST::TimeConverter * Phold::m_timeConverter;
 
+SST::SimTime_t 
+Phold::toSimTime (double s) const
+{ return s / TIMEFACTOR; }
+double
+Phold::toSeconds (SST::SimTime_t t) const
+{ return t * TIMEFACTOR; }
 
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
@@ -61,16 +68,22 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   VERBOSE(2, "Full c'tor() @0x%p\n", this);
 
   m_remote  = params.find<double>("remote",   0.9);
-  m_minimum = params.find<double>("minimum",  1.0);
-  m_average = params.find<double>("average", 10);
-  auto stop = params.find<double>("stop",    10)  / TIMEFACTOR;
-  m_stop    = static_cast<SST::SimTime_t>(stop);
+  m_minimum = toSimTime(params.find<double>("minimum",  1.0));
+  auto average = params.find<double>("average", 10);
+  m_average = SST::UnitAlgebra(std::to_string(average) + " s");
+  m_stop    = toSimTime(params.find<double>("stop", 10));
   m_number  = params.find<long>  ("number",   2);
   m_events  = params.find<long>  ("events",   1);
   m_delaysOut = params.find<bool> ("delays", false);
 
   // Default time unit for Component and links
   m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
+  TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
+
+  VERBOSE(3, "timeConverter factor: %llu, period: %s (%f)\n", 
+          m_timeConverter->getFactor(),
+          m_timeConverter->getPeriod().toString().c_str(),
+          m_timeConverter->getPeriod().getDoubleValue());
 
   if (m_verbose) {
     std::stringstream ss;  // Declare here so we can reuse it below
@@ -96,8 +109,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   VERBOSE(4, "  m_remRng   @0x%p\n", m_remRng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   VERBOSE(4, "  m_nodeRng  @0x%p\n", m_nodeRng);
-  m_delayRng = new SST::RNG::SSTExponentialDistribution(1.0 / m_average, m_rng);
-  VERBOSE(4, "  m_delayRng @0x%p\n", m_delayRng);
+  auto avgRngRate = m_average.invert();
+  m_delayRng = new SST::RNG::SSTExponentialDistribution(avgRngRate.getDoubleValue(), m_rng);
+  VERBOSE(4, "  m_delayRng @0x%p, rate: %s\n", m_delayRng, avgRngRate.toString().c_str());
 
   // Configure ports/links
   VERBOSE(2, "Configuring links:\n");
@@ -167,7 +181,7 @@ Phold::Phold() : SST::Component(-1)
   m_rng  = new Phold::RNG_t;
   m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
-  m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average, m_rng);
+  m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average.invert().getDoubleValue(), m_rng);
 }
 
 Phold::~Phold() noexcept
@@ -190,16 +204,15 @@ Phold::SendEvent ()
 {
   VERBOSE(2, "\n");
 
-  // Time to event, in s
   auto now = getCurrentSimTime();
-  auto delayS = m_delayRng->getNextDouble();
-  auto delayTotS = delayS + m_minimum;
-  auto delayTb = static_cast<SST::SimTime_t>(delayS / TIMEFACTOR);
-  auto delayTotTb = static_cast<SST::SimTime_t>(delayTotS / TIMEFACTOR);
-  if (now + delayTotTb > m_stop)
+  auto delay = toSimTime(m_delayRng->getNextDouble());
+  auto delayTotal = delay + m_minimum;
+  auto nextEventTime = delayTotal + now;
+  if (nextEventTime > m_stop)
     {
       // Event would be beyond end time, so don't generate it and stop this LP
-      VERBOSE(2, "now: %llu, next delay %f beyond stop\n", now, delayS);
+      VERBOSE(2, "now: %llu + next delay %llu = %llu beyond stop %llu\n", 
+              now, delayTotal, nextEventTime, m_stop);
       primaryComponentOKToEndSim();
       return false;
     }
@@ -228,36 +241,32 @@ Phold::SendEvent ()
   ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %lld\n", nextId);
 
   // Log and clean up delay
-  m_delays->addData(delayS);
+  m_delays->addData(toSeconds(delay));
   if ( ! local)
     {
       // For remotes m_minimum is added by the link
-      VERBOSE(3, "  delay: %f (%llu tb), total: %f => %f\n",
-              delayS, 
-              delayTb,
-              delayS + m_minimum,
-              delayS + m_minimum + now * TIMEFACTOR);
+      VERBOSE(3, "  delay: %llu, total: %llu => %llu\n",
+              delay,
+              delayTotal,
+              nextEventTime);
 
     } else {
       // self links don't have a min latency configured, so add it now
-      auto totDelayS = delayS + m_minimum;
-      delayTb = static_cast<SST::SimTime_t>(totDelayS / TIMEFACTOR);
-      VERBOSE(3, "  delay: %f + %f = %f (%llu tb) => %f\n",
-              delayS, 
+      delay = delayTotal;
+      VERBOSE(3, "  delay: %llu + %llu = %llu => %llu\n",
+              delay, 
               m_minimum,
-              totDelayS,
-              delayTb,
-              totDelayS + now * TIMEFACTOR);
+              delayTotal,
+              nextEventTime);
     }
 
   // Log the event
-  delayS += m_minimum + static_cast<double>(now) * TIMEFACTOR;
-  OUTPUT("from %u @ %llu, delay: %llu tb -> %lld @ %f\n", 
-         from, sendTime, delayTb, nextId, delayS);
+  OUTPUT("from %u @ %llu, delay: %llu -> %lld @ %llu\n", 
+         getId(), now, delay, nextId, nextEventTime);
 
   // Send a new event.  This is deleted in handleEvent
   auto ev = new PholdEvent(getCurrentSimTime());
-  m_links[nextId]->send(delayTb, ev);
+  m_links[nextId]->send(delay, ev);
   return true;
 }
 
@@ -293,10 +302,19 @@ Phold::setup()
   VERBOSE(2, "initial events: %ld\n", m_events);
 
   // Generate initial event set
-  for (auto i = 0; i < m_events; ++i)
+  auto nSent = 0;
+  auto nTries = 0;
+  while (nSent < m_events)
   {
-    SendEvent();
+    bool sent = SendEvent();
+    nSent += sent;
+    if (! sent)
+      {
+        VERBOSE(3, "attempt %d did not send, retrying\n", nTries);
+      }
+    ++nTries;
   }
+  VERBOSE(3, "needed %d attempts\n", nTries);
 }
 
 

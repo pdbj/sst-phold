@@ -235,13 +235,21 @@ private:
   // Class static data members
 
   /** Default time base for component and associated links */
-  static constexpr char    TIMEBASE[] = "1ms";
-  static constexpr double  TIMEFACTOR = 1e-3;
+  static /* const */ SST::UnitAlgebra TIMEBASE;
+  /** Conversion factor for TIMEBASE, used in toSimTime() and toSeconds() */
+  static /* const */ double TIMEFACTOR;
 
+  // Time conversion functions.
+  // \todo There must be a native way using TimeConverters...
+
+  /** Convert from seconds to Phold sim time in TimeBase. */
+  SST::SimTime_t toSimTime (double s) const;
+  /** Convert Phold sim time to seconds. */
+  double         toSeconds (SST::SimTime_t t) const;
 
   static double            m_remote;     /**< Remote event fraction */
-  static double            m_minimum;    /**< Minimum event delay */
-  static double            m_average;    /**< Mean event delay, added to m_minimum */
+  static SST::SimTime_t    m_minimum;    /**< Minimum event delay */
+  static SST::UnitAlgebra  m_average;    /**< Mean event delay, added to m_minimum */
   static SST::SimTime_t    m_stop;       /**< Stop time */
   static long              m_number;     /**< Total number of LPs */
   static long              m_events;     /**< Initial number of events per LP */
