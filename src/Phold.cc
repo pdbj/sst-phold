@@ -24,6 +24,8 @@
 
 namespace Phold {
 
+#ifdef PHOLD_DEBUG
+
 // Simplify use of sst_assert
 #define ASSERT(condition, args...) \
     Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
@@ -35,9 +37,15 @@ namespace Phold {
 
 #define OUTPUT(...)                             \
   if (m_verbose > 0) m_output.output(CALL_INFO, __VA_ARGS__)
+
+#else
+#define ASSERT(...)
+#define VERBOSE(...)
+#define OUTPUT(...)
+#endif
   
 // Class static data members
-const char     Phold::PORT_NAME[];  // constexpr initialized in Phold.h
+constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
 /* const */ SST::UnitAlgebra Phold::TIMEBASE("1 ms");
 /* const */ double Phold::TIMEFACTOR;
 
@@ -63,10 +71,15 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 {
   // SST::Params doesn't understand Python bools
   m_verbose = params.find<long>  ("pverbose", 0);
+#ifdef PHOLD_DEBUG
   m_output.init("@t:@X:Phold-" + getName() + " [@p()] -> ", 
                 m_verbose, 0, SST::Output::STDOUT);
   VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
   VERBOSE(2, "Full c'tor() @0x%p\n", this);
+#else
+  if (0 == getId()) std::cout << "Phold:  optimized build" << std::endl;
+#endif
+  
 
   m_remote  = params.find<double>("remote",   0.9);
   m_minimum = toSimTime(params.find<double>("minimum",  1.0));
@@ -86,6 +99,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
           m_timeConverter->getPeriod().toString().c_str(),
           m_timeConverter->getPeriod().getDoubleValue());
 
+#ifdef PHOLD_DEBUG
   if (m_verbose) {
     std::stringstream ss;  // Declare here so we can reuse it below
     ss << "  Config: "
@@ -100,6 +114,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
     VERBOSE(2, "%s\n", ss.str().c_str());
   }
+#endif
 
   VERBOSE(2, "Initializing RNGs\n");
   m_rng  = new Phold::RNG_t;

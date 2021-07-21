@@ -260,6 +260,7 @@ private:
 
 
   // Class instance data members
+#ifdef PHOLD_DEBUG
   /** Output stream for verbose output */
   SST::Output              m_output;
   /** 
@@ -267,6 +268,8 @@ private:
    * per instance since it includes the component name. 
    */
   std::string VERBOSE_PREFIX;
+#endif
+
   /** The list of links to other LPs */
   std::vector<SST::Link *> m_links;     
  
