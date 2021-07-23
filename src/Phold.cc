@@ -44,7 +44,7 @@ namespace Phold {
   
 // Class static data members
 constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
-/* const */ SST::UnitAlgebra Phold::TIMEBASE("1 ms");
+/* const */ SST::UnitAlgebra Phold::TIMEBASE("1 us");
 /* const */ double Phold::TIMEFACTOR;
 
 double         Phold::m_remote;
