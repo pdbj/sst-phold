@@ -68,7 +68,7 @@ class PholdArgs(dict):
     def print(self):
         print(f"    Remote LP fraction:                   {self.remote}")
         print(f"    Minimum inter-event delay:            {self.minimum} s")
-        print(f"    Additional Exponential average delay: {self.average} s")
+        print(f"    Additional exponential average delay: {self.average} s")
         print(f"    Stop time:                            {self.stop} s")
         print(f"    Number of LPs:                        {self.number}")
         print(f"    Number of initial events per LP:      {self.events}")
@@ -103,39 +103,46 @@ class PholdArgs(dict):
         return valid
 
     def init_argparse(self) -> argparse.ArgumentParser:
+
         script = os.path.basename(__file__)
         parser = argparse.ArgumentParser(
             usage=f"sst {script} [OPTION]...",
             description="Execute the standard PHOLD benchmark.")
         parser.add_argument(
             '-r', '--remote', action='store', type=float,
-            help=f"Fraction of events which should be scheduled for other LPs, in [0,1].")
+            help=f"Fraction of events which should be scheduled for other LPs. "
+            f"Must be in [0,1], default {self.remote}.")
         parser.add_argument(
             '-m', '--minimum', action='store', type=float,
-            help=f"Minimum inter-event delay, in seconds.  Must be >0.")
+            help=f"Minimum inter-event delay, in seconds. "
+            f"Must be >0, default {self.minimum}.")
         parser.add_argument(
             '-a', '--average', action='store', type=float,
             help=f"Average additional inter-event delay, in seconds. "
-             f"This will be added to the min delay, and must be >= 0")
+             f"This will be added to the min delay, and must be >= 0, "
+            f"default {self.average}.")
         parser.add_argument(
             '-s', '--stop', action='store', type=float,
-            help=f"Total simulation time, in seconds. Must be > 0.")
+            help=f"Total simulation time, in seconds. "
+            f"Must be > 0, default {self.stop}.")
         parser.add_argument(
             '-n', '--number', action='store', type=float,
-            help=f"Total number of LPs. Must be > 1.")
+            help=f"Total number of LPs. "
+            f"Must be > , default {self.number}.")
         parser.add_argument(
             '-e', '--events', action='store', type=float,
-            help=f"Number of initial events per LP. Must be > 0.")
+            help=f"Number of initial events per LP. "
+            f"Must be > 0, default {self.events}")
         parser.add_argument(
             # '--verbose' conflicts with SST, even after --
             '-v', '--pverbose', action='count',
-            help=f"Phold module verbosity")
+            help=f"Phold module verbosity, default {self.pverbose}.")
         parser.add_argument(
             '-d', '--delays', action='store_true',
-            help=f"Output delay histogram")
+            help=f"Whether to utput delay histogram, default {self.delays}.")
         parser.add_argument(
             '-V', '--pyVerbose', action='count',
-            help=f"Python script verbosity")
+            help=f"Python script verbosity, default {self.pyVerbose}.")
         return parser
 
     def parse(self):
