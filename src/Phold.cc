@@ -60,17 +60,17 @@ SST::SimTime_t Phold::m_stop;
 SST::TimeConverter * Phold::m_timeConverter;
 
 SST::SimTime_t 
-Phold::toSimTime (double s) const
+Phold::toSimTime(double s) const
 { return s / TIMEFACTOR; }
 double
-Phold::toSeconds (SST::SimTime_t t) const
+Phold::toSeconds(SST::SimTime_t t) const
 { return t * TIMEFACTOR; }
 
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
 {
   // SST::Params doesn't understand Python bools
-  m_verbose = params.find<long>  ("pverbose", 0);
+  m_verbose = params.find<long>("pverbose", 0);
 #ifdef PHOLD_DEBUG
   m_output.init("@t:@X:Phold-" + getName() + " [@p()] -> ", 
                 m_verbose, 0, SST::Output::STDOUT);
@@ -216,7 +216,7 @@ Phold::~Phold() noexcept
 }
 
 bool
-Phold::SendEvent ()
+Phold::SendEvent()
 {
   VERBOSE(2, "\n");
 

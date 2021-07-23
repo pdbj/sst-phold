@@ -223,7 +223,7 @@ private:
   Phold();
 
   /** Send a new event to a random LP. */
-  bool SendEvent ();
+  bool SendEvent();
 
   /**
    * Incoming event handler
@@ -243,9 +243,9 @@ private:
   // \todo There must be a native way using TimeConverters...
 
   /** Convert from seconds to Phold sim time in TimeBase. */
-  SST::SimTime_t toSimTime (double s) const;
+  SST::SimTime_t toSimTime(double s) const;
   /** Convert Phold sim time to seconds. */
-  double         toSeconds (SST::SimTime_t t) const;
+  double         toSeconds(SST::SimTime_t t) const;
 
   static double            m_remote;     /**< Remote event fraction */
   static SST::SimTime_t    m_minimum;    /**< Minimum event delay */
