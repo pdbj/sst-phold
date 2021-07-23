@@ -60,9 +60,11 @@ SST::TimeConverter * Phold::m_timeConverter;
 SST::SimTime_t 
 Phold::toSimTime(double s) const
 { return s / TIMEFACTOR; }
+
 double
 Phold::toSeconds(SST::SimTime_t t) const
 { return t * TIMEFACTOR; }
+
 std::string
 Phold::toBestSI(SST::SimTime_t sim) const
 {
@@ -71,6 +73,7 @@ Phold::toBestSI(SST::SimTime_t sim) const
   s *= time;
   return s.toStringBestSI();
 }
+
 
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
@@ -92,7 +95,6 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
           m_timeConverter->getFactor(),
           m_timeConverter->getPeriod().toString().c_str(),
           m_timeConverter->getPeriod().getDoubleValue());
-
 
   m_remote  = params.find<double> ("remote",   0.9);
   m_minimum = toSimTime(params.find<double>("minimum",  1.0));
@@ -123,7 +125,6 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 #endif
        << std::endl;
 #undef BEST
-
 
     OUTPUT("%s\n", ss.str().c_str());
   }
@@ -212,6 +213,7 @@ Phold::Phold() : SST::Component(-1)
   m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average.invert().getDoubleValue(), m_rng);
 }
 
+
 Phold::~Phold() noexcept
 {
   VERBOSE(2, "Destructor()\n");
@@ -226,6 +228,7 @@ Phold::~Phold() noexcept
 
 #undef DELETE
 }
+
 
 bool
 Phold::SendEvent()
