@@ -116,7 +116,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   }
 #endif
 
-  VERBOSE(2, "Initializing RNGs\n");
+  VERBOSE(3, "Initializing RNGs\n");
   m_rng  = new Phold::RNG_t;
   // seed() doesn't check validity of arg, can't be 0
   m_rng->seed(1 + getId());
@@ -130,7 +130,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   VERBOSE(4, "  m_delayRng @0x%p, rate: %s\n", m_delayRng, avgRngRate.toString().c_str());
 
   // Configure ports/links
-  VERBOSE(2, "Configuring links:\n");
+  VERBOSE(3, "Configuring links:\n");
   m_links.resize(m_number);
 
   // Set up the port labels
@@ -159,7 +159,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   }
 
   // Register statistics
-  VERBOSE(2, "Initializing statistics\n");
+  VERBOSE(3, "Initializing statistics\n");
   m_count = registerStatistic<uint64_t>("Count");
   ASSERT(m_count, "Failed to register Count statistic");
   m_count->setFlagOutputAtEndOfSim(true);
@@ -282,7 +282,7 @@ Phold::SendEvent()
     }
 
   // Log the event
-  OUTPUT("from %u @ %llu, delay: %llu -> %lld @ %llu\n", 
+  VERBOSE(2, "from %u @ %llu, delay: %llu -> %lld @ %llu\n", 
          getId(), now, delay, nextId, nextEventTime);
 
   // Send a new event.  This is deleted in handleEvent
