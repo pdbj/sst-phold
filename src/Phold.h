@@ -246,6 +246,8 @@ private:
   SST::SimTime_t toSimTime(double s) const;
   /** Convert Phold sim time to seconds. */
   double         toSeconds(SST::SimTime_t t) const;
+  /** Generate the best SI representation of the time. */
+  std::string    toBestSI(SST::SimTime_t sim) const;
 
   static double            m_remote;     /**< Remote event fraction */
   static SST::SimTime_t    m_minimum;    /**< Minimum event delay */
@@ -260,9 +262,9 @@ private:
 
 
   // Class instance data members
-#ifdef PHOLD_DEBUG
   /** Output stream for verbose output */
   SST::Output              m_output;
+#ifdef PHOLD_DEBUG
   /** 
    * Verbose output prefix, 
    * per instance since it includes the component name. 

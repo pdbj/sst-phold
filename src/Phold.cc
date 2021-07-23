@@ -25,7 +25,6 @@
 namespace Phold {
 
 #ifdef PHOLD_DEBUG
-
 // Simplify use of sst_assert
 #define ASSERT(condition, args...) \
     Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
@@ -34,15 +33,14 @@ namespace Phold {
   m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),        \
                          CALL_INFO, l, 0,               \
                          "[%d] " f, l, ##args)
-
-#define OUTPUT(...)                             \
-  if (m_verbose > 0) m_output.output(CALL_INFO, __VA_ARGS__)
-
 #else
 #define ASSERT(...)
 #define VERBOSE(...)
-#define OUTPUT(...)
 #endif
+
+
+#define OUTPUT(...)                             \
+  if (0 == getId() && 0 < m_verbose) m_output.output(CALL_INFO, __VA_ARGS__)
   
 // Class static data members
 constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
@@ -65,31 +63,27 @@ Phold::toSimTime(double s) const
 double
 Phold::toSeconds(SST::SimTime_t t) const
 { return t * TIMEFACTOR; }
+std::string
+Phold::toBestSI(SST::SimTime_t sim) const
+{
+  auto time = m_timeConverter->convertFromCoreTime(sim);
+  auto s = TIMEBASE;
+  s *= time;
+  return s.toStringBestSI();
+}
 
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
 {
   // SST::Params doesn't understand Python bools
   m_verbose = params.find<long>("pverbose", 0);
-#ifdef PHOLD_DEBUG
   m_output.init("@t:@X:Phold-" + getName() + " [@p()] -> ", 
                 m_verbose, 0, SST::Output::STDOUT);
+#ifdef PHOLD_DEBUG
   VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
-  VERBOSE(2, "Full c'tor() @0x%p\n", this);
-#else
-  if (0 == getId()) std::cout << "Phold:  optimized build" << std::endl;
+  VERBOSE(2, "Full c'tor() @0x%p, id: %u, name: %s\n", this, getId(), getName().c_str());
 #endif
   
-
-  m_remote  = params.find<double>("remote",   0.9);
-  m_minimum = toSimTime(params.find<double>("minimum",  1.0));
-  auto average = params.find<double>("average", 10);
-  m_average = SST::UnitAlgebra(std::to_string(average) + " s");
-  m_stop    = toSimTime(params.find<double>("stop", 10));
-  m_number  = params.find<long>  ("number",   2);
-  m_events  = params.find<long>  ("events",   1);
-  m_delaysOut = params.find<bool> ("delays", false);
-
   // Default time unit for Component and links
   m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
   TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
@@ -99,22 +93,40 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
           m_timeConverter->getPeriod().toString().c_str(),
           m_timeConverter->getPeriod().getDoubleValue());
 
-#ifdef PHOLD_DEBUG
-  if (m_verbose) {
-    std::stringstream ss;  // Declare here so we can reuse it below
-    ss << "  Config: "
-       << "remote=" << m_remote
-       << ", min="  << m_minimum
-       << ", avg="  << m_average
-       << ", num="  << m_number
-       << ", ev="   << m_events
-       << ", st="   << m_stop
-       << ", dly="  << m_delaysOut
-       << ", v="    << m_verbose;
 
-    VERBOSE(2, "%s\n", ss.str().c_str());
-  }
+  m_remote  = params.find<double> ("remote",   0.9);
+  m_minimum = toSimTime(params.find<double>("minimum",  1.0));
+  m_average = TIMEBASE;
+  m_average *= params.find<double>("average", 10);
+  m_stop    = toSimTime(params.find<double>("stop", 10));
+  m_number  = params.find<long>   ("number",   2);
+  m_events  = params.find<long>   ("events",   1);
+  m_delaysOut = params.find<bool> ("delays", false);
+
+  if (0 == getId()) {
+    std::stringstream ss;
+
+    ss << "\nPHOLD Configuration:"
+       << "\n    Remote LP fraction:                   " << m_remote
+       << "\n    Minimum inter-event delay:            " << toBestSI(m_minimum)
+       << "\n    Additional exponential average delay: " << m_average.toStringBestSI()
+       << "\n    Stop time:                            " << toBestSI(m_stop)
+       << "\n    Number of LPs:                        " << m_number
+       << "\n    Number of initial events per LP:      " << m_events
+       << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
+       << "\n    Verbosity level:                      " << m_verbose
+       << "\n    Optimization level:                   "
+#ifdef PHOLD_DEBUG
+       << "debug"
+#else
+       << "optimized"
 #endif
+       << std::endl;
+#undef BEST
+
+
+    OUTPUT("%s\n", ss.str().c_str());
+  }
 
   VERBOSE(3, "Initializing RNGs\n");
   m_rng  = new Phold::RNG_t;
