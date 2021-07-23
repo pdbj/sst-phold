@@ -173,14 +173,18 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   // Register statistics
   VERBOSE(3, "Initializing statistics\n");
-  m_count = registerStatistic<uint64_t>("Count");
+  // Stop stat collection at stop time
+  SST::Params p;
+  p.insert("stopat", m_stop);
+
+  m_count = registerStatistic<uint64_t>(p, "Count");
   ASSERT(m_count, "Failed to register Count statistic");
   m_count->setFlagOutputAtEndOfSim(true);
   ASSERT(m_count->isEnabled(), "Count statistic is not enabled!\n");
   ASSERT( ! m_count->isNullStatistic(), "Count statistic is Null!\n");
   VERBOSE(4, "  m_count    @0x%p\n", m_count);
 
-  m_delays = registerStatistic<float>("Delays");
+  m_delays = registerStatistic<float>(p, "Delays");
   ASSERT(m_delays, "Failed to register Delays statistic\n");
   m_delays->setFlagOutputAtEndOfSim(true);
   if (m_delaysOut)
@@ -235,24 +239,6 @@ Phold::SendEvent()
 {
   VERBOSE(2, "\n");
 
-  auto now = getCurrentSimTime();
-  auto delay = toSimTime(m_delayRng->getNextDouble());
-  auto delayTotal = delay + m_minimum;
-  auto nextEventTime = delayTotal + now;
-  if (nextEventTime > m_stop)
-    {
-      // Event would be beyond end time, so don't generate it
-      VERBOSE(3, "now: %llu + next delay %llu = %llu beyond stop %llu\n", 
-              now, delayTotal, nextEventTime, m_stop);
-      // Only signal stop if we've actually started
-      if (0 < now)
-        {
-          primaryComponentOKToEndSim();
-          VERBOSE(2, "next event would be beyond stop, ok to end sim\n");
-        }
-      return false;
-    }
-
   // Remote or local?
   SST::ComponentId_t nextId = getId();
   auto rem = m_remRng->getNextDouble() / UINT32_MAX;
@@ -275,6 +261,14 @@ Phold::SendEvent()
     VERBOSE(3, "  next rng: %f, self             %lld\n", rem, nextId);
   }
   ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %lld\n", nextId);
+
+  // When?
+  auto now = getCurrentSimTime();
+  auto delay = toSimTime(m_delayRng->getNextDouble());
+  auto delayTotal = delay + m_minimum;
+  auto nextEventTime = delayTotal + now;
+  // Generate and send events, even if they will be beyond stop,
+  // so the simulator has to do the work 
 
   // Log and clean up delay
   m_delays->addData(toSeconds(delay));
@@ -327,7 +321,6 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   {
     VERBOSE(2, "now: %llu, from %u @ %llu, stopping\n", now, from, sendTime);
     primaryComponentOKToEndSim();
-    ASSERT(0, "Shouldn't be here handling a post-stop event\n");
   }
 }
 
