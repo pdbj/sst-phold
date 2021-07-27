@@ -50,6 +50,9 @@ namespace Phold {
 constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
 /* const */ SST::UnitAlgebra Phold::TIMEBASE("1 us");
 /* const */ double Phold::TIMEFACTOR;
+//  Conversion factor from phold.py script to Phold::TIMEBASE
+/* const */ double Phold::PHOLD_PY_TIMEFACTOR{1e6};
+
 
 double         Phold::m_remote;
 SST::SimTime_t Phold::m_minimum;
@@ -95,10 +98,10 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
 
   m_remote  = params.find<double> ("remote",   0.9);
-  m_minimum = toSimTime(params.find<double>("minimum",  1.0));
+  m_minimum = params.find<double> ("minimum",  1.0) * PHOLD_PY_TIMEFACTOR;
   m_average = TIMEBASE;
-  m_average *= params.find<double>("average", 10);
-  m_stop    = toSimTime(params.find<double>("stop", 10));
+  m_average *= params.find<double>("average", 10) * PHOLD_PY_TIMEFACTOR;
+  m_stop    = params.find<double> ("stop",    10) * PHOLD_PY_TIMEFACTOR;
   m_number  = params.find<long>   ("number",   2);
   m_events  = params.find<long>   ("events",   1);
   m_delaysOut = params.find<bool> ("delays",  false);

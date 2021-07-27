@@ -53,6 +53,7 @@ class PholdArgs(dict):
         self.delays = False
         self.pverbose = 0
         self.pyVerbose = 0
+        self.TIMEBASE = "s"
 
     def __str__(self):
         return f"remote: {self.remote}, " \
@@ -67,9 +68,9 @@ class PholdArgs(dict):
 
     def print(self):
         print(f"    Remote LP fraction:                   {self.remote}")
-        print(f"    Minimum inter-event delay:            {self.minimum} s")
-        print(f"    Additional exponential average delay: {self.average} s")
-        print(f"    Stop time:                            {self.stop} s")
+        print(f"    Minimum inter-event delay:            {self.minimum} {self.TIMEBASE}")
+        print(f"    Additional exponential average delay: {self.average} {self.TIMEBASE}")
+        print(f"    Stop time:                            {self.stop} {self.TIMEBASE}")
         print(f"    Number of LPs:                        {self.number}")
         print(f"    Number of initial events per LP:      {self.events}")
         print(f"    Output delay histogram:               {self.delays}")
@@ -114,16 +115,16 @@ class PholdArgs(dict):
             f"Must be in [0,1], default {self.remote}.")
         parser.add_argument(
             '-m', '--minimum', action='store', type=float,
-            help=f"Minimum inter-event delay, in seconds. "
+            help=f"Minimum inter-event delay, in {self.TIMEBASE}. "
             f"Must be >0, default {self.minimum}.")
         parser.add_argument(
             '-a', '--average', action='store', type=float,
-            help=f"Average additional inter-event delay, in seconds. "
+            help=f"Average additional inter-event delay, in {self.TIMEBASE}. "
              f"This will be added to the min delay, and must be >= 0, "
             f"default {self.average}.")
         parser.add_argument(
             '-s', '--stop', action='store', type=float,
-            help=f"Total simulation time, in seconds. "
+            help=f"Total simulation time, in {self.TIMEBASE}. "
             f"Must be > 0, default {self.stop}.")
         parser.add_argument(
             '-n', '--number', action='store', type=float,
@@ -189,7 +190,7 @@ for i in range(ph.number):
 dotter.done()
 
 # min latency
-latency = str(ph.minimum) + "s"
+latency = str(ph.minimum) + " " + ph.TIMEBASE
 
 # Add links
 nLinks = int(ph.number * (ph.number - 1) / 2)

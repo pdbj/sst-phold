@@ -238,6 +238,8 @@ private:
   static /* const */ SST::UnitAlgebra TIMEBASE;
   /** Conversion factor for TIMEBASE, used in toSimTime() and toSeconds() */
   static /* const */ double TIMEFACTOR;
+  /** Conversion factor between python timebase and PHOLD component. */
+  static /* const */ double PHOLD_PY_TIMEFACTOR;
 
   /** Generate the best SI representation of the time. */
   std::string    toBestSI(SST::SimTime_t sim) const;
