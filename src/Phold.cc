@@ -44,7 +44,7 @@ namespace Phold {
 
 
 #define OUTPUT(...)                             \
-  if (0 == getId() && 0 < m_verbose) m_output.output(CALL_INFO, __VA_ARGS__)
+  if (0 == getId()) m_output.output(CALL_INFO, __VA_ARGS__)
   
 // Class static data members
 constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
@@ -88,7 +88,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
                 m_verbose, 0, SST::Output::STDOUT);
 #ifdef PHOLD_DEBUG
   VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
-  VERBOSE(2, "Full c'tor() @0x%p, id: %u, name: %s\n", this, getId(), getName().c_str());
+  VERBOSE(2, "Full c'tor() @0x%p, id: %llu, name: %s\n", this, getId(), getName().c_str());
 #endif
   
   // Default time unit for Component and links
@@ -281,16 +281,16 @@ Phold::SendEvent()
 
     } else {
       // self links don't have a min latency configured, so add it now
-      delay = delayTotal;
       VERBOSE(3, "  delay: %llu + %llu = %llu => %llu\n",
               delay, 
               m_minimum,
               delayTotal,
               nextEventTime);
+      delay = delayTotal;
     }
 
   // Log the event
-  VERBOSE(2, "from %u @ %llu, delay: %llu -> %lld @ %llu\n", 
+  VERBOSE(2, "from %llu @ %llu, delay: %llu -> %lld @ %llu\n", 
          getId(), now, delay, nextId, nextEventTime);
 
   // Send a new event.  This is deleted in handleEvent
