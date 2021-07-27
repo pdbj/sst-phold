@@ -288,7 +288,7 @@ private:
   SST::RNG::SSTUniformDistribution * m_remRng;
   /**< Uniform RNG for picking remote LPs */
   SST::RNG::SSTUniformDistribution * m_nodeRng;
-  /**< Poisson RNG for picking delay times */
+  /**< Exponential RNG for picking delay times */
   SST::RNG::SSTExponentialDistribution * m_delayRng;
 
   // Class instance statistics
