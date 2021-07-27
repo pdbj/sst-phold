@@ -174,7 +174,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   VERBOSE(3, "Initializing statistics\n");
   // Stop stat collection at stop time
   SST::Params p;
-  p.insert("stopat", m_stop);
+  p.insert("stopat", std::to_string(m_stop));
 
   m_count = registerStatistic<uint64_t>(p, "Count");
   ASSERT(m_count, "Failed to register Count statistic");
