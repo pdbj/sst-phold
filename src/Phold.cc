@@ -61,14 +61,6 @@ uint32_t       Phold::m_verbose;
 SST::SimTime_t Phold::m_stop;
 SST::TimeConverter * Phold::m_timeConverter;
 
-SST::SimTime_t 
-Phold::toSimTime(double s) const
-{ return s / TIMEFACTOR; }
-
-double
-Phold::toSeconds(SST::SimTime_t t) const
-{ return t * TIMEFACTOR; }
-
 std::string
 Phold::toBestSI(SST::SimTime_t sim) const
 {
@@ -95,10 +87,12 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
   TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
 
-  VERBOSE(3, "timeConverter factor: %llu, period: %s (%f)\n", 
+  VERBOSE(3, "TIMEFACTOR: %f, timeConverter factor: %llu, period: %s (%f s?)\n", 
+          TIMEFACTOR,
           m_timeConverter->getFactor(),
-          m_timeConverter->getPeriod().toString().c_str(),
+          m_timeConverter->getPeriod().toStringBestSI().c_str(),
           m_timeConverter->getPeriod().getDoubleValue());
+
 
   m_remote  = params.find<double> ("remote",   0.9);
   m_minimum = toSimTime(params.find<double>("minimum",  1.0));
@@ -107,16 +101,17 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_stop    = toSimTime(params.find<double>("stop", 10));
   m_number  = params.find<long>   ("number",   2);
   m_events  = params.find<long>   ("events",   1);
-  m_delaysOut = params.find<bool> ("delays", false);
+  m_delaysOut = params.find<bool> ("delays",  false);
 
   if (0 == getId()) {
     std::stringstream ss;
+    auto factor = m_timeConverter->getFactor();
 
     ss << "\nPHOLD Configuration:"
        << "\n    Remote LP fraction:                   " << m_remote
-       << "\n    Minimum inter-event delay:            " << toBestSI(m_minimum)
+       << "\n    Minimum inter-event delay:            " << toBestSI(m_minimum * factor)
        << "\n    Additional exponential average delay: " << m_average.toStringBestSI()
-       << "\n    Stop time:                            " << toBestSI(m_stop)
+       << "\n    Stop time:                            " << toBestSI(m_stop * factor)
        << "\n    Number of LPs:                        " << m_number
        << "\n    Number of initial events per LP:      " << m_events
        << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
@@ -137,7 +132,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   VERBOSE(4, "  m_remRng   @0x%p\n", m_remRng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   VERBOSE(4, "  m_nodeRng  @0x%p\n", m_nodeRng);
-  auto avgRngRate = m_average.invert();
+  auto avgRngRate = m_average;
+  avgRngRate /= TIMEFACTOR;
+  avgRngRate.invert();
   m_delayRng = new SST::RNG::SSTExponentialDistribution(avgRngRate.getDoubleValue(), m_rng);
   VERBOSE(4, "  m_delayRng @0x%p, rate: %s\n", m_delayRng, avgRngRate.toString().c_str());
 
@@ -161,7 +158,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       m_links[i] = configureLink(port, handler);
       ASSERT(m_links[i], "Failed to configure link %d\n", i);
       VERBOSE(4, "    link %d: %s @0x%p with handler @0x%p\n", i, port.c_str(), m_links[i], handler);
+
     } else {
+
       auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
       ASSERT(handler, "Failed to create handler\n");
       m_links[i] = configureSelfLink("self", handler);
@@ -263,14 +262,12 @@ Phold::SendEvent()
 
   // When?
   auto now = getCurrentSimTime();
-  auto delay = toSimTime(m_delayRng->getNextDouble());
+  auto delay = static_cast<SST::SimTime_t>(m_delayRng->getNextDouble());
   auto delayTotal = delay + m_minimum;
   auto nextEventTime = delayTotal + now;
-  // Generate and send events, even if they will be beyond stop,
-  // so the simulator has to do the work 
 
   // Log and clean up delay
-  m_delays->addData(toSeconds(delay));
+  m_delays->addData(delay);
   if ( ! local)
     {
       // For remotes m_minimum is added by the link

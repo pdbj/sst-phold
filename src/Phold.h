@@ -239,13 +239,6 @@ private:
   /** Conversion factor for TIMEBASE, used in toSimTime() and toSeconds() */
   static /* const */ double TIMEFACTOR;
 
-  // Time conversion functions.
-  // \todo There must be a native way using TimeConverters...
-
-  /** Convert from seconds to Phold sim time in TimeBase. */
-  SST::SimTime_t toSimTime(double s) const;
-  /** Convert Phold sim time to seconds. */
-  double         toSeconds(SST::SimTime_t t) const;
   /** Generate the best SI representation of the time. */
   std::string    toBestSI(SST::SimTime_t sim) const;
 
