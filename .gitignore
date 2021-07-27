@@ -8,3 +8,5 @@ src/build-date
 phold.dot
 phold.log
 phold.png
+*.sample
+*.trace/
