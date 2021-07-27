@@ -25,17 +25,21 @@
 namespace Phold {
 
 #ifdef PHOLD_DEBUG
-// Simplify use of sst_assert
-#define ASSERT(condition, args...) \
-    Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
+#  define OPT_LEVEL "debug"
+  // Simplify use of sst_assert
+#  define ASSERT(condition, args...) \
+  Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
 
-#define VERBOSE(l, f, args...)                          \
-  m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),        \
-                         CALL_INFO, l, 0,               \
+#  define VERBOSE(l, f, args...)                          \
+  m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),          \
+                         CALL_INFO, l, 0,                 \
                          "[%d] " f, l, ##args)
 #else
-#define ASSERT(...)
-#define VERBOSE(...)
+
+#  define OPT_LEVEL "optimized"
+#  define ASSERT(...)
+#  define VERBOSE(...)
+
 #endif
 
 
@@ -117,12 +121,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
        << "\n    Number of initial events per LP:      " << m_events
        << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
        << "\n    Verbosity level:                      " << m_verbose
-       << "\n    Optimization level:                   "
-#ifdef PHOLD_DEBUG
-       << "debug"
-#else
-       << "optimized"
-#endif
+       << "\n    Optimization level:                   " << OPT_LEVEL
        << std::endl;
 #undef BEST
 
