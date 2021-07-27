@@ -223,7 +223,7 @@ private:
   Phold();
 
   /** Send a new event to a random LP. */
-  bool SendEvent();
+  void SendEvent();
 
   /**
    * Incoming event handler

@@ -234,7 +234,7 @@ Phold::~Phold() noexcept
 }
 
 
-bool
+void
 Phold::SendEvent()
 {
   VERBOSE(2, "\n");
@@ -297,7 +297,6 @@ Phold::SendEvent()
   // Send a new event.  This is deleted in handleEvent
   auto ev = new PholdEvent(getCurrentSimTime());
   m_links[nextId]->send(delay, ev);
-  return true;
 }
 
 
@@ -331,19 +330,10 @@ Phold::setup()
   VERBOSE(2, "initial events: %ld\n", m_events);
 
   // Generate initial event set
-  auto nSent = 0;
-  auto nTries = 0;
-  while (nSent < m_events)
-  {
-    bool sent = SendEvent();
-    nSent += sent;
-    if (! sent)
-      {
-        VERBOSE(4, "attempt %d did not send, retrying\n", nTries);
-      }
-    ++nTries;
-  }
-  VERBOSE(3, "needed %d attempts\n", nTries);
+  for (auto i = 0; i < m_events; ++i)
+    {
+      SendEvent();
+    }
 }
 
 
