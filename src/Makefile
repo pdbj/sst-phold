@@ -20,6 +20,12 @@ else
   $(info Building debug)
 endif
 
+# Check if we're skipping rngs
+ifdef PHOLD_FIXED
+  CXXFLAGS+=-DPHOLD_FIXED
+  $(info Using fixed rng values)
+endif
+
 SRCDIR = $(PWD)/src
 DISTDIR = $(HOME)/local
 LIBDIR  = $(DISTDIR)/lib/sst-elements-library

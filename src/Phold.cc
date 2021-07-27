@@ -42,6 +42,12 @@ namespace Phold {
 
 #endif
 
+#ifdef PHOLD_FIXED
+#  define RNG_MODE "fixed"
+#else
+#  define RNG_MODE "rng"
+#endif
+  
 
 #define OUTPUT(...)                             \
   if (0 == getId()) m_output.output(CALL_INFO, __VA_ARGS__)
@@ -120,6 +126,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
        << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
        << "\n    Verbosity level:                      " << m_verbose
        << "\n    Optimization level:                   " << OPT_LEVEL
+       << "\n    Sampling:                             " << RNG_MODE
        << std::endl;
 #undef BEST
 
@@ -242,7 +249,13 @@ Phold::SendEvent()
 
   // Remote or local?
   SST::ComponentId_t nextId = getId();
+
+#ifndef PHOLD_FIXED
   auto rem = m_remRng->getNextDouble() / UINT32_MAX;
+#else
+  auto rem = 0.0;
+#endif
+
   // Whether the event is local or remote
   bool local = false;
   if (rem < m_remote)
@@ -250,7 +263,11 @@ Phold::SendEvent()
     auto reps = 0;
     do
       {
+#ifndef PHOLD_FIXED
         nextId = static_cast<SST::ComponentId_t>(m_nodeRng->getNextDouble());
+#else
+        nextId = (nextId + 1) % m_number;
+#endif
         ++reps;
       } while (nextId == getId());
 
@@ -265,7 +282,11 @@ Phold::SendEvent()
 
   // When?
   auto now = getCurrentSimTime();
+#ifndef PHOLD_FIXED
   auto delay = static_cast<SST::SimTime_t>(m_delayRng->getNextDouble());
+#else
+  auto delay = static_cast<SST::SimTime_t>(m_average.getDoubleValue() / TIMEFACTOR);
+#endif
   auto delayTotal = delay + m_minimum;
   auto nextEventTime = delayTotal + now;
 
