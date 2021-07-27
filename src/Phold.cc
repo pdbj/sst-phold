@@ -334,6 +334,7 @@ Phold::setup()
     {
       SendEvent();
     }
+  OUTPUT("Setup complete\n");
 }
 
 
