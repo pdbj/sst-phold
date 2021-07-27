@@ -139,7 +139,7 @@ class PholdArgs(dict):
             help=f"Phold module verbosity, default {self.pverbose}.")
         parser.add_argument(
             '-d', '--delays', action='store_true',
-            help=f"Whether to utput delay histogram, default {self.delays}.")
+            help=f"Whether to output delay histogram, default {self.delays}.")
         parser.add_argument(
             '-V', '--pyVerbose', action='count',
             help=f"Python script verbosity, default {self.pyVerbose}.")
