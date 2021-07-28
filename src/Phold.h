@@ -16,6 +16,7 @@
 #include <sst/core/eli/elementinfo.h>
 #include <sst/core/rng/mersenne.h>
 #include <sst/core/rng/marsaglia.h>
+#include <sst/core/rng/xorshift.h>
 #include <sst/core/rng/uniform.h>
 #include <sst/core/rng/expon.h>
 #include <sst/core/eli/statsInfo.h>
@@ -271,11 +272,12 @@ private:
   std::vector<SST::Link *> m_links;     
  
   /** 
-   * Choice of underlying RNG: 
-   * * SST::RNG::MersenneRNG or 
-   * * SST::RNG::MarsagliaRNG 
+   * Choice of underlying RNG:
+   * * SST::RNG::MersenneRNG
+   * * SST::RNG::MarsagliaRNG
+   * * SST::RNG::XORShiftRNG
    */
-  typedef SST::RNG::MarsagliaRNG RNG_t;
+  typedef SST::RNG::XORShiftRNG RNG_t;
 
   /**< Base RNG instance */
   RNG_t                            * m_rng;
