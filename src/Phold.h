@@ -40,28 +40,6 @@ class Phold : public SST::Component
 {
 
 public:
-  /**
-   * Constructor
-   * @param id     Component instance unique id
-   * @param params Configuration parameters
-   */
-  Phold( SST::ComponentId_t id, SST::Params& params );
-  /** D'tor */
-  ~Phold() noexcept override;
-
-  // Rest of Rule of 5 are deleted
-  /** Copy c'tor, deleted. */
-  Phold(const Phold &) = delete;
-  /** Copy assignment, deleted. */
-  Phold & operator= (const Phold &) = delete;
-  /** Move c'tor, deleted. */
-  Phold(Phold &&) = delete;
-  /** Move assignment, deleted. */
-  Phold & operator= (Phold &&) = delete;
-
-  // Inherited from SST::BaseComponent
-  void setup() override;
-  void finish() override;
 
   SST_ELI_REGISTER_COMPONENT
   (
@@ -218,8 +196,46 @@ public:
      {"phold.PholdEvent", ""}    
     }
   );
-  
+
+
+  // **** Rule of 5 ****
+
+  /**
+   * Constructor
+   * @param id     Component instance unique id
+   * @param params Configuration parameters
+   */
+  Phold( SST::ComponentId_t id, SST::Params& params );
+  /** D'tor */
+  ~Phold() noexcept override;
+
+  // Rest of Rule of 5 are deleted
+  /** Copy c'tor, deleted. */
+  Phold(const Phold &) = delete;
+  /** Copy assignment, deleted. */
+  Phold & operator= (const Phold &) = delete;
+  /** Move c'tor, deleted. */
+  Phold(Phold &&) = delete;
+  /** Move assignment, deleted. */
+  Phold & operator= (Phold &&) = delete;
+
+
+  // **** Inherited from SST::BaseComponent ****
+
+  // Components can send/receive events, negotiate configuration...
+  // Called repeatedly until no more events sent.
+  void init(unsigned int phase) override;
+  // Complete configuration, no send/rcv, single invocation.
+  void setup() override;
+
+  // Similar to init()
+  void complete(unsigned int phase) override;
+  // Similar to setup()
+  void finish() override;
+
+
 private:
+
   /** Default c'tor for serialization only. */
   Phold();
 
@@ -233,7 +249,11 @@ private:
    */
   void handleEvent(SST::Event *ev, uint32_t from);
 
-  // Class static data members
+  /** Generate the best SI representation of the time. */
+  std::string    toBestSI(SST::SimTime_t sim) const;
+
+
+  // **** Class static data members ****
 
   /** Default time base for component and associated links */
   static /* const */ SST::UnitAlgebra TIMEBASE;
@@ -241,9 +261,6 @@ private:
   static /* const */ double TIMEFACTOR;
   /** Conversion factor between python timebase and PHOLD component. */
   static /* const */ double PHOLD_PY_TIMEFACTOR;
-
-  /** Generate the best SI representation of the time. */
-  std::string    toBestSI(SST::SimTime_t sim) const;
 
   static double            m_remote;     /**< Remote event fraction */
   static SST::SimTime_t    m_minimum;    /**< Minimum event delay */
@@ -257,7 +274,8 @@ private:
   static SST::TimeConverter * m_timeConverter;
 
 
-  // Class instance data members
+  // **** Class instance data members ****
+
   /** Output stream for verbose output */
   SST::Output              m_output;
 #ifdef PHOLD_DEBUG
@@ -293,7 +311,8 @@ private:
   Statistic<uint64_t> * m_count;
   /** Histogram of delay times. */
   Statistic<float>   * m_delays;
-};
+
+};  // class Phold
 
 }  // namespace Phold
 
