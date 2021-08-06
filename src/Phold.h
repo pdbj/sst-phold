@@ -227,14 +227,16 @@ public:
 
   // Components can send/receive events, negotiate configuration...
   // Called repeatedly until no more events sent.
-  void init(unsigned int phase) override;
+  virtual void init(unsigned int phase) override;
+
   // Complete configuration, no send/rcv, single invocation.
-  void setup() override;
+  virtual void setup() override;
 
   // Similar to init()
-  void complete(unsigned int phase) override;
+  virtual void complete(unsigned int phase) override;
+
   // Similar to setup()
-  void finish() override;
+  virtual void finish() override;
 
 
 private:
