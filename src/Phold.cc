@@ -25,19 +25,31 @@
 namespace Phold {
 
 #ifdef PHOLD_DEBUG
-#  define OPT_LEVEL "debug"
+
+  // Optimized or debug build
+# define OPT_LEVEL "debug"
+
   // Simplify use of sst_assert
-#  define ASSERT(condition, args...) \
+  // Extra conditional is to avoid early evaluation of args, so we can do
+  //   ASSERT(NULL == p, ..., function(p));
+  // when we expect a null pointer, and not call a function on it until necessary
+# define ASSERT(condition, args...)                             \
+  if (! (condition))                                            \
   Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
 
-#  define VERBOSE(l, f, args...)                          \
-  m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),          \
-                         CALL_INFO, l, 0,                 \
+  // Non-asserting assert, for debugging
+# define DEBUG(condition, args...)              \
+  if (! (condition)) VERBOSE (3, args)
+
+# define VERBOSE(l, f, args...)                            \
+  m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),           \
+                         CALL_INFO, l, 0,                  \
                          "[%d] " f, l, ##args)
 #else
 
 #  define OPT_LEVEL "optimized"
 #  define ASSERT(...)
+#  define DEBUG(...)
 #  define VERBOSE(...)
 
 #endif
