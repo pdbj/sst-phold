@@ -220,7 +220,8 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   // Tell SST to wait until we authorize it to exit
   registerAsPrimaryComponent();
   primaryComponentDoNotEndSim();
-}
+
+}  // Phold(...)
 
 
 Phold::Phold() : SST::Component(-1)
@@ -283,14 +284,14 @@ Phold::SendEvent()
         ++reps;
       } while (nextId == getId());
 
-      VERBOSE(3, "  next rng: %f, remote (%d tries) %lld\n", rem, reps, nextId);
+      VERBOSE(3, "  next rng: %f, remote (%d tries) %llu\n", rem, reps, nextId);
   }
   else
   {
     local = true;
-    VERBOSE(3, "  next rng: %f, self             %lld\n", rem, nextId);
+    VERBOSE(3, "  next rng: %f, self             %llu\n", rem, nextId);
   }
-  ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %lld\n", nextId);
+  ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %llu\n", nextId);
 
   // When?
   auto now = getCurrentSimTime();
@@ -323,7 +324,7 @@ Phold::SendEvent()
     }
 
   // Log the event
-  VERBOSE(2, "from %llu @ %llu, delay: %llu -> %lld @ %llu\n", 
+  VERBOSE(2, "from %llu @ %llu, delay: %llu -> %llu @ %llu\n",
          getId(), now, delay, nextId, nextEventTime);
 
   // Send a new event.  This is deleted in handleEvent
