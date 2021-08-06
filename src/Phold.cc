@@ -158,7 +158,8 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   avgRngRate /= TIMEFACTOR;
   avgRngRate.invert();
   m_delayRng = new SST::RNG::SSTExponentialDistribution(avgRngRate.getDoubleValue(), m_rng);
-  VERBOSE(4, "  m_delayRng @0x%p, rate: %s\n", m_delayRng, avgRngRate.toString().c_str());
+  VERBOSE(4, "  m_delayRng @0x%p, rate: %s (%f)\n", 
+          m_delayRng, avgRngRate.toString().c_str(), m_delayRng->getLambda());
 
   // Configure ports/links
   VERBOSE(3, "Configuring links:\n");
