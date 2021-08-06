@@ -20,11 +20,16 @@ else
   $(info Building debug)
 endif
 
+ifdef RNG_DEBUG
+  CXXFLAGS+=-DRNG_DEBUG
+endif
+
 # Check if we're skipping rngs
 ifdef PHOLD_FIXED
   CXXFLAGS+=-DPHOLD_FIXED
   $(info Using fixed rng values)
 endif
+
 
 SRCDIR = $(PWD)/src
 DISTDIR = $(HOME)/local
@@ -33,8 +38,8 @@ LIBDIR  = $(DISTDIR)/lib/sst-elements-library
 all: install
 	@:
 
-SRCS = Phold.cc
-HDRS = Phold.h PholdEvent.h
+SRCS = $(wildcard *.cc)
+HDRS = $(wildcard *.h)
 ALL = $(SRCS) $(HDRS)
 
 OBJS = $(SRCS:%.cc=%.o)
@@ -62,7 +67,7 @@ $(LIB): $(OBJS)
 	$(VERB)$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
 build-date: $(LIB)
-	@echo "Register phold"
+	@echo "SST_REG"
 	$(VERB)mkdir -p $(LIBDIR)
 	$(VERB)cp $< $(LIBDIR)
 	$(VERB)sst-register phold phold_LIBDIR=$(LIBDIR)
@@ -92,3 +97,4 @@ info:
 	@echo "CXXFLAGS:     $(CXXFLAGS)"
 	@echo "DEPFLAGS:     $(DEPFLAGS)"
 	@echo "LDFLAGS:      $(LDFLAGS)"
+

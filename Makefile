@@ -1,9 +1,13 @@
 
-RECURSIVE_TARGETS = all-recursive clean-recursive
+RECURSIVE_TARGETS = all clean debug info
 
 all: Makefile
 	@echo "Making all in src"
 	@$(MAKE) -C src all && echo "Make all done" || exit 1
+
+debug: 
+	@echo "Cleaning and remaking with PHOLD_DEBUG"
+	@$(MAKE) PHOLD_DEBUG=1 RNG_DEBUG=1 clean all
 
 clean:
 	@echo "Making clean in src"
