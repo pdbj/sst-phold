@@ -6,8 +6,7 @@
  * Author:  Peter D. Barnes, Jr. <pdbarnes@llnl.gov>
  */
 
-#ifndef PHOLD_PHOLD_H
-#define PHOLD_PHOLD_H
+#pragma once
 
 #include "PholdEvent.h"
 
@@ -315,6 +314,3 @@ private:
 };  // class Phold
 
 }  // namespace Phold
-
-
-#endif  // PHOLD_PHOLD_H
