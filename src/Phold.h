@@ -225,8 +225,49 @@ public:
 
   // **** Inherited from SST::BaseComponent ****
 
-  // Components can send/receive events, negotiate configuration...
-  // Called repeatedly until no more events sent.
+  /**
+   * \copydoc SST::BaseComponent::init()
+   *
+   * Components can send/receive events, negotiate configuration...
+   * Called repeatedly until no more events sent.
+   *
+   * Here we send events down a binary spanning tree over the component ids.
+   *
+   * For example,
+   *
+   *     $  sst tests/phold.py -- -n 5 -vvvv | grep "\(init\|operator\)()"
+   *
+   * will show detailed logging of the init process with the following checks
+   * for each component at each interation (\c phase):
+   *
+   * * If \c phase is less than the expected depth for this component, check for
+   *   "early" events."
+   * * If \c phase is the expected depth:
+   *   * Check for the expected event from the parent,
+   *   * Check for any "other" unexpected events.
+   * * If \c phase is deeper than the expected depth, check for
+   *   "late" events.
+   *
+   * This command:
+   *
+   *     $  sst tests/phold.py -- -n 5 -vvvv | grep child | sort -nk 9
+   *
+   * will print just the messages relating to sending to children, sorted
+   * by child index, which is another way to show that each child receives
+   * exactly one message.
+   *
+   *     0:[0:0]:Phold-0 [operator()() (Phold.cc:407)] -> [3]     sending to child 1
+   *     0:[0:0]:Phold-0 [operator()() (Phold.cc:407)] -> [3]     sending to child 2
+   *     0:[0:0]:Phold-1 [operator()() (Phold.cc:407)] -> [3]     sending to child 3
+   *     0:[0:0]:Phold-1 [operator()() (Phold.cc:407)] -> [3]     sending to child 4
+   *     0:[0:0]:Phold-2 [operator()() (Phold.cc:413)] -> [3]     skipping overflow child 5
+   *     0:[0:0]:Phold-2 [operator()() (Phold.cc:413)] -> [3]     skipping overflow child 6
+   *     0:[0:0]:Phold-3 [operator()() (Phold.cc:413)] -> [3]     skipping overflow child 7
+   *     0:[0:0]:Phold-3 [operator()() (Phold.cc:413)] -> [3]     skipping overflow child 8
+   *     0:[0:0]:Phold-4 [operator()() (Phold.cc:413)] -> [3]     skipping overflow child 9
+   *     0:[0:0]:Phold-4 [operator()() (Phold.cc:413)] -> [3]     skipping overflow child 10
+   *
+   */
   virtual void init(unsigned int phase) override;
 
   // Complete configuration, no send/rcv, single invocation.

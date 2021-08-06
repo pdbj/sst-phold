@@ -8,6 +8,7 @@
 
 
 #include "Phold.h"
+#include "binary-tree.h"
 
 #include <sst/core/timeConverter.h>
 #include <sst/core/sst_types.h>
@@ -359,7 +360,115 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
 
 
 void
-Phold::setup() 
+Phold::init(unsigned int phase)
+{
+  // Use binary heap indexing to form a tree of Phold components
+  // Children of i are at 2i + 1, 2i + 2
+  // Parent of i is at (i - 1)/2
+
+  // phase is the level in the tree we're working now,
+  // which includes all components with getId() < Sum (k = 0..phase, 2^k)
+
+  // **** Useful lamdas ****
+
+  // Get a possible event from a link
+  auto getEvent = [this](SST::ComponentId_t id)
+    {
+      return dynamic_cast<PholdEvent*>(m_links[id]->recvUntimedData());
+    };
+
+  // Extract sender id from PholdEvent
+  auto sender = [](PholdEvent * e)
+    {
+      return static_cast<SST::ComponentId_t> (e->getSendTime());
+    };
+
+  // Check for unexpected messages
+  auto checkForEvents = [this, getEvent, sender](const std::string msg)
+    {
+      for (SST::ComponentId_t i = 0; i < m_number; ++i)
+        {
+          auto event = getEvent(i);
+          ASSERT(NULL == event, "    got %s event from %llu\n", msg, sender(event));
+        }
+    };
+
+  // Send an event to a child
+  auto sendTo = [this](SST::ComponentId_t child)
+    {
+      if (child < m_number)
+        {
+          VERBOSE(3, "    sending to child %llu\n", child);
+          auto event = new PholdEvent(static_cast<SST::SimTime_t> (getId()));
+          m_links[child]->sendUntimedData(event);
+        }
+      else
+        {
+          VERBOSE(3, "    skipping overflow child %llu\n", child);
+        }
+    };
+
+  // **** init() body ****
+
+  using bt = BinaryTree;
+
+  VERBOSE(2, "depth: %llu, phase: %u, begin: %llu, end: %llu\n",
+          bt::depth(getId()), phase, bt::begin(phase), bt::end(phase));
+
+  // First check for early init event
+  if (phase < bt::depth(getId()))
+    {
+      VERBOSE(3, "  checking for early events\n");
+      checkForEvents("EARLY");
+    }
+
+  else if (phase == bt::depth(getId()))
+
+    {
+      VERBOSE(3, "  our phase\n");
+      // Get the expected event from parent
+      // Root id 0 does not have a parent, so skip it
+      if (0 != getId())
+        {
+          auto parent = bt::parent(getId());
+          VERBOSE(3, "    checking for expected event from parent %llu\n", parent);
+          auto event = getEvent(parent);
+
+          ASSERT(event, "    failed to recv expected event from parent %llu\n", parent);
+          auto src = sender(event);
+          VERBOSE(3, "    received from %llu\n", src);
+          ASSERT(parent == src, "    event from %llu, expected parent %llu\n", src, parent);
+        }  // 0 != getId(),  non-root receive from parent
+      else
+        {
+          // 0 == getId()
+          VERBOSE(3, "    initiating tree: child %llu\n", getId());
+        }
+
+      // Send to two children
+      auto children = bt::children(getId());
+      sendTo(children.first);
+      sendTo(children.second);
+
+      // Check for any other events
+      VERBOSE(3, "  checking for other events\n");
+      checkForEvents("OTHER");
+    }
+
+  else
+
+    {
+      VERBOSE(3, "  checking for late events\n");
+      ASSERT(phase > bt::depth(getId()), "  expected to be late in this phase, but not\n");
+      // Check for late events
+      checkForEvents("LATE");
+    }
+
+}  // init()
+
+
+void
+Phold::setup()
 {
   VERBOSE(2, "initial events: %ld\n", m_events);
 
@@ -373,7 +482,16 @@ Phold::setup()
 
 
 void
-Phold::finish() 
+Phold::complete(unsigned int phase)
+{
+  VERBOSE(2, "complete phase: %ld\n", phase);
+
+  // Similar pattern to init()
+}
+
+
+void
+Phold::finish()
 {
   VERBOSE(2, "\n");
 }
