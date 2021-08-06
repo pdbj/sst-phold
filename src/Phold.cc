@@ -138,7 +138,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   // seed() doesn't check validity of arg, can't be 0
   m_rng->seed(1 + getId());
   VERBOSE(4, "  m_rng      @0x%p\n", m_rng);
-  m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
+  m_remRng  = m_rng;
   VERBOSE(4, "  m_remRng   @0x%p\n", m_remRng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   VERBOSE(4, "  m_nodeRng  @0x%p\n", m_nodeRng);
@@ -220,7 +220,7 @@ Phold::Phold() : SST::Component(-1)
    * but what to do in the general case of instance data?
    */
   m_rng  = new Phold::RNG_t;
-  m_remRng  = new SST::RNG::SSTUniformDistribution(UINT32_MAX, m_rng);
+  m_remRng = m_rng;
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average.invert().getDoubleValue(), m_rng);
 }
@@ -234,7 +234,6 @@ Phold::~Phold() noexcept
   p = 0
 
   DELETE(m_rng);
-  DELETE(m_remRng);
   DELETE(m_nodeRng);
   DELETE(m_delayRng);
 
@@ -251,7 +250,7 @@ Phold::SendEvent()
   SST::ComponentId_t nextId = getId();
 
 #ifndef PHOLD_FIXED
-  auto rem = m_remRng->getNextDouble() / UINT32_MAX;
+  auto rem = m_remRng->nextUniform();
 #else
   auto rem = 0.0;
 #endif

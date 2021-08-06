@@ -303,11 +303,11 @@ private:
   typedef SST::RNG::XORShiftRNG RNG_t;
 
   /**< Base RNG instance */
-  RNG_t                            * m_rng;
+  RNG_t                                * m_rng;
   /**< Uniform RNG for deciding if event should be remote */
-  SST::RNG::SSTUniformDistribution * m_remRng;
+  RNG_t                                * m_remRng;
   /**< Uniform RNG for picking remote LPs */
-  SST::RNG::SSTUniformDistribution * m_nodeRng;
+  SST::RNG::SSTUniformDistribution     * m_nodeRng;
   /**< Exponential RNG for picking delay times */
   SST::RNG::SSTExponentialDistribution * m_delayRng;
 
