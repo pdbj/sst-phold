@@ -59,11 +59,11 @@ namespace Phold {
 #else
 #  define RNG_MODE "rng"
 #endif
-  
+
 
 #define OUTPUT(...)                             \
   if (0 == getId()) m_output.output(CALL_INFO, __VA_ARGS__)
-  
+
 // Class static data members
 constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
 /* const */ SST::UnitAlgebra Phold::TIMEBASE("1 us");
@@ -72,14 +72,14 @@ constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
 /* const */ double Phold::PHOLD_PY_TIMEFACTOR{1e6};
 
 
-double         Phold::m_remote;
-SST::SimTime_t Phold::m_minimum;
-SST::UnitAlgebra  Phold::m_average;
-long           Phold::m_number;
-long           Phold::m_events;
-bool           Phold::m_delaysOut;
-uint32_t       Phold::m_verbose;
-SST::SimTime_t Phold::m_stop;
+double               Phold::m_remote;
+SST::SimTime_t       Phold::m_minimum;
+SST::UnitAlgebra     Phold::m_average;
+long                 Phold::m_number;
+long                 Phold::m_events;
+bool                 Phold::m_delaysOut;
+uint32_t             Phold::m_verbose;
+SST::SimTime_t       Phold::m_stop;
 SST::TimeConverter * Phold::m_timeConverter;
 
 std::string
@@ -97,18 +97,18 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 {
   // SST::Params doesn't understand Python bools
   m_verbose = params.find<long>("pverbose", 0);
-  m_output.init("@t:@X:Phold-" + getName() + " [@p()] -> ", 
+  m_output.init("@t:@X:Phold-" + getName() + " [@p()] -> ",
                 m_verbose, 0, SST::Output::STDOUT);
 #ifdef PHOLD_DEBUG
   VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
   VERBOSE(2, "Full c'tor() @0x%p, id: %llu, name: %s\n", this, getId(), getName().c_str());
 #endif
-  
+
   // Default time unit for Component and links
   m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
   TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
 
-  VERBOSE(3, "TIMEFACTOR: %f, timeConverter factor: %llu, period: %s (%f s?)\n", 
+  VERBOSE(3, "TIMEFACTOR: %f, timeConverter factor: %llu, period: %s (%f s?)\n",
           TIMEFACTOR,
           m_timeConverter->getFactor(),
           m_timeConverter->getPeriod().toStringBestSI().c_str(),
@@ -158,7 +158,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   avgRngRate /= TIMEFACTOR;
   avgRngRate.invert();
   m_delayRng = new SST::RNG::SSTExponentialDistribution(avgRngRate.getDoubleValue(), m_rng);
-  VERBOSE(4, "  m_delayRng @0x%p, rate: %s (%f)\n", 
+  VERBOSE(4, "  m_delayRng @0x%p, rate: %s (%f)\n",
           m_delayRng, avgRngRate.toString().c_str(), m_delayRng->getLambda());
 
   // Configure ports/links
@@ -315,7 +315,7 @@ Phold::SendEvent()
     } else {
       // self links don't have a min latency configured, so add it now
       VERBOSE(3, "  delay: %llu + %llu = %llu => %llu\n",
-              delay, 
+              delay,
               m_minimum,
               delayTotal,
               nextEventTime);
@@ -329,7 +329,8 @@ Phold::SendEvent()
   // Send a new event.  This is deleted in handleEvent
   auto ev = new PholdEvent(getCurrentSimTime());
   m_links[nextId]->send(delay, ev);
-}
+
+}  // SendEvent()
 
 
 void

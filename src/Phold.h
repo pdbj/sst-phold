@@ -42,7 +42,7 @@ public:
 
   SST_ELI_REGISTER_COMPONENT
   (
-   /* 
+   /*
       Long macro chain starting in sst-core/sst/core/component.h:
       SST_ELI_REGISTER_COMPONENT(cls,lib,name,ELI_FORWARD_AS_ONE(version),desc)
 
@@ -75,7 +75,7 @@ public:
         const unsigned tertiary;    // !< Version patch level
         const char* desc;           // !< Descriptive string
         const CATEGORY_T category;  // !< Component category type
-        
+
         const std::string compDate; // !< Compile date
         const std::string file;     // !< File (compilation unit)
       },
@@ -90,8 +90,8 @@ public:
    );
 
   SST_ELI_DOCUMENT_PARAMS
-  ( 
-   /* 
+  (
+   /*
       Macro defined in sst-core/src/sst/core/eli/paramsInfo.h:
       static const std::vector<SST::ElementInfoParam> & ELI_getParams();
 
@@ -152,7 +152,7 @@ public:
        const char* name;               //!< Name of the Statistic to be Enabled
        const char* description;        //!< Brief description of the Statistic
        const char* units;              //!< Units associated with this Statistic value
-       const uint8_t enableLevel;      //!< Level to meet to enable statistic 0 = disabled 
+       const uint8_t enableLevel;      //!< Level to meet to enable statistic 0 = disabled
      }
    */
 
@@ -179,24 +179,24 @@ public:
    /*
      Macro defined in sst-core/src/sst/core/eli/portsInfo.h:
      static const std::vector<SST::ElementInfoPort2>& ELI_getPorts();
-     
+
      struct SST::ElementInfoPort2 from sst-core/src/sst/core/eli/elibase.h:
-     { 
-       /// Name of the port. Can contain d for a dynamic port, 
-       /// also %(xxx)d for dynamic port with xxx being the 
+     {
+       /// Name of the port. Can contain d for a dynamic port,
+       /// also %(xxx)d for dynamic port with xxx being the
        /// controlling component parameter
        const char* name;
        /// Brief description of the port (ie, what it is used for)
        const char* description;
-       /// List of fully-qualified event types that this Port expects 
+       /// List of fully-qualified event types that this Port expects
        /// to send or receive
        const std::vector<std::string> validEvents;
        };
    */
 
-   { PORT_NAME,                  
-     "Representative port",      
-     {"phold.PholdEvent", ""}    
+   { PORT_NAME,
+     "Representative port",
+     {"phold.PholdEvent", ""}
     }
   );
 
@@ -284,17 +284,17 @@ private:
   /** Output stream for verbose output */
   SST::Output              m_output;
 #ifdef PHOLD_DEBUG
-  /** 
-   * Verbose output prefix, 
-   * per instance since it includes the component name. 
+  /**
+   * Verbose output prefix,
+   * per instance since it includes the component name.
    */
   std::string VERBOSE_PREFIX;
 #endif
 
   /** The list of links to other LPs */
-  std::vector<SST::Link *> m_links;     
- 
-  /** 
+  std::vector<SST::Link *> m_links;
+
+  /**
    * Choice of underlying RNG:
    * * SST::RNG::MersenneRNG
    * * SST::RNG::MarsagliaRNG
@@ -320,3 +320,4 @@ private:
 };  // class Phold
 
 }  // namespace Phold
+
