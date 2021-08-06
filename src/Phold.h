@@ -101,6 +101,10 @@ public:
         const char * description;   // !< Description as reported by sst-info.
         const char * defaultValue;  // !< Default value if not set explicitly.
       }
+
+      Special values for defaultValue:
+          NULL: no default, required (must be in the c'tor params)
+          "":   no default, optional
      */
 
    { "remote",
