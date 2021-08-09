@@ -358,60 +358,57 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   }
 }
 
+template <typename E>
+E * 
+Phold::getEvent(SST::ComponentId_t id)
+{
+  return dynamic_cast<E*>(m_links[id]->recvUntimedData());
+}
+
+InitEvent * 
+Phold::getInitEvent(SST::ComponentId_t id)
+{
+  return getEvent<InitEvent>(id);
+}
+
+
+template <typename E>
+void
+Phold::checkForEvents(const std::string msg)
+{
+  for (SST::ComponentId_t i = 0; i < m_number; ++i)
+    {
+      auto event = getEvent<E>(i);
+      ASSERT(NULL == event, "    got %s event from %llu\n", msg, i);
+    }
+}
+
+
+void
+Phold::sendToChild(SST::ComponentId_t child)
+{
+  if (child < m_number)
+    {
+      VERBOSE(3, "    sending to child %llu\n", child);
+      auto event = new InitEvent(getId());
+      m_links[child]->sendUntimedData(event);
+    }
+  else
+    {
+      VERBOSE(3, "    skipping overflow child %llu\n", child);
+    }
+};
+
 
 void
 Phold::init(unsigned int phase)
 {
-  // Use binary heap indexing to form a tree of Phold components
-  // Children of i are at 2i + 1, 2i + 2
-  // Parent of i is at (i - 1)/2
-
-  // phase is the level in the tree we're working now,
-  // which includes all components with getId() < Sum (k = 0..phase, 2^k)
-
-  // **** Useful lamdas ****
-
-  // Get a possible event from a link
-  auto getEvent = [this](SST::ComponentId_t id)
-    {
-      return dynamic_cast<PholdEvent*>(m_links[id]->recvUntimedData());
-    };
-
-  // Extract sender id from PholdEvent
-  auto sender = [](PholdEvent * e)
-    {
-      return static_cast<SST::ComponentId_t> (e->getSendTime());
-    };
-
-  // Check for unexpected messages
-  auto checkForEvents = [this, getEvent, sender](const std::string msg)
-    {
-      for (SST::ComponentId_t i = 0; i < m_number; ++i)
-        {
-          auto event = getEvent(i);
-          ASSERT(NULL == event, "    got %s event from %llu\n", msg, sender(event));
-        }
-    };
-
-  // Send an event to a child
-  auto sendTo = [this](SST::ComponentId_t child)
-    {
-      if (child < m_number)
-        {
-          VERBOSE(3, "    sending to child %llu\n", child);
-          auto event = new PholdEvent(static_cast<SST::SimTime_t> (getId()));
-          m_links[child]->sendUntimedData(event);
-        }
-      else
-        {
-          VERBOSE(3, "    skipping overflow child %llu\n", child);
-        }
-    };
-
-  // **** init() body ****
-
+  // Use binary tree indexing to form a tree of Phold components
   using bt = BinaryTree;
 
+  // phase is the level in the tree we're working now,
+  // which includes all components with getId() < bt::size(phase)
+ 
   VERBOSE(2, "depth: %llu, phase: %u, begin: %llu, end: %llu\n",
           bt::depth(getId()), phase, bt::begin(phase), bt::end(phase));
 
@@ -419,7 +416,7 @@ Phold::init(unsigned int phase)
   if (phase < bt::depth(getId()))
     {
       VERBOSE(3, "  checking for early events\n");
-      checkForEvents("EARLY");
+      checkForEvents<InitEvent>("EARLY");
     }
 
   else if (phase == bt::depth(getId()))
@@ -432,10 +429,10 @@ Phold::init(unsigned int phase)
         {
           auto parent = bt::parent(getId());
           VERBOSE(3, "    checking for expected event from parent %llu\n", parent);
-          auto event = getEvent(parent);
+          auto event = getInitEvent(parent);
 
           ASSERT(event, "    failed to recv expected event from parent %llu\n", parent);
-          auto src = sender(event);
+          auto src = event->getSenderId();
           VERBOSE(3, "    received from %llu\n", src);
           ASSERT(parent == src, "    event from %llu, expected parent %llu\n", src, parent);
         }  // 0 != getId(),  non-root receive from parent
@@ -447,12 +444,12 @@ Phold::init(unsigned int phase)
 
       // Send to two children
       auto children = bt::children(getId());
-      sendTo(children.first);
-      sendTo(children.second);
+      sendToChild(children.first);
+      sendToChild(children.second);
 
       // Check for any other events
       VERBOSE(3, "  checking for other events\n");
-      checkForEvents("OTHER");
+      checkForEvents<InitEvent>("OTHER");
     }
 
   else
@@ -461,7 +458,7 @@ Phold::init(unsigned int phase)
       VERBOSE(3, "  checking for late events\n");
       ASSERT(phase > bt::depth(getId()), "  expected to be late in this phase, but not\n");
       // Check for late events
-      checkForEvents("LATE");
+      checkForEvents<InitEvent>("LATE");
     }
 
 }  // init()

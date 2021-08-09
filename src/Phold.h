@@ -309,6 +309,53 @@ private:
    */
   void handleEvent(SST::Event *ev, uint32_t from);
 
+
+  /** Helper functions for init(), complete() */
+  /** @{ */
+
+  /** 
+   * Get a possible event from the link at \c id.
+   * @tparam E The Phold event type to return
+   * @param id The link/remote to query.
+   * @returns The event pointer, NULL of no event from the \c id.
+   */
+  template <typename E>
+  E * getEvent(SST::ComponentId_t id);
+
+  /** Specialization of getEvent for InitEvent. */
+  InitEvent * getInitEvent(SST::ComponentId_t id);
+
+  /** 
+   * Check for unexpected messages during init() or complete().
+   * This iterates through all links checking for messages.
+   * Check for expected messages before calling this function.
+   * Asserts if any messages are found.
+   * @tparam E The Phold event type to check for.
+   */
+  template <typename E>
+  void checkForEvents(const std::string msg);
+
+  /**
+   * Send an init event to a child by index..
+   * This skips children greater than \c m_number, so it's ok to call this
+   * on both pair members returned by BinaryTree::children().
+   * @param child The child index to send to
+   */
+  void sendToChild(SST::ComponentId_t child);
+
+  /**
+   * Send a complete event to a parent by index, containing the total
+   * number of events sent by me an my children.
+   * @param parent The parent index.
+   * @param sendCount The total number of events sent by me and my children
+   * @param recvCount The total number of events received by me and my children
+   * \todo We should accumulate sent and received events to cross check.
+   */
+  //  void sendToParent(SST::ComponentId_t parent, 
+  //                    std::size_t sendCount, std::size_t recvCount);
+
+  /** @} */  // init(), complete() helpers
+
   /** 
    * Generate the best SI representation of the time. 
    * @param sim The time value to conver to a string.

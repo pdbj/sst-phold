@@ -75,6 +75,52 @@ public:
 
 };  // class PholdEvent
 
+
+/**
+ * Event sent by PHOLD LPs during initialization, 
+ * containing the sender id.
+ */
+class InitEvent : public SST::Event
+{
+public:
+  /**
+   * C'tor
+   * @param id The sender component id.
+   */
+  explicit
+  InitEvent(SST::ComponentId_t id)
+    : SST::Event(),
+    m_sender(id)
+    {};
+
+  /**
+   * Get the sender id from the event.
+   * @returns The sender id.
+   */
+  SST::ComponentId_t getSenderId() const
+    {
+      return m_sender;
+    }
+
+public:
+  /** Default c'tor, for serialization. */
+ InitEvent()
+   : SST::Event(),
+     m_sender(0)
+   { }
+
+  ImplementSerializable(Phold::InitEvent);
+
+private:
+
+  /** Sender id. */
+  SST::ComponentId_t m_sender;
+
+};  // class InitEvent
+
+
+
+
 }  // namespace Phold
 
 #endif //PHOLD_PHOLDEVENT_H
