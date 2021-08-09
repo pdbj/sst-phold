@@ -45,7 +45,7 @@ namespace Phold {
 # define VERBOSE(l, f, args...)                            \
   m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),           \
                          CALL_INFO, l, 0,                  \
-                         "[%d] " f, l, ##args)
+                         "[%u] " f, l, ##args)
 #else
 
 #  define OPT_LEVEL "optimized"
@@ -171,7 +171,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   const auto prefix(pre.erase(pre.find('%')));
   std::string port;
   for (uint32_t i = 0; i < m_number; ++i) {
-    ASSERT(m_links[i] == nullptr, "Initialized link %d (0x%p) is not null!\n", i, m_links[i]);
+    ASSERT(m_links[i] == nullptr, "Initialized link %u (0x%p) is not null!\n", i, m_links[i]);
     if (i != getId())
     {
       port = prefix + std::to_string(i);
@@ -180,8 +180,8 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
       ASSERT(handler, "Failed to create handler\n");
       m_links[i] = configureLink(port, handler);
-      ASSERT(m_links[i], "Failed to configure link %d\n", i);
-      VERBOSE(4, "    link %d: %s @0x%p with handler @0x%p\n", i, port.c_str(), m_links[i], handler);
+      ASSERT(m_links[i], "Failed to configure link %u\n", i);
+      VERBOSE(4, "    link %u: %s @0x%p with handler @0x%p\n", i, port.c_str(), m_links[i], handler);
 
     } else {
 
@@ -189,7 +189,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       ASSERT(handler, "Failed to create handler\n");
       m_links[i] = configureSelfLink("self", handler);
       ASSERT(m_links[i], "Failed to configure self link\n");
-      VERBOSE(4, "    link %d: self   @0x%p with handler @0x%p\n", i, m_links[i], handler);
+      VERBOSE(4, "    link %u: self   @0x%p with handler @0x%p\n", i, m_links[i], handler);
     }
   }
 
@@ -285,7 +285,7 @@ Phold::SendEvent()
         ++reps;
       } while (nextId == getId());
 
-      VERBOSE(3, "  next rng: %f, remote (%d tries) %llu\n", rem, reps, nextId);
+      VERBOSE(3, "  next rng: %f, remote (%u tries) %llu\n", rem, reps, nextId);
   }
   else
   {
@@ -470,7 +470,7 @@ Phold::init(unsigned int phase)
 void
 Phold::setup()
 {
-  VERBOSE(2, "initial events: %ld\n", m_events);
+  VERBOSE(2, "initial events: %lu\n", m_events);
 
   // Generate initial event set
   for (auto i = 0; i < m_events; ++i)
