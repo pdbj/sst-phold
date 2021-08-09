@@ -11,17 +11,20 @@
 /**
  * Work with a binary tree stored in an indexed container.
  *
- * \c size() returns the maximum number of items stored in a tree
+ * \c size(depth) returns the maximum number of items stored in a tree
  * of a given depth.
  *
- * \c depth() returns the depth of the item at \c index
+ * \c depth(index) returns the depth of the item at \c index
+ *
+ * \c begin(depth), \c end(depth) return the first and one past the last
+ * index at \c depth.
 
- * \c children() returns a std::pair with the indices of the children
+ * \c children(index) returns a std::pair with the indices of the children
  * of the item at \c index:
  *
  *    2 * index + 1, 2 * index + 2
  *
- * \c parent() returns the index of the parent of the item at \c child:
+ * \c parent(index) returns the index of the parent of the item at \c child:
  *
  *    parent = (child - 1) / 2  // with integer division truncation
  */

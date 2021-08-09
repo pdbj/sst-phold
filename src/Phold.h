@@ -32,14 +32,24 @@ namespace Phold {
 
 /**
  * Classic PDES PHOLD Benchmark.
+ *
  * See R. M. Fujimoto. Performance of time warp under synthetic workloads, January 1990.
  * In Proceedings of the SCS Multiconference on Distributed Simulation 22, 1 (January 1990), pp. 23-28.
+ *
+ * In the literature each Phold instance is considered a "logical process" (LP).
+ * Since this also serves as an SST example, we'll mostly use the SST terminology 
+ * and refer to the Phold LPs as "components".
  */
 class Phold : public SST::Component
 {
 
 public:
 
+  /**
+   * \copydoc  component.h#SST_ELI_REGISTER_COMPONENT
+   *
+   * Register this component with SST.
+   */
   SST_ELI_REGISTER_COMPONENT
   (
    /*
@@ -85,7 +95,7 @@ public:
    "phold",
    "Phold",
    SST_ELI_ELEMENT_VERSION( 1, 0, 0 ),
-   "PHOLD benchmark component for SST",
+   "PHOLD benchmark LP component for SST",
    COMPONENT_CATEGORY_UNCATEGORIZED
    );
 
@@ -226,12 +236,12 @@ public:
   // **** Inherited from SST::BaseComponent ****
 
   /**
-   * \copydoc SST::BaseComponent::init()
-   *
    * Components can send/receive events, negotiate configuration...
    * Called repeatedly until no more events sent.
    *
-   * Here we send events down a binary spanning tree over the component ids.
+   * Here we send events down a binary spanning tree over the component (LP) ids,
+   * just for illustration.  See complete() for a more useful example, to
+   * roll up the total number of events to LP 0.
    *
    * For example,
    *
@@ -273,7 +283,11 @@ public:
   // Complete configuration, no send/rcv, single invocation.
   virtual void setup() override;
 
-  // Similar to init()
+  /**
+   * Pass number of executed events back to the root LP at id 0.
+   * Operates similarly to init().
+   * Here we start at the leaves and pass counts up to the parents.
+   */
   virtual void complete(unsigned int phase) override;
 
   // Similar to setup()
@@ -289,13 +303,16 @@ private:
   void SendEvent();
 
   /**
-   * Incoming event handler
+   * Incoming event handler.
    * @param ev The incoming event.
    * @param from The sending LP id.
    */
   void handleEvent(SST::Event *ev, uint32_t from);
 
-  /** Generate the best SI representation of the time. */
+  /** 
+   * Generate the best SI representation of the time. 
+   * @param sim The time value to conver to a string.
+   */
   std::string    toBestSI(SST::SimTime_t sim) const;
 
 
