@@ -359,13 +359,13 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
 }
 
 template <typename E>
-E * 
+E *
 Phold::getEvent(SST::ComponentId_t id)
 {
   return dynamic_cast<E*>(m_links[id]->recvUntimedData());
 }
 
-InitEvent * 
+InitEvent *
 Phold::getInitEvent(SST::ComponentId_t id)
 {
   return getEvent<InitEvent>(id);

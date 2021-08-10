@@ -9,7 +9,7 @@
 
 /**
  * \file
- * Event types for PHOLD benchmark: 
+ * Event types for PHOLD benchmark:
  * Phold::PholdEvent, Phold::InitEvent, Phold::CompleteEvent.
  */
 
@@ -17,21 +17,21 @@
 namespace Phold {
 
 /**
- * Event sent by PHOLD LPs during simulation, 
+ * Event sent by PHOLD LPs during simulation,
  * just containing the send time, for debugging.
  */
 class PholdEvent : public SST::Event
 {
 public:
-  /** 
+  /**
    * C'tor.
    * @param sendTime The simulation time when the event was sent.
    */
   explicit
   PholdEvent(SST::SimTime_t sendTime)
     : SST::Event(),
-      m_sendTime (sendTime)
-    {};
+    m_sendTime (sendTime)
+  {};
 
   // Basic PHOLD has no event data to send
   // \todo Consider adding src tracking, QHOLD hash...
@@ -41,16 +41,15 @@ public:
    * @returns The send time.
    */
   SST::SimTime_t getSendTime() const
-    { 
-      return m_sendTime;
-    }
+  {
+    return m_sendTime;
+  };
 
-public:
   /** Default c'tor, for serialization. */
-  PholdEvent() 
+  PholdEvent()
     : SST::Event(),
-      m_sendTime(0)
-    { }
+    m_sendTime(0)
+  {};
 
   // Inherited
   void
@@ -58,7 +57,7 @@ public:
   {
     Event::serialize_order(ser);
     ser & m_sendTime;
-    }
+  };
 
   /*
     Defined in sst-core/src/sst/core/serializatino/serializeable.h
@@ -68,7 +67,7 @@ public:
   */
   ImplementSerializable(Phold::PholdEvent);
 
- private:
+private:
 
   /** Send time of this event. */
   SST::SimTime_t m_sendTime;
@@ -77,7 +76,7 @@ public:
 
 
 /**
- * Event sent by PHOLD LPs during initialization, 
+ * Event sent by PHOLD LPs during initialization,
  * containing the sender id.
  */
 class InitEvent : public SST::Event
@@ -91,23 +90,30 @@ public:
   InitEvent(SST::ComponentId_t id)
     : SST::Event(),
     m_sender(id)
-    {};
+  {};
 
   /**
    * Get the sender id from the event.
    * @returns The sender id.
    */
   SST::ComponentId_t getSenderId() const
-    {
-      return m_sender;
-    }
+  {
+    return m_sender;
+  };
 
-public:
   /** Default c'tor, for serialization. */
- InitEvent()
+  InitEvent()
    : SST::Event(),
-     m_sender(0)
-   { }
+    m_sender(0)
+  {};
+
+  // Inherited
+  void
+  serialize_order(SST::Core::Serialization::serializer & ser) override
+  {
+    Event::serialize_order(ser);
+    ser & m_sender;
+  };
 
   ImplementSerializable(Phold::InitEvent);
 

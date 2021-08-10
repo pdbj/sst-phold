@@ -37,7 +37,7 @@ namespace Phold {
  * In Proceedings of the SCS Multiconference on Distributed Simulation 22, 1 (January 1990), pp. 23-28.
  *
  * In the literature each Phold instance is considered a "logical process" (LP).
- * Since this also serves as an SST example, we'll mostly use the SST terminology 
+ * Since this also serves as an SST example, we'll mostly use the SST terminology
  * and refer to the Phold LPs as "components".
  */
 class Phold : public SST::Component
@@ -313,7 +313,7 @@ private:
   /** Helper functions for init(), complete() */
   /** @{ */
 
-  /** 
+  /**
    * Get a possible event from the link at \c id.
    * @tparam E The Phold event type to return
    * @param id The link/remote to query.
@@ -325,7 +325,7 @@ private:
   /** Specialization of getEvent for InitEvent. */
   InitEvent * getInitEvent(SST::ComponentId_t id);
 
-  /** 
+  /**
    * Check for unexpected messages during init() or complete().
    * This iterates through all links checking for messages.
    * Check for expected messages before calling this function.
@@ -356,8 +356,8 @@ private:
 
   /** @} */  // init(), complete() helpers
 
-  /** 
-   * Generate the best SI representation of the time. 
+  /**
+   * Generate the best SI representation of the time.
    * @param sim The time value to conver to a string.
    */
   std::string    toBestSI(SST::SimTime_t sim) const;
