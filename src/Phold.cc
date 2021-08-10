@@ -199,20 +199,29 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   SST::Params p;
   p.insert("stopat", std::to_string(m_stop));
 
-  m_count = registerStatistic<uint64_t>(p, "Count");
-  ASSERT(m_count, "Failed to register Count statistic");
-  m_count->setFlagOutputAtEndOfSim(true);
-  ASSERT(m_count->isEnabled(), "Count statistic is not enabled!\n");
-  ASSERT( ! m_count->isNullStatistic(), "Count statistic is Null!\n");
-  VERBOSE(4, "  m_count    @0x%p\n", m_count);
+  m_sendCount = dynamic_cast<decltype(m_sendCount)>(registerStatistic<uint64_t>(p, "SendCount"));
+  ASSERT(m_sendCount, "Failed to register SendCount statistic");
+  m_sendCount->setFlagOutputAtEndOfSim(true);
+  ASSERT(m_sendCount->isEnabled(), "SendCount statistic is not enabled!\n");
+  ASSERT( ! m_sendCount->isNullStatistic(), "SendCount statistic is Null!\n");
+  VERBOSE(4, "  m_sendCount    @%p\n", m_sendCount);
 
+  m_recvCount = dynamic_cast<decltype(m_recvCount)>(registerStatistic<uint64_t>(p, "RecvCount"));
+  ASSERT(m_recvCount, "Failed to register RecvCount statistic");
+  m_recvCount->setFlagOutputAtEndOfSim(true);
+  ASSERT(m_recvCount->isEnabled(), "RecvCount statistic is not enabled!\n");
+  ASSERT( ! m_recvCount->isNullStatistic(), "RecvCount statistic is Null!\n");
+  VERBOSE(4, "  m_recvCount    @%p\n", m_recvCount);
+
+  // Delay histogram might not be enabled, in which case registerStatistic
+  // returns a NullStatistic
   m_delays = registerStatistic<float>(p, "Delays");
   ASSERT(m_delays, "Failed to register Delays statistic\n");
-  m_delays->setFlagOutputAtEndOfSim(true);
   if (m_delaysOut)
     {
+      m_delays->setFlagOutputAtEndOfSim(true);
       ASSERT(m_delays->isEnabled(), "Delays statistic is not enabled!\n");
-      ASSERT( ! m_count->isNullStatistic(), "Delays statistic is Null!\n");
+      ASSERT( ! m_delays->isNullStatistic(), "Delays statistic is Null!\n");
     }
   VERBOSE(4, "  m_delays   @%p\n", m_delays);
 
@@ -304,8 +313,7 @@ Phold::SendEvent()
   auto delayTotal = delay + m_minimum;
   auto nextEventTime = delayTotal + now;
 
-  // Log and clean up delay
-  m_delays->addData(delay);
+  // Clean up delay
   if ( ! local)
     {
       // For remotes m_minimum is added by the link
@@ -324,13 +332,16 @@ Phold::SendEvent()
       delay = delayTotal;
     }
 
-  // Log the event
-  VERBOSE(2, "from %llu @ %llu, delay: %llu -> %llu @ %llu\n",
-         getId(), now, delay, nextId, nextEventTime);
 
   // Send a new event.  This is deleted in handleEvent
   auto ev = new PholdEvent(getCurrentSimTime());
   m_links[nextId]->send(delay, ev);
+  VERBOSE(2, "from %llu @ %llu, delay: %llu -> %llu @ %llu\n",
+         getId(), now, delay, nextId, nextEventTime);
+  m_delays->addData(delay);
+
+  // Record the send.  Configured not to record after m_stop
+  m_sendCount->addData(1);
 
 }  // SendEvent()
 
@@ -343,13 +354,14 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   // Extract any useful data, then clean it up
   auto sendTime = event->getSendTime();
   delete event;
+  // Record the receive.  Configured not to record after m_stop
+  m_recvCount->addData(1);
 
   // Check the stopping condition
   auto now = getCurrentSimTime();
   if (now < m_stop)
   {
     VERBOSE(2, "now: %llu, from %u @ %llu\n", now, from, sendTime);
-    m_count->addData(1);
     SendEvent();
   } else
   {

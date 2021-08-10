@@ -19,6 +19,8 @@
 #include <sst/core/rng/uniform.h>
 #include <sst/core/rng/expon.h>
 #include <sst/core/eli/statsInfo.h>
+#include <sst/core/statapi/stataccumulator.h>
+#include <sst/core/statapi/stathistogram.h>
 
 #include <vector>
 
@@ -166,8 +168,13 @@ public:
      }
    */
 
-   { "Count",
-     "Count of events handled before stop time.",
+   { "SendCount",
+     "Count of events sent to execute before stop time.",
+     "events",
+     1
+   },
+   { "RecvCount",
+     "Count of events received before stop time.",
      "events",
      1
    },
@@ -417,10 +424,18 @@ private:
   SST::RNG::SSTExponentialDistribution * m_delayRng;
 
   // Class instance statistics
-  /** Count of events handled. */
-  Statistic<uint64_t> * m_count;
-  /** Histogram of delay times. */
-  Statistic<float>   * m_delays;
+  /** Count of events sent. */
+  SST::Statistics::AccumulatorStatistic<uint64_t> * m_sendCount;
+  /** Count of events received. */
+  SST::Statistics::AccumulatorStatistic<uint64_t> * m_recvCount;
+  /**
+   * Histogram of delay times.
+   * This has to be generic, instead of explicitly
+   * `SST::Statistics::HistogramStatistic<float>`,
+   * because it might not be enabled, in which case it will be
+   * a `SST::Statistics::NullStatistic< T >`.
+   */
+  Statistic<float> * m_delays;
 
 };  // class Phold
 

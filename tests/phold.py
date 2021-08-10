@@ -222,9 +222,11 @@ phprint(f"Enabling statistics at level {statLevel}")
 sst.setStatisticLoadLevel(statLevel)
 sst.setStatisticOutput("sst.statOutputConsole")
 
-# Always enable Count, report only at end
+# Always enable counts, report only at end
 # Stat type accumulator is the default
-sst.enableStatisticsForComponentType("phold.Phold", ["Count"],
+sst.enableStatisticsForComponentType("phold.Phold", ["SendCount"],
+                                     {"rate" : "0ns"})
+sst.enableStatisticsForComponentType("phold.Phold", ["RecvCount"],
                                      {"rate" : "0ns"})
 
 if ph.delays:
@@ -234,5 +236,6 @@ if ph.delays:
                                           "minvalue" : "0",
                                           "binwidth" : "1",
                                           "numbins" : "50" } )
+## TODO:  generalize the preceding config based on mean delay
 
 phprint(f"Done\n")
