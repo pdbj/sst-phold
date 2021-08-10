@@ -102,7 +102,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
                 m_verbose, 0, SST::Output::STDOUT);
 #ifdef PHOLD_DEBUG
   VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
-  VERBOSE(2, "Full c'tor() @0x%p, id: %llu, name: %s\n", this, getId(), getName().c_str());
+  VERBOSE(2, "Full c'tor() @%p, id: %llu, name: %s\n", this, getId(), getName().c_str());
 #endif
 
   // Default time unit for Component and links
@@ -150,16 +150,16 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_rng  = new Phold::RNG_t;
   // seed() doesn't check validity of arg, can't be 0
   m_rng->seed(1 + getId());
-  VERBOSE(4, "  m_rng      @0x%p\n", m_rng);
+  VERBOSE(4, "  m_rng      @%p\n", m_rng);
   m_remRng  = m_rng;
-  VERBOSE(4, "  m_remRng   @0x%p\n", m_remRng);
+  VERBOSE(4, "  m_remRng   @%p\n", m_remRng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
-  VERBOSE(4, "  m_nodeRng  @0x%p\n", m_nodeRng);
+  VERBOSE(4, "  m_nodeRng  @%p\n", m_nodeRng);
   auto avgRngRate = m_average;
   avgRngRate /= TIMEFACTOR;
   avgRngRate.invert();
   m_delayRng = new SST::RNG::SSTExponentialDistribution(avgRngRate.getDoubleValue(), m_rng);
-  VERBOSE(4, "  m_delayRng @0x%p, rate: %s (%f)\n",
+  VERBOSE(4, "  m_delayRng @%p, rate: %s (%f)\n",
           m_delayRng, avgRngRate.toString().c_str(), m_delayRng->getLambda());
 
   // Configure ports/links
@@ -171,7 +171,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   const auto prefix(pre.erase(pre.find('%')));
   std::string port;
   for (uint32_t i = 0; i < m_number; ++i) {
-    ASSERT(m_links[i] == nullptr, "Initialized link %u (0x%p) is not null!\n", i, m_links[i]);
+    ASSERT(m_links[i] == nullptr, "Initialized link %u (%p) is not null!\n", i, m_links[i]);
     if (i != getId())
     {
       port = prefix + std::to_string(i);
@@ -181,7 +181,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       ASSERT(handler, "Failed to create handler\n");
       m_links[i] = configureLink(port, handler);
       ASSERT(m_links[i], "Failed to configure link %u\n", i);
-      VERBOSE(4, "    link %u: %s @0x%p with handler @0x%p\n", i, port.c_str(), m_links[i], handler);
+      VERBOSE(4, "    link %u: %s @%p with handler @%p\n", i, port.c_str(), m_links[i], handler);
 
     } else {
 
@@ -189,7 +189,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       ASSERT(handler, "Failed to create handler\n");
       m_links[i] = configureSelfLink("self", handler);
       ASSERT(m_links[i], "Failed to configure self link\n");
-      VERBOSE(4, "    link %u: self   @0x%p with handler @0x%p\n", i, m_links[i], handler);
+      VERBOSE(4, "    link %u: self   @%p with handler @%p\n", i, m_links[i], handler);
     }
   }
 
@@ -214,7 +214,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       ASSERT(m_delays->isEnabled(), "Delays statistic is not enabled!\n");
       ASSERT( ! m_count->isNullStatistic(), "Delays statistic is Null!\n");
     }
-  VERBOSE(4, "  m_delays   @0x%p\n", m_delays);
+  VERBOSE(4, "  m_delays   @%p\n", m_delays);
 
   // Initial events created in setup()
 
@@ -245,7 +245,7 @@ Phold::~Phold() noexcept
 {
   VERBOSE(2, "Destructor()\n");
 #define DELETE(p) \
-  VERBOSE(4, "  deleting %s @0x%p\n", #p, (p));  \
+  VERBOSE(4, "  deleting %s @%p\n", #p, (p));  \
   p = 0
 
   DELETE(m_rng);
