@@ -420,7 +420,8 @@ Phold::init(unsigned int phase)
 
   // phase is the level in the tree we're working now,
   // which includes all components with getId() < bt::size(phase)
- 
+  if (0 == phase) OUTPUT("First init phase\n");
+
   VERBOSE(2, "depth: %llu, phase: %u, begin: %llu, end: %llu\n",
           bt::depth(getId()), phase, bt::begin(phase), bt::end(phase));
 
@@ -467,6 +468,7 @@ Phold::init(unsigned int phase)
   else
 
     {
+      OUTPUT("Last init phase\n");
       VERBOSE(3, "  checking for late events\n");
       ASSERT(phase > bt::depth(getId()), "  expected to be late in this phase, but not\n");
       // Check for late events
@@ -490,19 +492,120 @@ Phold::setup()
 }
 
 
+CompleteEvent *
+Phold::getCompleteEvent(SST::ComponentId_t id)
+{
+  return getEvent<CompleteEvent>(id);
+}
+
+
+std::pair<std::size_t, std::size_t>
+Phold::getChildCounts(SST::ComponentId_t child)
+{
+  std::pair<std::size_t, std::size_t> counts{0, 0};
+
+  if (child < m_number)
+    {
+      VERBOSE(3, "    getting expected event from child %llu\n", child);
+      auto event = getCompleteEvent(child);
+      ASSERT(event, "   failed to receive expected event from child %llu\n", child);
+      counts.first  = event->getSendCount();
+      counts.second = event->getRecvCount();
+      VERBOSE(4, "      child %llu reports %llu sends, %llu recvs\n",
+              child,counts.first, counts.second);
+    }
+  else {
+    VERBOSE(3, "    skipping overflow child %llu\n", child);
+  }
+  return counts;
+
+}  // getChildCounts
+
+
+void
+Phold::sendToParent(SST::ComponentId_t parent,
+                    std::size_t sendCount, std::size_t recvCount)
+{
+  VERBOSE(3, "    sending to parent %llu with sends: %llu, recvs: %llu\n",
+          parent, sendCount, recvCount);
+  auto event = new CompleteEvent(sendCount, recvCount);
+  m_links[parent]->sendUntimedData(event);
+}
+
+
 void
 Phold::complete(unsigned int phase)
 {
-  VERBOSE(2, "complete phase: %ld\n", phase);
+  using bt = BinaryTree;
 
-  // Similar pattern to init()
-}
+  // Similar pattern to init(), but starting from the leaves
+  if (0 == phase) OUTPUT("First complete phase\n");
+
+  // depth containing the last Component
+  std::size_t maxDepth = bt::depth(m_number - 1);
+  // effective phase, starting up from leaves, to parallel init()
+  std::size_t ephase = maxDepth - phase;
+
+  VERBOSE(2, "complete phase: %lu, max depth %llu, ephase: %llu\n",
+          phase, maxDepth, ephase);
+
+  // First check for early events
+  if (ephase > bt::depth(getId()))
+    {
+      VERBOSE(3, "  checking for early events\n");
+      checkForEvents<CompleteEvent>("EARLY");
+    }
+
+  else if (ephase == bt::depth(getId()))
+
+    {
+      VERBOSE(3, "  our phase\n");
+      // Get the send counts from children
+      auto children = bt::children(getId());
+      auto left = getChildCounts(children.first);
+      auto right = getChildCounts(children.second);
+
+      // Accumulate the send counts
+      auto sendCount = m_sendCount->getCount() + left.first + right.first;
+      auto recvCount = m_recvCount->getCount() + left.second + right.second;
+
+      VERBOSE(3, "    accumulating sends: me: %llu, left: %llu, right: %llu, total: %llu\n",
+              m_sendCount->getCount(), left.first, right.first, sendCount);
+      VERBOSE(3, "    accumulating recvs: me: %llu, left: %llu, right: %llu, total: %llu\n",
+              m_recvCount->getCount(), left.second, right.second, recvCount);
+
+      // Send the totals to our parent, unless we're at the root
+      if (0 < getId())
+      {
+        sendToParent(bt::parent(getId()), sendCount, recvCount);
+      }
+      // Log the total, from root
+      OUTPUT("Last complete phase\n");
+      OUTPUT("Grand total sends: %llu, receives: %llu, error: %llu\n",
+             sendCount, recvCount, sendCount - recvCount);
+
+      // Finally, check for any other events
+      VERBOSE(3, "  checking for other events\n");
+      checkForEvents<CompleteEvent>("OTHER");
+    }
+
+  else
+
+    {
+      VERBOSE(3, "  checking for late events\n");
+      ASSERT(ephase < bt::depth(getId()), "  expected to be late in this phase, but not\n");
+      // Check for late eents
+      checkForEvents<CompleteEvent>("LATE");
+    }
+
+}  // complete()
 
 
 void
 Phold::finish()
 {
   VERBOSE(2, "\n");
+  OUTPUT("Finish complete\n");
 }
 
 }  // namespace Phold

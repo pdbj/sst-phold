@@ -350,6 +350,17 @@ private:
    */
   void sendToChild(SST::ComponentId_t child);
 
+  /** Specialization of getEvent for CompleteEvent. */
+  CompleteEvent * getCompleteEvent(SST::ComponentId_t id);
+
+  /**
+   * Get the send and receive counts from a child.
+   * @param child The child to receive from
+   * @returns A pair of the send count and the receive count.
+  */
+  std::pair<std::size_t, std::size_t>
+  getChildCounts(SST::ComponentId_t child);
+
   /**
    * Send a complete event to a parent by index, containing the total
    * number of events sent by me an my children.
@@ -358,8 +369,8 @@ private:
    * @param recvCount The total number of events received by me and my children
    * \todo We should accumulate sent and received events to cross check.
    */
-  //  void sendToParent(SST::ComponentId_t parent, 
-  //                    std::size_t sendCount, std::size_t recvCount);
+  void sendToParent(SST::ComponentId_t parent,
+                    std::size_t sendCount, std::size_t recvCount);
 
   /** @} */  // init(), complete() helpers
 

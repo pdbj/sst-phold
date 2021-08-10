@@ -126,6 +126,66 @@ private:
 
 
 
+/**
+ * Event sent by PHOLD LPs during completion,
+ * containing the total number of events sent and received
+ * by the LP sending this event, and all it's children.
+ */
+class CompleteEvent : public SST::Event
+{
+public:
+  /**
+   * C'tor
+   * @param sendCount The total number of events sent.
+   * @param recvCount The total number of events received.
+   */
+  CompleteEvent(std::size_t sendCount, std::size_t recvCount)
+    : m_sendCount(sendCount),
+    m_recvCount(recvCount)
+  {};
+
+  /**
+   * Get the send count from the event.
+   * @returns The total number of events sent.
+   */
+  std::size_t getSendCount() const
+  {
+    return m_sendCount;
+  };
+
+  /**
+   * Get the receive count from the event.
+   * @returns The total number of events received.
+   */
+  std::size_t getRecvCount() const
+  {
+    return m_recvCount;
+  };
+
+  /** Default c'tor, for serialization. */
+  CompleteEvent()
+   : SST::Event(),
+    m_sendCount(0),
+    m_recvCount(0)
+  {};
+
+  // Inherited
+  void
+  serialize_order(SST::Core::Serialization::serializer & ser) override
+  {
+    Event::serialize_order(ser);
+    ser & m_sendCount;
+    ser & m_recvCount;
+  };
+
+  ImplementSerializable(Phold::CompleteEvent);
+
+private:
+
+  std::size_t m_sendCount;  /** The send count. */
+  std::size_t m_recvCount;  /** The receive count. */
+
+};  // class CompleteEvent
 
 }  // namespace Phold
 
