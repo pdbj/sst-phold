@@ -621,8 +621,8 @@ Phold::complete(unsigned int phase)
       }
       // Log the total, from root
       OUTPUT("Last complete phase\n");
-      OUTPUT("Grand total sends: %llu, receives: %llu, error: %llu\n",
-             sendCount, recvCount, sendCount - recvCount);
+      OUTPUT("Grand total sends: %llu, receives: %llu, error: %lld\n",
+             sendCount, recvCount, (long long)sendCount - recvCount);
 
       // Finally, check for any other events
       VERBOSE(3, "  checking for other events\n");
