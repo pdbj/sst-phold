@@ -323,12 +323,13 @@ Phold::SendEvent()
               nextEventTime);
 
     } else {
-      // self links don't have a min latency configured, so add it now
       VERBOSE(3, "  delay: %llu + %llu = %llu => %llu\n",
               delay,
               m_minimum,
               delayTotal,
               nextEventTime);
+      // Self links don't have a min latency configured, 
+      // so use the total delay in the send
       delay = delayTotal;
     }
 
@@ -340,8 +341,11 @@ Phold::SendEvent()
          getId(), now, delay, nextId, nextEventTime);
   m_delays->addData(delay);
 
-  // Record the send.  Configured not to record after m_stop
-  m_sendCount->addData(1);
+  // Record only sends which will be *received* before stop time.
+  if (nextEventTime < m_stop)
+    {
+      m_sendCount->addData(1);
+    }
 
 }  // SendEvent()
 
@@ -354,7 +358,8 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   // Extract any useful data, then clean it up
   auto sendTime = event->getSendTime();
   delete event;
-  // Record the receive.  Configured not to record after m_stop
+  // Record the receive.  Configured (in .py) not to record after m_stop,
+  // so no additional logic needed here.
   m_recvCount->addData(1);
 
   // Check the stopping condition
