@@ -371,8 +371,11 @@ Phold::SendEvent()
   // Send a new event.  This is deleted in handleEvent
   auto ev = new PholdEvent(getCurrentSimTime());
   m_links[nextId]->send(delay, ev);
-  VERBOSE(2, "from %llu @ %llu, delay: %llu -> %llu @ %llu\n",
-         getId(), now, delay, nextId, nextEventTime);
+  VERBOSE(2, "from %llu @ %llu, delay: %llu -> %llu @ %llu %s\n",
+          getId(), now, delay, nextId, nextEventTime,
+          (nextEventTime < m_stop ? "" : "(too late)")
+          );
+
   m_delays->addData(delay);
 
   // Record only sends which will be *received* before stop time.
@@ -392,12 +395,17 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   // Extract any useful data, then clean it up
   auto sendTime = event->getSendTime();
   delete event;
+
+  auto now = getCurrentSimTime();
+
   // Record the receive.  Configured (in .py) not to record after m_stop,
-  // so no additional logic needed here.
-  m_recvCount->addData(1);
+  // but doesn't seem to work
+  if (now < m_stop)
+    {
+      m_recvCount->addData(1);
+    }
 
   // Check the stopping condition
-  auto now = getCurrentSimTime();
   if (now < m_stop)
   {
     VERBOSE(2, "now: %llu, from %u @ %llu\n", now, from, sendTime);
