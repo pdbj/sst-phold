@@ -76,8 +76,8 @@ constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
 double               Phold::m_remote;
 SST::SimTime_t       Phold::m_minimum;
 SST::UnitAlgebra     Phold::m_average;
-long                 Phold::m_number;
-long                 Phold::m_events;
+unsigned long        Phold::m_number;
+unsigned long        Phold::m_events;
 bool                 Phold::m_delaysOut;
 uint32_t             Phold::m_verbose;
 SST::SimTime_t       Phold::m_stop;

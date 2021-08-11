@@ -394,8 +394,8 @@ private:
   static SST::SimTime_t    m_minimum;    /**< Minimum event delay */
   static SST::UnitAlgebra  m_average;    /**< Mean event delay, added to m_minimum */
   static SST::SimTime_t    m_stop;       /**< Stop time */
-  static long              m_number;     /**< Total number of LPs */
-  static long              m_events;     /**< Initial number of events per LP */
+  static unsigned long     m_number;     /**< Total number of LPs */
+  static unsigned long     m_events;     /**< Initial number of events per LP */
   static bool              m_delaysOut;  /**< Output delays histogram */
   static uint32_t          m_verbose;    /**< Verbose output flag */
 
