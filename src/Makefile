@@ -13,21 +13,26 @@ CXXFLAGS += -I$(HOME)/local/include
 
 # Check if we're debugging or not
 ifndef PHOLD_DEBUG
-  CXXFLAGS+=-g -O3
-  $(info Building optimized)
+  CXXFLAGS_ADD=-g -O3
+  $(info Building optimized with $(CXXFLAGS_ADD))
+  CXXFLAGS+=$(CXXFLAGS_ADD)
 else
-  CXXFLAGS+=-g -Og -DPHOLD_DEBUG
-  $(info Building debug)
+  CXXFLAGS_ADD=-g -Og -DPHOLD_DEBUG
+  $(info Building debug with $(CXXFLAGS_ADD))
+  CXXFLAGS+=$(CXXFLAGS_ADD)
 endif
 
 ifdef RNG_DEBUG
-  CXXFLAGS+=-DRNG_DEBUG
+  CXXFLAGS_ADD=-DRNG_DEBUG
+  $(info Building RNG debug with $(CXXFLAGS_ADD))
+  CXXFLAGS+=$(CXXFLAGS_ADD)
 endif
 
 # Check if we're skipping rngs
 ifdef PHOLD_FIXED
-  CXXFLAGS+=-DPHOLD_FIXED
-  $(info Using fixed rng values)
+  CXXFLAGS_ADD=-DPHOLD_FIXED
+  $(info Using fixed rng values with $(CXXFLAGS_ADD))
+  CXXFLAGS+=$(CXXFLAGS_ADD)
 endif
 
 
