@@ -25,40 +25,40 @@
 
 namespace Phold {
 
-#ifdef PHOLD_DEBUG
-
-  // Optimized or debug build
-# define OPT_LEVEL "debug"
-
-  // Simplify use of sst_assert
-  // Extra conditional is to avoid early evaluation of args, so we can do
-  //   ASSERT(NULL == p, ..., function(p));
-  // when we expect a null pointer, and not call a function on it until necessary
-# define ASSERT(condition, args...)                             \
-  if (! (condition))                                            \
-  Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
-
-  // Non-asserting assert, for debugging
-# define DEBUG(condition, args...)              \
-  if (! (condition)) VERBOSE (3, args)
-
-# define VERBOSE(l, f, args...)                            \
-  m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),           \
-                         CALL_INFO, l, 0,                  \
-                         "[%u] " f, l, ##args)
-#else
+#ifndef PHOLD_DEBUG
 
 #  define OPT_LEVEL "optimized"
 #  define ASSERT(...)
 #  define DEBUG(...)
 #  define VERBOSE(...)
 
+#else
+   // Optimized or debug build
+#  define OPT_LEVEL "debug"
+
+   // Simplify use of sst_assert
+   // Extra conditional is to avoid early evaluation of args, so we can do
+   //   ASSERT(NULL == p, ..., function(p));
+   // when we expect a null pointer, and not call a function on it until necessary
+#  define ASSERT(condition, args...)                             \
+   if (! (condition))                                            \
+   Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
+
+   // Non-asserting assert, for debugging
+#  define DEBUG(condition, args...)              \
+   if (! (condition)) VERBOSE (3, args)
+
+#  define VERBOSE(l, f, args...)                            \
+   m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),           \
+                          CALL_INFO, l, 0,                  \
+                          "[%u] " f, l, ##args)
+
 #endif
 
-#ifdef PHOLD_FIXED
-#  define RNG_MODE "fixed"
-#else
+#ifndef PHOLD_FIXED
 #  define RNG_MODE "rng"
+#else
+#  define RNG_MODE "fixed"
 #endif
 
 
@@ -86,7 +86,8 @@ SST::TimeConverter * Phold::m_timeConverter;
 std::string
 Phold::toBestSI(SST::SimTime_t sim) const
 {
-  auto time = m_timeConverter->convertFromCoreTime(sim);
+  auto factor = m_timeConverter->getFactor();
+  auto time = m_timeConverter->convertFromCoreTime(sim * factor);
   auto s = TIMEBASE;
   s *= time;
   return s.toStringBestSI();
@@ -96,25 +97,19 @@ Phold::toBestSI(SST::SimTime_t sim) const
 Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   : SST::Component(id)
 {
-  // SST::Params doesn't understand Python bools
   m_verbose = params.find<long>("pverbose", 0);
+#ifndef PHOLD_DEBUG
+  m_output.init("@t:Phold: ",
+                m_verbose, 0, SST::Output::STDOUT);
+#else
   m_output.init("@t:@X:Phold-" + getName() + " [@p()] -> ",
                 m_verbose, 0, SST::Output::STDOUT);
-#ifdef PHOLD_DEBUG
   VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
   VERBOSE(2, "Full c'tor() @%p, id: %llu, name: %s\n", this, getId(), getName().c_str());
 #endif
 
   // Default time unit for Component and links
   m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
-  TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
-
-  VERBOSE(3, "TIMEFACTOR: %f, timeConverter factor: %llu, period: %s (%f s?)\n",
-          TIMEFACTOR,
-          m_timeConverter->getFactor(),
-          m_timeConverter->getPeriod().toStringBestSI().c_str(),
-          m_timeConverter->getPeriod().getDoubleValue());
-
 
   m_remote  = params.find<double> ("remote",   0.9);
   m_minimum = params.find<double> ("minimum",  1.0) * PHOLD_PY_TIMEFACTOR;
@@ -125,26 +120,65 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_events  = params.find<unsigned long>   ("events",   1);
   m_delaysOut = params.find<bool> ("delays",  false);
 
-  if (0 == getId()) {
-    std::stringstream ss;
-    auto factor = m_timeConverter->getFactor();
+  if (0 == getId())
+    {
+      TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
+      VERBOSE(3, "  TIMEFACTOR: %f, timeConverter factor: %llu, period: %s (%f s?)\n",
+              TIMEFACTOR,
+              m_timeConverter->getFactor(),
+              m_timeConverter->getPeriod().toStringBestSI().c_str(),
+              m_timeConverter->getPeriod().getDoubleValue());
 
-    ss << "\nPHOLD Configuration:"
-       << "\n    Remote LP fraction:                   " << m_remote
-       << "\n    Minimum inter-event delay:            " << toBestSI(m_minimum * factor)
-       << "\n    Additional exponential average delay: " << m_average.toStringBestSI()
-       << "\n    Stop time:                            " << toBestSI(m_stop * factor)
-       << "\n    Number of LPs:                        " << m_number
-       << "\n    Number of initial events per LP:      " << m_events
-       << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
-       << "\n    Verbosity level:                      " << m_verbose
-       << "\n    Optimization level:                   " << OPT_LEVEL
-       << "\n    Sampling:                             " << RNG_MODE
-       << std::endl;
-#undef BEST
+      auto minimum = TIMEBASE;
+      minimum *= m_minimum;
+      // duty_factor = minimum / (minimum + m_average)
+      auto duty = m_average;
+      duty += minimum;
+      duty.invert();
+      duty *= minimum;
+      double duty_factor = duty.getDoubleValue();
+      VERBOSE(3, "  min: %s, duty: %s, df: %f\n",
+              minimum.toStringBestSI().c_str(), duty.toStringBestSI().c_str(), duty_factor);
 
-    OUTPUT("%s\n", ss.str().c_str());
-  }
+      double ev_per_win = m_events * duty_factor;
+      const double min_ev_per_win = 10;
+      unsigned long min_events = min_ev_per_win / duty_factor;
+      VERBOSE(3, "  m_ev: %lu, ev_win: %f, min_ev_win: %f, min_ev: %lu\n",
+              m_events, ev_per_win, min_ev_per_win, min_events);
+
+      std::stringstream ss;
+      ss << "PHOLD Configuration:"
+         << "\n    Remote LP fraction:                   " << m_remote
+         << "\n    Minimum inter-event delay:            " << toBestSI(m_minimum)
+         << "\n    Additional exponential average delay: " << m_average.toStringBestSI()
+         << "\n    Stop time:                            " << toBestSI(m_stop)
+         << "\n    Number of LPs:                        " << m_number
+         << "\n    Number of initial events per LP:      " << m_events
+
+         << "\n    Average events per window:            " << ev_per_win;
+
+      if (ev_per_win < min_ev_per_win)
+        {
+          ss << "\n      (Too low!  Suggest setting '--events=" << min_events << "')";
+        }
+
+      ss << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
+         << "\n    Sampling:                             " << RNG_MODE
+         << "\n    Optimization level:                   " << OPT_LEVEL
+         << "\n    Verbosity level:                      " << m_verbose;
+
+#ifndef PHOLD_DEBUG
+      if (m_verbose)
+        {
+          ss << " (ignored in optimized build)";
+        }
+#endif
+
+      ss << std::endl;
+
+      OUTPUT("%s\n", ss.str().c_str());
+
+    }  // if 0 == getId
 
   VERBOSE(3, "Initializing RNGs\n");
   m_rng  = new Phold::RNG_t;
@@ -426,6 +460,8 @@ Phold::init(unsigned int phase)
   // phase is the level in the tree we're working now,
   // which includes all components with getId() < bt::size(phase)
   if (0 == phase) OUTPUT("First init phase\n");
+  if (bt::depth(m_number - 1)  == phase) OUTPUT("Last init phase\n");
+
 
   VERBOSE(2, "depth: %llu, phase: %u, begin: %llu, end: %llu\n",
           bt::depth(getId()), phase, bt::begin(phase), bt::end(phase));
@@ -473,7 +509,6 @@ Phold::init(unsigned int phase)
   else
 
     {
-      OUTPUT("Last init phase\n");
       VERBOSE(3, "  checking for late events\n");
       ASSERT(phase > bt::depth(getId()), "  expected to be late in this phase, but not\n");
       // Check for late events
