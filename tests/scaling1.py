@@ -1,4 +1,7 @@
 #!python3
+"""
+Generate a list of interesting PHOLD test points.
+"""
 
 from operator import mul
 
@@ -14,7 +17,7 @@ print(f"\nTotal cases: {list(ncases)}")
 exit(0)
 
 # from tabulate import tabulate
-# print(tabulate([['Alice', 24], 
+# print(tabulate([['Alice', 24],
 #                 ['Bob', 19]],    headers=['Name', 'Age']))
 
 titles = ["Nodes", "Events", "Mean", "Stop", "Time"]
@@ -28,4 +31,3 @@ for n in nodes:
                 cases += [n, e, m, s, time]
 
 print(tabulate(cases, headers=titles))
-

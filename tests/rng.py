@@ -1,4 +1,7 @@
 #!python3
+"""
+Test the SST RNG performance with a simple component.
+"""
 
 # import sst is managed below
 
@@ -7,41 +10,121 @@ import math
 import os
 import sys
 
-ME = "rng.py: "
 
 
 def meprint(args):
-    print(ME, args)
+    """Print messages prefixed by our script name."""
+    script = os.path.basename(__file__)
+    print(script, ": ", args)
 
-def vprint(l, args):
-    if rng.pyVerbose >= l: meprint(args)
+def vprint(level, args):
+    """Print a verbose message at verbosity level."""
+    if rng.pyVerbose >= level:
+        meprint(args)
 
-# Print dots to show progress
+
 class Dot():
-    def __init__(self, N):
+    """Print a series of dots to show progress.
+
+    The class is initialized with the expected number of items.
+    The processing of each item is logged by calling dot().
+    This will print a dot '.' for each item, or periodically if there are
+    more than 80 items.
+
+    Whether a dot is printed
+
+    Parameters
+    ----------
+    N : int
+        The total number of items expected.
+    level : int
+        Threshold level above which printing should be suppressed
+        (presumably because the caller has a more verbose progess indication).
+
+    Methods
+    -------
+    dot(level: int, show=True) -> bool
+        Log the processing of an item at level.  Suppress
+    done()
+        If any dots were printed add a newline.
+
+    """
+
+    def __init__(self, N: int, level: int):
+        """
+        Parameter
+        ----------
+        N : int
+            The total number of items expected.
+        level : int
+            Threshold level at which to suppress printing.
+
+        Attributes
+        ----------
+        _dots_per : int
+            Number of items per dot.
+        _level : int
+            Threshold level at which to suppress printing.
+        _item_count : int
+            How many items have been logged since the last dot was printed.
+        _dotted : bool
+            True if we've printed any dots, so we add a newline when done.
+        """
         # limit dots to a single 80 char line
-        self.nDots = math.ceil(N / 79.0)
-        self.dotCount = 0
-        self.dotted = False
+        self._dots_per = math.ceil(N / 79.0)
+        self._level = level
+        self._item_count = 0
+        self._dotted = False
 
-    def dot(self, level, show = True):
-        if show: self.dotCount += 1
-        if rng.pyVerbose < level:
-            if self.dotCount >= self.nDots :
-                if show: 
+    def dot(self, level: int, show=True) -> bool:
+        """Log the processing of an item.
+
+        Parameters
+        ----------
+        level : int
+            Verbosity level of this call. If this is greater than self.level
+            printing is suppressed.
+        show : bool
+            Alternate method to suppress printing
+
+        Returns True if level was too high, allowing this pattern:
+           if dotter.dot(l, False): print("Alternate verbose message")
+
+        """
+        if show:
+            self._item_count += 1
+        if self._level < level:
+            if self._item_count >= self._dots_per:
+                if show:
                     print('.', end='', flush=True)
-                    self.dotted = True
-                self.dotCount = 0
+                    self._dotted = True
+                self._item_count = 0
             return False
-        else:
-            return True
-        
-    def done(self):
-        if self.dotted: print("")
 
-        
+        return True
+
+    def done(self):
+        """Finish by adding a newline, if any dots were printed."""
+        if self._dotted:
+            print("")
+
+
 # RNG parameters
 class RngArgs(dict):
+    """Argument processing and validation.
+
+    Methods
+    -------
+    parse() : None
+        Parse the arguments and store the values.
+
+    print() : None
+        Pretty print the configuration.
+
+    Attributes
+    ----------
+    See print() or _init_argparse(), or run with '--help'
+    """
     def __init__(self):
         super().__init__()
         self.number = 1
@@ -56,6 +139,7 @@ class RngArgs(dict):
                f"pyVerbose: {self.pyVerbose}"
 
     def print(self):
+        """Pretty print the configuration."""
         print(f"    Number of components:           {self.number}")
         print(f"    Number of samples:              {self.samples}")
         print(f"    Verbosity level:                {self.pverbose}")
@@ -63,6 +147,7 @@ class RngArgs(dict):
 
     @property
     def validate(self):
+        """Validate the configuration."""
         valid = True
         self.number = int(self.number)
         if self.number < 1:
@@ -76,7 +161,7 @@ class RngArgs(dict):
         return valid
 
     def init_argparse(self) -> argparse.ArgumentParser:
-
+        """Configure the argument parser with our arguments."""
         script = os.path.basename(__file__)
         parser = argparse.ArgumentParser(
             usage=f"sst {script} [OPTION]...",
@@ -99,12 +184,18 @@ class RngArgs(dict):
         return parser
 
     def parse(self):
+        """Parse and validate the script arguments.
+
+        If the configuration is not valid print the help and exit.
+
+        If pyVerbose is on show the configuration.
+        """
         parser = self.init_argparse()
         parser.parse_args(namespace=self)
         if not self.validate:
             parser.print_help()
             sys.exit(1)
-            
+
         meprint(f"Configuration:")
         self.print()
 
@@ -118,7 +209,7 @@ try:
     import sst
     just_script = False
     meprint(f"Importing SST module")
-except:
+except ImportError as error:
     just_script = True
     meprint(f"No SST module, just debugging this script")
 
@@ -132,10 +223,11 @@ if just_script:
 
 # Create the LPs
 meprint(f"Creating {rng.number} components")
-dotter = Dot(rng.number)
+dotter = Dot(rng.number, rng.pyVerbose)
 lps = []
 for i in range(rng.number):
-    if dotter.dot(1): vprint(1, f"  Creating LP {i}")
+    if dotter.dot(1):
+        vprint(1, f"  Creating LP {i}")
     lp = sst.Component(str(i), "phold.Rng")
     lp.addParams(vars(rng))  # pass rng params as simple dictionary
     lps.append(lp)
@@ -144,9 +236,9 @@ dotter.done()
 # No links
 
 # Enable statistics
-statLevel = 1
-meprint(f"Enabling statistics at level {statLevel}")
-sst.setStatisticLoadLevel(statLevel)
+stat_level = 1
+meprint(f"Enabling statistics at level {stat_level}")
+sst.setStatisticLoadLevel(stat_level)
 sst.setStatisticOutput("sst.statOutputConsole")
 
 # Always enable Count, report only at end

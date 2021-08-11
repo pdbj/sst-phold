@@ -1,0 +1,12 @@
+
+[BASIC]
+
+# Regular expression matching correct constant names. Overrides const-naming-
+# style.
+
+# Lowercase snake
+const-rgx=[a-z\_][a-z0-9\_]{2,30}$
+
+# Good variable names which should always be accepted, separated by a comma.
+good-names=pyVerbose,
+           TIMEBASE

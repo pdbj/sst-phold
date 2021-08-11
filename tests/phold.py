@@ -1,48 +1,151 @@
 #!python3
+"""
+Configuration for the classic PHOLD benchmark.
+"""
 
 # import sst is managed below
 
 import argparse
 import math
 import os
+import pprint
 import sys
+import textwrap
 
-ME = "Phold.py: "
+
+def phprint(*args):
+    """Print progress information, prefixed by our name."""
+    script = os.path.basename(__file__)
+    print(script, ": ", end='')
+    for arg in args:
+        print(arg, end='')
+    print('')
+
+def vprint(level: int, *args):
+    """Print a verbose message at verbosity level."""
+    if phold.pyVerbose >= level:
+        phprint(args)
+
+def dprint(message: str, dictionary: dict):
+    """Print a header message, followed by a pretty printed dictionary d."""
+    if phold.pyVerbose:
+        phprint(message, ":")
+        dict_pretty = pprint.pformat(dictionary, indent=2, width=1)
+        print(textwrap.indent(dict_pretty, '    '))
 
 
-def phprint(args):
-    print(ME, args)
-
-def vprint(l, args):
-    if ph.pyVerbose >= l: phprint(args)
-
-# Print dots to show progress
 class Dot():
-    def __init__(self, N):
+    """Print a series of dots to show progress.
+
+    The class is initialized with the expected number of items.
+    The processing of each item is logged by calling dot().
+    This will print a dot '.' for each item, or periodically if there are
+    more than 80 items.
+
+    Whether a dot is printed
+
+    Parameters
+    ----------
+    N : int
+        The total number of items expected.
+    level : int
+        Threshold level above which printing should be suppressed
+        (presumably because the caller has a more verbose progess indication).
+
+    Methods
+    -------
+    dot(level: int, show=True) -> bool
+        Log the processing of an item at level.  Suppress
+    done()
+        If any dots were printed add a newline.
+
+    """
+
+    def __init__(self, N: int, level: int):
+        """
+        Parameter
+        ----------
+        N : int
+            The total number of items expected.
+        level : int
+            Threshold level at which to suppress printing.
+
+        Attributes
+        ----------
+        _dots_per : int
+            Number of items per dot.
+        _level : int
+            Threshold level at which to suppress printing.
+        _item_count : int
+            How many items have been logged since the last dot was printed.
+        _dotted : bool
+            True if we've printed any dots, so we add a newline when done.
+        """
         # limit dots to a single 80 char line
-        self.nDots = math.ceil(N / 79.0)
-        self.dotCount = 0
-        self.dotted = False
+        self._dots_per = math.ceil(N / 79.0)
+        self._level = level
+        self._item_count = 0
+        self._dotted = False
 
-    def dot(self, level, show = True):
-        if show: self.dotCount += 1
-        if ph.pyVerbose < level:
-            if self.dotCount >= self.nDots :
-                if show: 
+    def dot(self, level: int, show=True) -> bool:
+        """Log the processing of an item.
+
+        Parameters
+        ----------
+        level : int
+            Verbosity level of this call. If this is greater than self.level
+            printing is suppressed.
+        show : bool
+            Alternate method to suppress printing
+
+        Returns True if level was too high, allowing this pattern:
+           if dotter.dot(l, False): print("Alternate verbose message")
+
+        """
+        if show:
+            self._item_count += 1
+        if self._level < level:
+            if self._item_count >= self._dots_per:
+                if show:
                     print('.', end='', flush=True)
-                    self.dotted = True
-                self.dotCount = 0
+                    self._dotted = True
+                self._item_count = 0
             return False
-        else:
-            return True
-        
-    def done(self):
-        if self.dotted: print("")
 
-        
+        return True
+
+    def done(self):
+        """Finish by adding a newline, if any dots were printed."""
+        if self._dotted:
+            print("")
+
+
 # PHOLD parameters
 class PholdArgs(dict):
+    """PHOLD argument processing and validation.
+
+    Methods
+    -------
+    parse() : None
+        Parse the arguments and store the values.
+
+    print() : None
+        Pretty print the configuration.
+
+    Attributes
+    ----------
+    See print() or _init_argparse(), or run with '--help'
+    """
+
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self):
+        """Initialize the configuration with default values.
+
+        Attributes
+        ----------
+        See print() or _init_argparse(), or run with '--help'
+        """
         super().__init__()
         self.remote = 0.9
         self.minimum = 1
@@ -55,7 +158,7 @@ class PholdArgs(dict):
         self.pyVerbose = 0
         self.TIMEBASE = "s"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"remote: {self.remote}, " \
                f"min: {self.minimum}, " \
                f"avg: {self.average}, " \
@@ -67,18 +170,35 @@ class PholdArgs(dict):
                f"pyVerbose: {self.pyVerbose}"
 
     def print(self):
+        """Pretty print the configuration."""
+
+        # Syncrhonization duty factor: window size divided by total expected delay
+        duty_factor = self.minimum / (self.minimum + self.average)
+        # Expected number of events at each LP per window
+        ev_per_win = self.events * duty_factor
+        # Min target number of events per window
+        min_ev_per_win = 10
+        # Suggested minimum number of events per LP
+        min_events = round(min_ev_per_win / duty_factor)
+
         print(f"    Remote LP fraction:                   {self.remote}")
         print(f"    Minimum inter-event delay:            {self.minimum} {self.TIMEBASE}")
         print(f"    Additional exponential average delay: {self.average} {self.TIMEBASE}")
         print(f"    Stop time:                            {self.stop} {self.TIMEBASE}")
         print(f"    Number of LPs:                        {self.number}")
         print(f"    Number of initial events per LP:      {self.events}")
+
+        print(f"    Average events per window:            {ev_per_win:.2f}")
+        if ev_per_win < min_ev_per_win:
+            print(f"      (Too low!  Suggest setting '--events={min_events}')")
+
         print(f"    Output delay histogram:               {self.delays}")
         print(f"    Verbosity level:                      {self.pverbose}")
         print(f"    Python script verbosity level:        {self.pyVerbose}")
 
     @property
-    def validate(self):
+    def _validate(self) -> bool:
+        """Validate the configuration."""
         valid = True
         if self.remote < 0 or self.remote > 1:
             phprint(f"Invalid remote fraction: {self.remote}, must be in [0,1]")
@@ -103,8 +223,8 @@ class PholdArgs(dict):
             valid = False
         return valid
 
-    def init_argparse(self) -> argparse.ArgumentParser:
-
+    def _init_argparse(self) -> argparse.ArgumentParser:
+        """Configure the argument parser with our arguments."""
         script = os.path.basename(__file__)
         parser = argparse.ArgumentParser(
             usage=f"sst {script} [OPTION]...",
@@ -120,7 +240,7 @@ class PholdArgs(dict):
         parser.add_argument(
             '-a', '--average', action='store', type=float,
             help=f"Average additional inter-event delay, in {self.TIMEBASE}. "
-             f"This will be added to the min delay, and must be >= 0, "
+            f"This will be added to the min delay, and must be >= 0, "
             f"default {self.average}.")
         parser.add_argument(
             '-s', '--stop', action='store', type=float,
@@ -147,18 +267,27 @@ class PholdArgs(dict):
         return parser
 
     def parse(self):
-        parser = self.init_argparse()
+        """Parse and validate the script arguments.
+
+        If the configuration is not valid print the help and exit.
+
+        If pyVerbose is on show the configuration. (The C++ Phold class
+        will always print the final configuration.)
+        """
+        parser = self._init_argparse()
         parser.parse_args(namespace=self)
-        if not self.validate:
+        if not self._validate:
             parser.print_help()
             sys.exit(1)
-            
-        phprint(f"Configuration:")
-        self.print()
+
+        if self.pyVerbose:
+            phprint(f"Configuration:")
+            self.print()
 
 
 # -- Main --
-print(f"\n")
+
+print(f"")
 phprint(f"Creating PHOLD Benchmark")
 
 # If sst not found, we're just debugging this script
@@ -166,43 +295,45 @@ try:
     import sst
     just_script = False
     phprint(f"Importing SST module")
-except:
+except ImportError as error:
     just_script = True
     phprint(f"No SST module, just debugging this script")
 
 
 # Phold arguments instance
-ph = PholdArgs()
-ph.parse()
+phold = PholdArgs()
+phold.parse()
 
 if just_script:
     sys.exit(1)
 
 # Create the LPs
-phprint(f"Creating {ph.number} LPs")
-dotter = Dot(ph.number)
+phprint(f"Creating {phold.number} LPs")
+dotter = Dot(phold.number, phold.pyVerbose)
 lps = []
-for i in range(ph.number):
-    if dotter.dot(1): vprint(1, f"  Creating LP {i}")
+for i in range(phold.number):
+    if dotter.dot(1):
+        vprint(1, f"  Creating LP {i}")
     lp = sst.Component(str(i), "phold.Phold")
-    lp.addParams(vars(ph))  # pass ph as simple dictionary
+    lp.addParams(vars(phold))  # pass ph as simple dictionary
     lps.append(lp)
 dotter.done()
 
 # min latency
-latency = str(ph.minimum) + " " + ph.TIMEBASE
+latency = str(phold.minimum) + " " + phold.TIMEBASE
 
 # Add links
-nLinks = int(ph.number * (ph.number - 1) / 2)
-phprint(f"Creating complete graph with latency {latency} ({nLinks} total)")
-dotter = Dot(nLinks)
-for i in range(ph.number):
-    for j in range(i + 1, ph.number):
+num_links = int(phold.number * (phold.number - 1) / 2)
+phprint(f"Creating complete graph with latency {latency} ({num_links} total)")
+dotter = Dot(num_links, phold.pyVerbose)
+for i in range(phold.number):
+    for j in range(i + 1, phold.number):
 
         link = sst.Link(str(i) + "_" + str(j))
 
-        if dotter.dot(2, False): vprint(2, f"  Creating link {i}_{j}")
-        # links cross connect ports: 
+        if dotter.dot(2, False):
+            vprint(2, f"  Creating link {i}_{j}")
+        # links cross connect ports:
         # port number gives the LP id on the other side of the link
         li = lps[i], "port_" + str(j), latency
         lj = lps[j], "port_" + str(i), latency
@@ -217,25 +348,36 @@ for i in range(ph.number):
 dotter.done()
 
 # Enable statistics
-statLevel = 1 + ph.delays
-phprint(f"Enabling statistics at level {statLevel}")
-sst.setStatisticLoadLevel(statLevel)
+stat_level = 1 + phold.delays
+phprint(f"Enabling statistics at level {stat_level}")
+sst.setStatisticLoadLevel(stat_level)
 sst.setStatisticOutput("sst.statOutputConsole")
 
-# Always enable counts, report only at end
-# Stat type accumulator is the default
-sst.enableStatisticsForComponentType("phold.Phold", ["SendCount"],
-                                     {"rate" : "0ns"})
-sst.enableStatisticsForComponentType("phold.Phold", ["RecvCount"],
-                                     {"rate" : "0ns"})
+# Common stats configuration:
+# rate: 0ns:    Only report results at end
+# stopat:       Stop collecting at stop time
+stats_config = {"rate": "0ns",
+                "stopat" : str(phold.stop) + phold.TIMEBASE}
 
-if ph.delays:
-    sst.enableStatisticsForComponentType("phold.Phold", ["Delays"],
-                                         {"type" : "sst.HistogramStatistic",
-                                          "rate" : "0ns",
-                                          "minvalue" : "0",
-                                          "binwidth" : "1",
-                                          "numbins" : "50" } )
-## TODO:  generalize the preceding config based on mean delay
+# We always enable the send/recv counters
+# Stat type accumulator is the default, so don't need state it explicitly
+dprint("  Accumulator config", stats_config)
+
+sst.enableStatisticsForComponentType("phold.Phold", ["SendCount"], stats_config)
+sst.enableStatisticsForComponentType("phold.Phold", ["RecvCount"], stats_config)
+
+if phold.delays:
+    delay_mean = phold.minimum + phold.average
+    numbins = 50
+    binwidth = round(5 * delay_mean / numbins)
+    delays_config = {**stats_config,
+                     **{"type" : "sst.HistogramStatistic",
+                        "minvalue" : "0",
+                        "binwidth" : str(binwidth),
+                        "numbins"  : str(numbins)}}
+
+    dprint("Delay histogram config", delays_config)
+
+    sst.enableStatisticsForComponentType("phold.Phold", ["Delays"], delays_config)
 
 phprint(f"Done\n")
