@@ -1,5 +1,5 @@
 
-RECURSIVE_TARGETS = all clean debug info
+RECURSIVE_TARGETS = all clean debug opt info
 
 all: Makefile
 	@echo "Making all in src"
@@ -8,6 +8,10 @@ all: Makefile
 debug: 
 	@echo "Cleaning and remaking with PHOLD_DEBUG"
 	@$(MAKE) PHOLD_DEBUG=1 RNG_DEBUG=1 clean all
+
+opt:
+	@echo "Cleaning and remaking optimized"
+	@$(MAKE) clean all
 
 clean:
 	@echo "Making clean in src"
