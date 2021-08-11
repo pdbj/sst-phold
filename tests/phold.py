@@ -13,15 +13,17 @@ import sys
 import textwrap
 
 
-def phprint(*args):
+def phprint(args):
     """Print progress information, prefixed by our name."""
     script = os.path.basename(__file__)
-    print(script, ": ", end='')
-    for arg in args:
-        print(arg, end='')
-    print('')
+    print(script, ': ', args)
 
-def vprint(level: int, *args):
+    # print(script, ': ', end='')
+    # for arg in args:
+    #     print(arg, sep='', end='')
+    # print('')
+
+def vprint(level: int, args):
     """Print a verbose message at verbosity level."""
     if phold.pyVerbose >= level:
         phprint(args)
@@ -29,7 +31,7 @@ def vprint(level: int, *args):
 def dprint(message: str, dictionary: dict):
     """Print a header message, followed by a pretty printed dictionary d."""
     if phold.pyVerbose:
-        phprint(message, ":")
+        phprint(message)
         dict_pretty = pprint.pformat(dictionary, indent=2, width=1)
         print(textwrap.indent(dict_pretty, '    '))
 
