@@ -235,14 +235,14 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   m_sendCount = dynamic_cast<decltype(m_sendCount)>(registerStatistic<uint64_t>(p, "SendCount"));
   ASSERT(m_sendCount, "Failed to register SendCount statistic");
-  m_sendCount->setFlagOutputAtEndOfSim(true);
+  m_sendCount->setFlagOutputAtEndOfSim(false);
   ASSERT(m_sendCount->isEnabled(), "SendCount statistic is not enabled!\n");
   ASSERT( ! m_sendCount->isNullStatistic(), "SendCount statistic is Null!\n");
   VERBOSE(4, "  m_sendCount    @%p\n", m_sendCount);
 
   m_recvCount = dynamic_cast<decltype(m_recvCount)>(registerStatistic<uint64_t>(p, "RecvCount"));
   ASSERT(m_recvCount, "Failed to register RecvCount statistic");
-  m_recvCount->setFlagOutputAtEndOfSim(true);
+  m_recvCount->setFlagOutputAtEndOfSim(false);
   ASSERT(m_recvCount->isEnabled(), "RecvCount statistic is not enabled!\n");
   ASSERT( ! m_recvCount->isNullStatistic(), "RecvCount statistic is Null!\n");
   VERBOSE(4, "  m_recvCount    @%p\n", m_recvCount);
