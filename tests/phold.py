@@ -156,7 +156,7 @@ class PholdArgs(dict):
         self.delays = False
         self.pverbose = 0
         self.pyVerbose = 0
-        self.TIMEBASE = "s"
+        self.TIMEBASE = 's'
 
     def __str__(self) -> str:
         return f"remote: {self.remote}, " \
@@ -314,13 +314,13 @@ lps = []
 for i in range(phold.number):
     if dotter.dot(1):
         vprint(1, f"  Creating LP {i}")
-    lp = sst.Component(str(i), "phold.Phold")
+    lp = sst.Component(str(i), 'phold.Phold')
     lp.addParams(vars(phold))  # pass ph as simple dictionary
     lps.append(lp)
 dotter.done()
 
 # min latency
-latency = str(phold.minimum) + " " + phold.TIMEBASE
+latency = str(phold.minimum) + ' ' + phold.TIMEBASE
 
 # Add links
 num_links = int(phold.number * (phold.number - 1) / 2)
@@ -329,14 +329,14 @@ dotter = Dot(num_links, phold.pyVerbose)
 for i in range(phold.number):
     for j in range(i + 1, phold.number):
 
-        link = sst.Link(str(i) + "_" + str(j))
+        link = sst.Link(str(i) + '_' + str(j))
 
         if dotter.dot(2, False):
             vprint(2, f"  Creating link {i}_{j}")
         # links cross connect ports:
         # port number gives the LP id on the other side of the link
-        li = lps[i], "port_" + str(j), latency
-        lj = lps[j], "port_" + str(i), latency
+        li = lps[i], 'port_' + str(j), latency
+        lj = lps[j], 'port_' + str(i), latency
 
         if dotter.dot(3):
             vprint(3, f"    creating tuples")
@@ -351,33 +351,33 @@ dotter.done()
 stat_level = 1 + phold.delays
 phprint(f"Enabling statistics at level {stat_level}")
 sst.setStatisticLoadLevel(stat_level)
-sst.setStatisticOutput("sst.statOutputConsole")
+sst.setStatisticOutput('sst.statOutputConsole')
 
 # Common stats configuration:
 # rate: 0ns:    Only report results at end
 # stopat:       Stop collecting at stop time
-stats_config = {"rate": "0ns",
-                "stopat" : str(phold.stop) + phold.TIMEBASE}
+stats_config = {'rate': '0ns',
+                'stopat' : str(phold.stop) + phold.TIMEBASE}
 
 # We always enable the send/recv counters
 # Stat type accumulator is the default, so don't need state it explicitly
-dprint("  Accumulator config", stats_config)
+dprint("  Accumulator config:", stats_config)
 
-sst.enableStatisticsForComponentType("phold.Phold", ["SendCount"], stats_config)
-sst.enableStatisticsForComponentType("phold.Phold", ["RecvCount"], stats_config)
+sst.enableStatisticsForComponentType('phold.Phold', ['SendCount'], stats_config)
+sst.enableStatisticsForComponentType('phold.Phold', ['RecvCount'], stats_config)
 
 if phold.delays:
     delay_mean = phold.minimum + phold.average
     numbins = 50
     binwidth = round(5 * delay_mean / numbins)
     delays_config = {**stats_config,
-                     **{"type" : "sst.HistogramStatistic",
-                        "minvalue" : "0",
-                        "binwidth" : str(binwidth),
-                        "numbins"  : str(numbins)}}
+                     **{'type' : 'sst.HistogramStatistic',
+                        'minvalue' : '0',
+                        'binwidth' : str(binwidth),
+                        'numbins'  : str(numbins)}}
 
-    dprint("Delay histogram config", delays_config)
+    dprint("Delay histogram config:", delays_config)
 
-    sst.enableStatisticsForComponentType("phold.Phold", ["Delays"], delays_config)
+    sst.enableStatisticsForComponentType('phold.Phold', ['Delays'], delays_config)
 
 phprint(f"Done\n")
