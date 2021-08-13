@@ -126,6 +126,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   if (0 == getId())
     {
       ShowConfiguration();
+      ShowSizes();
     }
 
   VERBOSE(3, "Initializing RNGs\n");
@@ -309,6 +310,56 @@ Phold::ShowConfiguration() const
   OUTPUT("%s\n", ss.str().c_str());
 
 }  // ShowConfiguration()
+
+
+void
+Phold::ShowSizes() const
+{
+  VERBOSE(2, "\n");
+
+# define TABLE(label, value)                    \
+  ss << "\n    "  << std::left << std::setw(50) \
+     << (std::string( label ) + ":")            \
+     << std::right << std::setw(3) << value
+
+# define SIZEOF(object, member)    \
+  TABLE( #object, sizeof(object) ) \
+    << " (" << member << ")";      \
+  pholdTotal += sizeof(object)
+ 
+  std::stringstream ss;
+  std::size_t pholdTotal{0};
+
+  ss << "Sizes of objects:";
+  SIZEOF(Phold, "class instance");                 pholdTotal = 0;
+  ss << "\n\n    Plus heap allocated:";
+  SIZEOF(SST::RNG::MersenneRNG, "m_rng");
+  SIZEOF(SST::RNG::MarsagliaRNG, "m_remRng");
+  SIZEOF(SST::RNG::SSTUniformDistribution, "m_nodeRng");
+  SIZEOF(SST::RNG::SSTExponentialDistribution, "m_delayRNg");
+  SIZEOF(SST::Statistics::AccumulatorStatistic<uint64_t>, "m_sendCount");
+  SIZEOF(SST::Statistics::AccumulatorStatistic<uint64_t>, "m_recvCount");
+  SIZEOF(SST::Statistics::HistogramStatistic<uint64_t>, "m_delays");
+  ss << "\n      (Bins are stored in a map, so additional 3 * "
+     << sizeof(uint64_t) << " bytes per bin.)";
+  TABLE("Subtotal heap allocated: ", pholdTotal);
+  SIZEOF(SST::Link, "N * (N - 1) links total");
+  ss << "\n\n    Other components:";
+
+  SIZEOF(SST::UnitAlgebra, "statics TIMEBASE, m_average");
+  SIZEOF(SST::TimeConverter, "static m_timeConverter");
+  SIZEOF(SST::Output, "m_output, included in Phold");
+#ifdef PHOLD_DEBUG
+  SIZEOF(std::string, "VERBOSE_PREFIX, included in Phold");
+#endif
+
+  ss << std::endl;
+
+#undef SIZEOF
+#undef TABLE
+
+  OUTPUT("%s\n", ss.str().c_str());
+}
 
 
 void

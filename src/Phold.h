@@ -378,6 +378,9 @@ private:
   /** Show the configuration. */
   void ShowConfiguration() const;
 
+  /** Show sizes of objects. */
+  void ShowSizes() const;
+
   // **** Class static data members ****
 
   /** Default time base for component and associated links */
