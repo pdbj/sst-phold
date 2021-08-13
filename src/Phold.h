@@ -405,7 +405,7 @@ private:
   // **** Class instance data members ****
 
   /** Output stream for verbose output */
-  SST::Output              m_output;
+  mutable SST::Output              m_output;
 #ifdef PHOLD_DEBUG
   /**
    * Verbose output prefix,
