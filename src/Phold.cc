@@ -265,6 +265,7 @@ Phold::ShowConfiguration() const
   // duty_factor = minimum / (minimum + m_average)
   auto duty = m_average;
   duty += minimum;
+  auto meanInterval = duty.getDoubleValue();  // minimum + m_average
   duty.invert();
   duty *= minimum;
   double duty_factor = duty.getDoubleValue();
@@ -276,6 +277,8 @@ Phold::ShowConfiguration() const
   unsigned long min_events = min_ev_per_win / duty_factor;
   VERBOSE(3, "  m_ev: %lu, ev_win: %f, min_ev_win: %f, min_ev: %lu\n",
           m_events, ev_per_win, min_ev_per_win, min_events);
+
+  double totalEvents = m_number * m_events * m_stop / meanInterval * TIMEFACTOR;
   
   std::stringstream ss;
   ss << "PHOLD Configuration:"
@@ -292,8 +295,8 @@ Phold::ShowConfiguration() const
     {
       ss << "\n      (Too low!  Suggest setting '--events=" << min_events << "')";
     }
-  
-  ss << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
+  ss << "\n    Expected total number of events:      " << totalEvents
+     << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
      << "\n    Sampling:                             " << RNG_MODE
      << "\n    Optimization level:                   " << OPT_LEVEL
      << "\n    Verbosity level:                      " << m_verbose;
@@ -439,7 +442,7 @@ Phold::SendEvent()
           (nextEventTime < m_stop ? "" : "(too late)")
           );
 
-  m_delays->addData(delay);
+  m_delays->addData(delay * TIMEFACTOR);
 
   // Record only sends which will be *received* before stop time.
   if (nextEventTime < m_stop)
