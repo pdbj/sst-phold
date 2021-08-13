@@ -329,9 +329,6 @@ private:
   template <typename E>
   E * getEvent(SST::ComponentId_t id);
 
-  /** Specialization of getEvent for InitEvent. */
-  InitEvent * getInitEvent(SST::ComponentId_t id);
-
   /**
    * Check for unexpected messages during init() or complete().
    * This iterates through all links checking for messages.
@@ -349,9 +346,6 @@ private:
    * @param child The child index to send to
    */
   void sendToChild(SST::ComponentId_t child);
-
-  /** Specialization of getEvent for CompleteEvent. */
-  CompleteEvent * getCompleteEvent(SST::ComponentId_t id);
 
   /**
    * Get the send and receive counts from a child.

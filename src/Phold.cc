@@ -424,12 +424,6 @@ Phold::getEvent(SST::ComponentId_t id)
   return dynamic_cast<E*>(m_links[id]->recvUntimedData());
 }
 
-InitEvent *
-Phold::getInitEvent(SST::ComponentId_t id)
-{
-  return getEvent<InitEvent>(id);
-}
-
 
 template <typename E>
 void
@@ -491,7 +485,7 @@ Phold::init(unsigned int phase)
         {
           auto parent = bt::parent(getId());
           VERBOSE(3, "    checking for expected event from parent %llu\n", parent);
-          auto event = getInitEvent(parent);
+          auto event = getEvent<InitEvent>(parent);
 
           ASSERT(event, "    failed to recv expected event from parent %llu\n", parent);
           auto src = event->getSenderId();
@@ -540,13 +534,6 @@ Phold::setup()
 }
 
 
-CompleteEvent *
-Phold::getCompleteEvent(SST::ComponentId_t id)
-{
-  return getEvent<CompleteEvent>(id);
-}
-
-
 std::pair<std::size_t, std::size_t>
 Phold::getChildCounts(SST::ComponentId_t child)
 {
@@ -555,7 +542,7 @@ Phold::getChildCounts(SST::ComponentId_t child)
   if (child < m_number)
     {
       VERBOSE(3, "    getting expected event from child %llu\n", child);
-      auto event = getCompleteEvent(child);
+      auto event = getEvent<CompleteEvent>(child);
       ASSERT(event, "   failed to receive expected event from child %llu\n", child);
       counts.first  = event->getSendCount();
       counts.second = event->getRecvCount();
