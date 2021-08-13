@@ -120,65 +120,13 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_events  = params.find<unsigned long>   ("events",   1);
   m_delaysOut = params.find<bool> ("delays",  false);
 
+  TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
+  // Verbose output in ShowConfiguration
+  
   if (0 == getId())
     {
-      TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
-      VERBOSE(3, "  TIMEFACTOR: %f, timeConverter factor: %llu, period: %s (%f s?)\n",
-              TIMEFACTOR,
-              m_timeConverter->getFactor(),
-              m_timeConverter->getPeriod().toStringBestSI().c_str(),
-              m_timeConverter->getPeriod().getDoubleValue());
-
-      auto minimum = TIMEBASE;
-      minimum *= m_minimum;
-      // duty_factor = minimum / (minimum + m_average)
-      auto duty = m_average;
-      duty += minimum;
-      duty.invert();
-      duty *= minimum;
-      double duty_factor = duty.getDoubleValue();
-      VERBOSE(3, "  min: %s, duty: %s, df: %f\n",
-              minimum.toStringBestSI().c_str(), duty.toStringBestSI().c_str(), duty_factor);
-
-      double ev_per_win = m_events * duty_factor;
-      const double min_ev_per_win = 10;
-      unsigned long min_events = min_ev_per_win / duty_factor;
-      VERBOSE(3, "  m_ev: %lu, ev_win: %f, min_ev_win: %f, min_ev: %lu\n",
-              m_events, ev_per_win, min_ev_per_win, min_events);
-
-      std::stringstream ss;
-      ss << "PHOLD Configuration:"
-         << "\n    Remote LP fraction:                   " << m_remote
-         << "\n    Minimum inter-event delay:            " << toBestSI(m_minimum)
-         << "\n    Additional exponential average delay: " << m_average.toStringBestSI()
-         << "\n    Stop time:                            " << toBestSI(m_stop)
-         << "\n    Number of LPs:                        " << m_number
-         << "\n    Number of initial events per LP:      " << m_events
-
-         << "\n    Average events per window:            " << ev_per_win;
-
-      if (ev_per_win < min_ev_per_win)
-        {
-          ss << "\n      (Too low!  Suggest setting '--events=" << min_events << "')";
-        }
-
-      ss << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
-         << "\n    Sampling:                             " << RNG_MODE
-         << "\n    Optimization level:                   " << OPT_LEVEL
-         << "\n    Verbosity level:                      " << m_verbose;
-
-#ifndef PHOLD_DEBUG
-      if (m_verbose)
-        {
-          ss << " (ignored in optimized build)";
-        }
-#endif
-
-      ss << std::endl;
-
-      OUTPUT("%s\n", ss.str().c_str());
-
-    }  // if 0 == getId
+      ShowConfiguration();
+    }
 
   VERBOSE(3, "Initializing RNGs\n");
   m_rng  = new Phold::RNG_t;
@@ -297,6 +245,70 @@ Phold::~Phold() noexcept
 
 #undef DELETE
 }
+
+
+void 
+Phold::ShowConfiguration() const
+{
+  VERBOSE(2, "\n");
+
+  // Show TIMEFACTOR and TimeConverter values only from LP 0
+  VERBOSE(3, "  TIMEFACTOR: %f, timeConverter factor: %llu, period: %s (%f s?)\n",
+          TIMEFACTOR,
+          m_timeConverter->getFactor(),
+          m_timeConverter->getPeriod().toStringBestSI().c_str(),
+          m_timeConverter->getPeriod().getDoubleValue());
+
+  auto minimum = TIMEBASE;
+  minimum *= m_minimum;
+  // duty_factor = minimum / (minimum + m_average)
+  auto duty = m_average;
+  duty += minimum;
+  duty.invert();
+  duty *= minimum;
+  double duty_factor = duty.getDoubleValue();
+  VERBOSE(3, "  min: %s, duty: %s, df: %f\n",
+          minimum.toStringBestSI().c_str(), duty.toStringBestSI().c_str(), duty_factor);
+  
+  double ev_per_win = m_events * duty_factor;
+  const double min_ev_per_win = 10;
+  unsigned long min_events = min_ev_per_win / duty_factor;
+  VERBOSE(3, "  m_ev: %lu, ev_win: %f, min_ev_win: %f, min_ev: %lu\n",
+          m_events, ev_per_win, min_ev_per_win, min_events);
+  
+  std::stringstream ss;
+  ss << "PHOLD Configuration:"
+     << "\n    Remote LP fraction:                   " << m_remote
+     << "\n    Minimum inter-event delay:            " << toBestSI(m_minimum)
+     << "\n    Additional exponential average delay: " << m_average.toStringBestSI()
+     << "\n    Stop time:                            " << toBestSI(m_stop)
+     << "\n    Number of LPs:                        " << m_number
+     << "\n    Number of initial events per LP:      " << m_events
+    
+     << "\n    Average events per window:            " << ev_per_win;
+  
+  if (ev_per_win < min_ev_per_win)
+    {
+      ss << "\n      (Too low!  Suggest setting '--events=" << min_events << "')";
+    }
+  
+  ss << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
+     << "\n    Sampling:                             " << RNG_MODE
+     << "\n    Optimization level:                   " << OPT_LEVEL
+     << "\n    Verbosity level:                      " << m_verbose;
+  
+#ifndef PHOLD_DEBUG
+  if (m_verbose)
+    {
+      ss << " (ignored in optimized build)";
+    }
+#endif
+  
+  ss << std::endl;
+  
+  OUTPUT("%s\n", ss.str().c_str());
+
+}  // ShowConfiguration()
 
 
 void

@@ -375,6 +375,9 @@ private:
   std::string    toBestSI(SST::SimTime_t sim) const;
 
 
+  /** Show the configuration. */
+  void ShowConfiguration() const;
+
   // **** Class static data members ****
 
   /** Default time base for component and associated links */
