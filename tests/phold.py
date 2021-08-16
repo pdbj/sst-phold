@@ -151,7 +151,7 @@ class PholdArgs(dict):
         super().__init__()
         self.remote = 0.9
         self.minimum = 1
-        self.average = 10
+        self.average = 9
         self.stop = 10
         self.number = 2
         self.events = 1

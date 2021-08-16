@@ -114,7 +114,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_remote  = params.find<double> ("remote",   0.9);
   m_minimum = params.find<double> ("minimum",  1.0) * PHOLD_PY_TIMEFACTOR;
   m_average = TIMEBASE;
-  m_average *= params.find<double>("average", 10) * PHOLD_PY_TIMEFACTOR;
+  m_average *= params.find<double>("average", 9.0) * PHOLD_PY_TIMEFACTOR;
   m_stop    = params.find<double> ("stop",    10) * PHOLD_PY_TIMEFACTOR;
   m_number  = params.find<unsigned long>   ("number",   2);
   m_events  = params.find<unsigned long>   ("events",   1);

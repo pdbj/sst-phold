@@ -129,7 +129,7 @@ public:
    },
    { "average",
      "Mean delay to be added to min when sending events, in seconds. Must be >0.",
-     "10"  // TODO - make this a time, such as seconds
+     "9"  // TODO - make this a time, such as seconds
    },
    { "stop",
      "Maximum simulation time, in seconds. Must be >0",
