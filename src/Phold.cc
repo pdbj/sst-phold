@@ -205,6 +205,8 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       m_delays->setFlagOutputAtEndOfSim(true);
       ASSERT(m_delays->isEnabled(), "Delays statistic is not enabled!\n");
       ASSERT( ! m_delays->isNullStatistic(), "Delays statistic is Null!\n");
+      ASSERT(dynamic_cast<SST::Statistics::HistogramStatistic<float> *>(m_delays),
+             "m_delays is not a Histogram!\n");
     }
   VERBOSE(4, "  m_delays   @%p\n", m_delays);
 
@@ -307,7 +309,7 @@ Phold::ShowConfiguration() const
       ss << " (ignored in optimized build)";
     }
 #endif
-  
+
   ss << std::endl;
   
   OUTPUT("%s\n", ss.str().c_str());
@@ -442,7 +444,8 @@ Phold::SendEvent()
           (nextEventTime < m_stop ? "" : "(too late)")
           );
 
-  m_delays->addData(delay * TIMEFACTOR);
+  m_delays->addData(delayTotal * TIMEFACTOR);
+  VERBOSE(3, "  histogramming %f\n", delayTotal * TIMEFACTOR);
 
   // Record only sends which will be *received* before stop time.
   if (nextEventTime < m_stop)
