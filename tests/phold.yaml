@@ -1,0 +1,62 @@
+#!maestro
+
+description:
+  name: phold_study
+  description: Run memory, speed, and parallel scaling studies of PHOLD on SST.
+
+# Invocation with pgen:
+# maestro tests/phold.yaml --pgen tests/phold.mem.pgen.py
+
+env:
+  variables:
+    OUTPUT_PATH:  ./study
+    REMOTE_DEF: 0.9
+    EVENTS_DEF: 1000
+    STOP_MEM: 10
+    NUMBER_EXP: 11
+    EVENTS_EXP: 5
+    
+    PHOLD: $(OUTPUT_PATH)/../../tests/phold.py
+    MEM: $(OUTPUT_PATH)/../memory.txt
+
+study:
+  - name: memory
+    description: Memory scaling runs
+    run:
+      cmd: |
+        echo "Memory scaling run with number $(NUMBER), events $(EVENTS)"
+        echo "Using PHOLD = $(PHOLD)"
+        sst --print-timing $(PHOLD) -- --number $(NUMBER) --events $(EVENTS) --stop $(STOP_MEM)
+
+  - name: collate
+    description: Collect memory scaling results in to a single file
+    run:
+      cmd: |
+        echo "Memory collation from here: $PWD"
+        echo "Workspace: $(memory.workspace)"
+        echo "Nodes	Events	Memory (MB)"
+        cat $(memory.workspace)/*/*.out | \
+          grep "Number of LPs\|Number of initial\|Resident" | \
+          cut -f 2 -d ':' | \
+          sed 's/ //g;s/MB//g' | \
+          paste - - -
+      depends: [memory_*]
+
+
+  # - name: memory_extract
+  #   description: Extract the 'Approx. Global Max RSS Size' from the output
+  #   run:
+  #     cmd: |
+  #       grep "RSS Size:" <file> > memory.txt
+  #     depends: [memory]
+        
+
+
+global.parameters:
+  NUMBER:
+    values: [2, 3, 5, 10]
+    label: N.%%
+  EVENTS:
+    values: [100, 100, 100, 100]
+    label: E.%%
+
