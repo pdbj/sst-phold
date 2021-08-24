@@ -11,8 +11,8 @@
 /**
  * Work with a binary tree stored in an indexed container.
  *
- * \c size(depth) returns the maximum number of items stored in a tree
- * of a given depth.
+ * \c capacity(depth) returns the maximum number of items which 
+ * can be stored in a tree of a given depth.
  *
  * \c depth(index) returns the depth of the item at \c index
  *
@@ -34,7 +34,7 @@ struct BinaryTree
    * Return the total size (maximum number of elements)
    * of a tree with \c depth
    */
-  static std::size_t size(std::size_t depth)
+  static std::size_t capacity(std::size_t depth)
   {
     std::size_t size = 0;
     std::size_t pow2 = 1;  // 2^k for k = 0
@@ -53,7 +53,7 @@ struct BinaryTree
   {
     std::size_t depth = 0;
     // Correct, but slow:
-    // while (size(depth) <= index) ++depth;
+    // while (capacity(depth) <= index) ++depth;
     std::size_t size = 0;
     std::size_t pow2 = 1;  // 2^k for k = 0
     do
@@ -70,7 +70,7 @@ struct BinaryTree
    */
   static std::size_t begin(std::size_t depth)
   {
-    return (depth > 0 ? size(depth -1) : 0);
+    return (depth > 0 ? capacity(depth -1) : 0);
   }
 
   /**
@@ -78,7 +78,7 @@ struct BinaryTree
    */
   static std::size_t end(std::size_t depth)
   {
-    return size(depth);
+    return capacity(depth);
   }
 
   /**

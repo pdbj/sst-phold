@@ -529,7 +529,7 @@ Phold::init(unsigned int phase)
   using bt = BinaryTree;
 
   // phase is the level in the tree we're working now,
-  // which includes all components with getId() < bt::size(phase)
+  // which includes all components with getId() < bt::capacity(phase)
   if (0 == phase) OUTPUT("First init phase\n");
   if (bt::depth(m_number - 1)  == phase) OUTPUT("Last init phase\n");
 
