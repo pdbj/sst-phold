@@ -501,7 +501,7 @@ Phold::checkForEvents(const std::string msg)
   for (SST::ComponentId_t i = 0; i < m_number; ++i)
     {
       auto event = getEvent<E>(i);
-      ASSERT(NULL == event, "    got %s event from %llu\n", msg, i);
+      ASSERT(NULL == event, "    got %s event from %llu\n", msg.c_str(), i);
     }
 }
 
@@ -534,7 +534,7 @@ Phold::init(unsigned int phase)
   if (bt::depth(m_number - 1)  == phase) OUTPUT("Last init phase\n");
 
 
-  VERBOSE(2, "depth: %llu, phase: %u, begin: %llu, end: %llu\n",
+  VERBOSE(2, "depth: %zu, phase: %u, begin: %zu, end: %zu\n",
           bt::depth(getId()), phase, bt::begin(phase), bt::end(phase));
 
   // First check for early init event
@@ -553,13 +553,13 @@ Phold::init(unsigned int phase)
       if (0 != getId())
         {
           auto parent = bt::parent(getId());
-          VERBOSE(3, "    checking for expected event from parent %llu\n", parent);
+          VERBOSE(3, "    checking for expected event from parent %zu\n", parent);
           auto event = getEvent<InitEvent>(parent);
 
-          ASSERT(event, "    failed to recv expected event from parent %llu\n", parent);
+          ASSERT(event, "    failed to recv expected event from parent %zu\n", parent);
           auto src = event->getSenderId();
           VERBOSE(3, "    received from %llu\n", src);
-          ASSERT(parent == src, "    event from %llu, expected parent %llu\n", src, parent);
+          ASSERT(parent == src, "    event from %llu, expected parent %lu\n", src, parent);
         }  // 0 != getId(),  non-root receive from parent
       else
         {
@@ -615,8 +615,8 @@ Phold::getChildCounts(SST::ComponentId_t child)
       ASSERT(event, "   failed to receive expected event from child %llu\n", child);
       counts.first  = event->getSendCount();
       counts.second = event->getRecvCount();
-      VERBOSE(4, "      child %llu reports %llu sends, %llu recvs\n",
-              child,counts.first, counts.second);
+      VERBOSE(4, "      child %llu reports %zu sends, %zu recvs\n",
+              child, counts.first, counts.second);
     }
   else {
     VERBOSE(3, "    skipping overflow child %llu\n", child);
@@ -630,7 +630,7 @@ void
 Phold::sendToParent(SST::ComponentId_t parent,
                     std::size_t sendCount, std::size_t recvCount)
 {
-  VERBOSE(3, "    sending to parent %llu with sends: %llu, recvs: %llu\n",
+  VERBOSE(3, "    sending to parent %llu with sends: %zu, recvs: %zu\n",
           parent, sendCount, recvCount);
   auto event = new CompleteEvent(sendCount, recvCount);
   m_links[parent]->sendUntimedData(event);
@@ -650,7 +650,7 @@ Phold::complete(unsigned int phase)
   // effective phase, starting up from leaves, to parallel init()
   std::size_t ephase = maxDepth - phase;
 
-  VERBOSE(2, "complete phase: %lu, max depth %llu, ephase: %llu\n",
+  VERBOSE(2, "complete phase: %u, max depth %zu, ephase: %zu\n",
           phase, maxDepth, ephase);
 
   // First check for early events
@@ -673,9 +673,9 @@ Phold::complete(unsigned int phase)
       auto sendCount = m_sendCount->getCount() + left.first + right.first;
       auto recvCount = m_recvCount->getCount() + left.second + right.second;
 
-      VERBOSE(3, "    accumulating sends: me: %llu, left: %llu, right: %llu, total: %llu\n",
+      VERBOSE(3, "    accumulating sends: me: %llu, left: %zu, right: %zu, total: %llu\n",
               m_sendCount->getCount(), left.first, right.first, sendCount);
-      VERBOSE(3, "    accumulating recvs: me: %llu, left: %llu, right: %llu, total: %llu\n",
+      VERBOSE(3, "    accumulating recvs: me: %llu, left: %zu, right: %zu, total: %llu\n",
               m_recvCount->getCount(), left.second, right.second, recvCount);
 
       // Send the totals to our parent, unless we're at the root

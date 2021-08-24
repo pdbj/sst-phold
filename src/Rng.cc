@@ -58,7 +58,8 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
                 m_verbose, 0, SST::Output::STDOUT);
 #ifdef PHOLD_DEBUG
   VERBOSE_PREFIX = "@t:@X:Rng-" + getName() + " [@p() (@f:@l)] -> ";
-  VERBOSE(2, "Full c'tor() @0x%p, id: %u, name: %s\n", this, getId(), getName().c_str());
+  VERBOSE(2, "Full c'tor() @0x%p, id: %llu, name: %s\n", 
+          this, getId(), getName().c_str());
 #endif
   
   m_number  = params.find<long>   ("number",   2);
