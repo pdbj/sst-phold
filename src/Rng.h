@@ -8,6 +8,12 @@
 
 #pragma once 
 
+// Work around a Clang12-MacPorts MPI configuration issue
+#include <limits>
+#ifndef ULLONG_MAX
+# pragma message "Supplying fallback ULLONG_MAX"
+# define ULLONG_MAX 0xffffffffffffffffULL 
+#endif
 
 #include <sst/core/component.h>
 #include <sst/core/link.h>
