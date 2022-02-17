@@ -112,7 +112,7 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
       }
       ASSERT(link, "Failed to configure %s link", port);
       VERBOSE(4, "    %s link @%p with handler @%p\n",
-              port, link, handlerL);
+              port, link, handler);
     };
 
   uint32_t left  = (getId() > 0 ? getId() : m_number) - 1;
