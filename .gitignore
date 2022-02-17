@@ -1,10 +1,19 @@
 
-*.o
+*.conf
+*.csv
 *.d
+*.dot
+*.o
+*.out
+*.png
 *.so
+*.svg
+*.txt
 *~
+\#*\#
+*/__pycache__/*
+
 .idea/
-src/build-date
 phold.dot
 phold.log
 phold.png
