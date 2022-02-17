@@ -50,11 +50,13 @@ ALL = $(SRCS) $(HDRS)
 OBJS = $(SRCS:%.cc=%.o)
 LIB  = libphold.so
 
+# Make the build itself verbose
 VERBOSE = 0
 ifeq ($(VERBOSE),1)
   VERB=
 else
   VERB=@
+  MAKEFLAGS += --no-print-directory
 endif
 
 # Generate dependency files .d
