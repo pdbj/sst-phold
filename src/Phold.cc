@@ -23,8 +23,6 @@
  * Phold::Phold class implementation.
  */
 
-namespace Phold {
-
 #ifndef PHOLD_DEBUG
 
 #  define OPT_LEVEL "optimized"
@@ -64,6 +62,9 @@ namespace Phold {
 
 #define OUTPUT(...)                             \
   if (0 == getId()) m_output.output(CALL_INFO, __VA_ARGS__)
+
+
+namespace Phold {
 
 // Class static data members
 constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
@@ -111,14 +112,14 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   // Default time unit for Component and links
   m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
 
-  m_remote  = params.find<double> ("remote",   0.9);
-  m_minimum = params.find<double> ("minimum",  1.0) * PHOLD_PY_TIMEFACTOR;
-  m_average = TIMEBASE;
-  m_average *= params.find<double>("average", 9.0) * PHOLD_PY_TIMEFACTOR;
-  m_stop    = params.find<double> ("stop",    10) * PHOLD_PY_TIMEFACTOR;
-  m_number  = params.find<unsigned long>   ("number",   2);
-  m_events  = params.find<unsigned long>   ("events",   1);
-  m_delaysOut = params.find<bool> ("delays",  false);
+  m_remote    = params.find<double>("remote",   0.9);
+  m_minimum   = params.find<double>("minimum",  1.0) * PHOLD_PY_TIMEFACTOR;
+  m_average   = TIMEBASE;
+  m_average  *= params.find<double>("average", 9.0) * PHOLD_PY_TIMEFACTOR;
+  m_stop      = params.find<double>("stop",    10) * PHOLD_PY_TIMEFACTOR;
+  m_number    = params.find<unsigned long>("number",   2);
+  m_events    = params.find<unsigned long>("events",   1);
+  m_delaysOut = params.find<bool>("delays",  false);
 
   TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
   // Verbose output in ShowConfiguration
@@ -154,25 +155,33 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   const auto prefix(pre.erase(pre.find('%')));
   std::string port;
   for (uint32_t i = 0; i < m_number; ++i) {
-    ASSERT(m_links[i] == nullptr, "Initialized link %u (%p) is not null!\n", i, m_links[i]);
+    ASSERT(m_links[i] == nullptr, 
+           "Initialized link %u (%p) is not null!\n", i, m_links[i]);
     if (i != getId())
     {
       port = prefix + std::to_string(i);
-      ASSERT(isPortConnected(port), "Port %s is not connected\n", port.c_str());
+      ASSERT(isPortConnected(port), 
+             "Port %s is not connected\n", port.c_str());
       // Each link needs it's own handler.  SST manages the destruction.
       auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
-      ASSERT(handler, "Failed to create handler\n");
+      ASSERT(handler, 
+             "Failed to create handler\n");
       m_links[i] = configureLink(port, handler);
-      ASSERT(m_links[i], "Failed to configure link %u\n", i);
-      VERBOSE(4, "    link %u: %s @%p with handler @%p\n", i, port.c_str(), m_links[i], handler);
+      ASSERT(m_links[i], 
+             "Failed to configure link %u\n", i);
+      VERBOSE(4, "    link %u: %s @%p with handler @%p\n", 
+              i, port.c_str(), m_links[i], handler);
 
     } else {
 
       auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
-      ASSERT(handler, "Failed to create handler\n");
+      ASSERT(handler, 
+             "Failed to create handler\n");
       m_links[i] = configureSelfLink("self", handler);
-      ASSERT(m_links[i], "Failed to configure self link\n");
-      VERBOSE(4, "    link %u: self   @%p with handler @%p\n", i, m_links[i], handler);
+      ASSERT(m_links[i], 
+             "Failed to configure self link\n");
+      VERBOSE(4, "    link %u: self   @%p with handler @%p\n", 
+              i, m_links[i], handler);
     }
   }
 
@@ -183,28 +192,37 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   p.insert("stopat", std::to_string(m_stop));
 
   m_sendCount = dynamic_cast<decltype(m_sendCount)>(registerStatistic<uint64_t>(p, "SendCount"));
-  ASSERT(m_sendCount, "Failed to register SendCount statistic");
+  ASSERT(m_sendCount, 
+         "Failed to register SendCount statistic");
   m_sendCount->setFlagOutputAtEndOfSim(false);
-  ASSERT(m_sendCount->isEnabled(), "SendCount statistic is not enabled!\n");
-  ASSERT( ! m_sendCount->isNullStatistic(), "SendCount statistic is Null!\n");
+  ASSERT(m_sendCount->isEnabled(), 
+         "SendCount statistic is not enabled!\n");
+  ASSERT( ! m_sendCount->isNullStatistic(), 
+          "SendCount statistic is Null!\n");
   VERBOSE(4, "  m_sendCount    @%p\n", m_sendCount);
 
   m_recvCount = dynamic_cast<decltype(m_recvCount)>(registerStatistic<uint64_t>(p, "RecvCount"));
-  ASSERT(m_recvCount, "Failed to register RecvCount statistic");
+  ASSERT(m_recvCount, 
+         "Failed to register RecvCount statistic");
   m_recvCount->setFlagOutputAtEndOfSim(false);
-  ASSERT(m_recvCount->isEnabled(), "RecvCount statistic is not enabled!\n");
-  ASSERT( ! m_recvCount->isNullStatistic(), "RecvCount statistic is Null!\n");
+  ASSERT(m_recvCount->isEnabled(), 
+         "RecvCount statistic is not enabled!\n");
+  ASSERT( ! m_recvCount->isNullStatistic(), 
+          "RecvCount statistic is Null!\n");
   VERBOSE(4, "  m_recvCount    @%p\n", m_recvCount);
 
   // Delay histogram might not be enabled, in which case registerStatistic
   // returns a NullStatistic
   m_delays = registerStatistic<float>(p, "Delays");
-  ASSERT(m_delays, "Failed to register Delays statistic\n");
+  ASSERT(m_delays, 
+         "Failed to register Delays statistic\n");
   if (m_delaysOut)
     {
       m_delays->setFlagOutputAtEndOfSim(true);
-      ASSERT(m_delays->isEnabled(), "Delays statistic is not enabled!\n");
-      ASSERT( ! m_delays->isNullStatistic(), "Delays statistic is Null!\n");
+      ASSERT(m_delays->isEnabled(), 
+             "Delays statistic is not enabled!\n");
+      ASSERT( ! m_delays->isNullStatistic(), 
+              "Delays statistic is Null!\n");
       ASSERT(dynamic_cast<SST::Statistics::HistogramStatistic<float> *>(m_delays),
              "m_delays is not a Histogram!\n");
     }
@@ -354,6 +372,9 @@ Phold::ShowSizes() const
   SIZEOF(SST::UnitAlgebra, "statics TIMEBASE, m_average");
   SIZEOF(SST::TimeConverter, "static m_timeConverter");
   SIZEOF(SST::Output, "m_output, included in Phold");
+  SIZEOF(SST::Core::ThreadSafe::Barrier, "many instances in Simulator_impl");
+  SIZEOF(std::atomic<bool>, "used by Barrier");
+  SIZEOF(std::atomic<std::size_t>, "used by Barrier");
 #ifdef PHOLD_DEBUG
   SIZEOF(std::string, "VERBOSE_PREFIX, included in Phold");
 #endif
@@ -477,11 +498,13 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   // Check the stopping condition
   if (now < m_stop)
   {
-    VERBOSE(2, "now: %llu, from %u @ %llu\n", now, from, sendTime);
+    VERBOSE(2, "now: %llu, from %u @ %llu\n", 
+            now, from, sendTime);
     SendEvent();
   } else
   {
-    VERBOSE(2, "now: %llu, from %u @ %llu, stopping\n", now, from, sendTime);
+    VERBOSE(2, "now: %llu, from %u @ %llu, stopping\n", 
+            now, from, sendTime);
     primaryComponentOKToEndSim();
   }
 }
@@ -501,7 +524,8 @@ Phold::checkForEvents(const std::string msg)
   for (SST::ComponentId_t i = 0; i < m_number; ++i)
     {
       auto event = getEvent<E>(i);
-      ASSERT(NULL == event, "    got %s event from %llu\n", msg.c_str(), i);
+      ASSERT(NULL == event, 
+             "    got %s event from %llu\n", msg.c_str(), i);
     }
 }
 
@@ -556,10 +580,12 @@ Phold::init(unsigned int phase)
           VERBOSE(3, "    checking for expected event from parent %zu\n", parent);
           auto event = getEvent<InitEvent>(parent);
 
-          ASSERT(event, "    failed to recv expected event from parent %zu\n", parent);
+          ASSERT(event, 
+                 "    failed to recv expected event from parent %zu\n", parent);
           auto src = event->getSenderId();
           VERBOSE(3, "    received from %llu\n", src);
-          ASSERT(parent == src, "    event from %llu, expected parent %lu\n", src, parent);
+          ASSERT(parent == src, 
+                 "    event from %llu, expected parent %lu\n", src, parent);
         }  // 0 != getId(),  non-root receive from parent
       else
         {
@@ -581,7 +607,8 @@ Phold::init(unsigned int phase)
 
     {
       VERBOSE(3, "  checking for late events\n");
-      ASSERT(phase > bt::depth(getId()), "  expected to be late in this phase, but not\n");
+      ASSERT(phase > bt::depth(getId()), 
+             "  expected to be late in this phase, but not\n");
       // Check for late events
       checkForEvents<InitEvent>("LATE");
     }
@@ -612,7 +639,8 @@ Phold::getChildCounts(SST::ComponentId_t child)
     {
       VERBOSE(3, "    getting expected event from child %llu\n", child);
       auto event = getEvent<CompleteEvent>(child);
-      ASSERT(event, "   failed to receive expected event from child %llu\n", child);
+      ASSERT(event, 
+             "   failed to receive expected event from child %llu\n", child);
       counts.first  = event->getSendCount();
       counts.second = event->getRecvCount();
       VERBOSE(4, "      child %llu reports %zu sends, %zu recvs\n",
@@ -697,7 +725,8 @@ Phold::complete(unsigned int phase)
 
     {
       VERBOSE(3, "  checking for late events\n");
-      ASSERT(ephase < bt::depth(getId()), "  expected to be late in this phase, but not\n");
+      ASSERT(ephase < bt::depth(getId()), 
+             "  expected to be late in this phase, but not\n");
       // Check for late eents
       checkForEvents<CompleteEvent>("LATE");
     }

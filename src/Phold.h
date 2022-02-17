@@ -10,7 +10,7 @@
 
 
 // Work around a Clang12-MacPorts MPI configuration issue
-#include <limits>
+#include <climits>
 #ifndef ULLONG_MAX
 # pragma message "Supplying fallback ULLONG_MAX"
 # define ULLONG_MAX 0xffffffffffffffffULL 
@@ -295,7 +295,11 @@ public:
    */
   virtual void init(unsigned int phase) override;
 
-  // Complete configuration, no send/rcv, single invocation.
+  /**
+   *  Complete configuration, no send/rcv, single invocation.
+   * 
+   * This follows the `init(phase)`
+   */
   virtual void setup() override;
 
   /**
@@ -305,7 +309,11 @@ public:
    */
   virtual void complete(unsigned int phase) override;
 
-  // Similar to setup()
+  /**
+   *  Similar to setup()
+   *
+   * This follows the `complete(phase)`
+   */
   virtual void finish() override;
 
 
