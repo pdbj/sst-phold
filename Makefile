@@ -10,10 +10,23 @@ else
   MAKEFLAGS += --no-print-directory
 endif
 
+.PHONY: all help debug opt install clean info
 
 all: Makefile
 #	@echo "Making all in src"
 	@$(MAKE) -C src all && echo "Make all done" || exit 1
+
+help:
+	@echo "Usage: make [target]"
+	@echo 
+	@echo "Possible targets:"
+	@echo 
+	@echo "  all [default]  Rebuild anything changed, optimized"
+	@echo "  debug          Clean and build everything with debug flags"
+	@echo "  opt            Clean and build everything, with default (optimized) flags"
+	@echo "  install        Create SST config file"
+	@echo "  clean          Remove all built files"
+	@echo "  info           Show Makefile variables"
 
 debug: 
 	@echo "Cleaning and remaking with PHOLD_DEBUG"

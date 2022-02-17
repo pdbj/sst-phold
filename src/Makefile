@@ -71,13 +71,16 @@ $(LIB): $(OBJS)
 	@echo "LD" $@
 	$(VERB)$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
+SSTREGCMD = sst-register $(SSTCONFARG)
+install: $(LIB)
 build-date: $(LIB)
 	@echo "SST_REG"
 	$(VERB)mkdir -p $(LIBDIR)
 	$(VERB)cp $< $(LIBDIR)
-	$(VERB)sst-register phold phold_LIBDIR=$(LIBDIR)
-	$(VERB)sst-register SST_ELEMENT_SOURCE phold=$(SRCDIR)
-	$(VERB)sst-register SST_ELEMENT_TESTS phold=$(SRCDIR)/tests
+	$(VERB)touch $(SSTCONFIG)
+	$(VERB)$(SSTREGCMD) phold LIBDIR=$(LIBDIR)
+	$(VERB)$(SSTREGCMD) SST_ELEMENT_SOURCE phold=$(SRCDIR)
+	$(VERB)$(SSTREGCMD) SST_ELEMENT_TESTS  phold=$(SRCDIR)/tests
 	$(VERB)touch $@
 
 
