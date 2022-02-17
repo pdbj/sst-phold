@@ -40,9 +40,6 @@ SRCDIR = $(PWD)/src
 DISTDIR = $(HOME)/local
 LIBDIR  = $(DISTDIR)/lib/sst-elements-library
 
-all: install
-	@:
-
 SRCS = $(wildcard *.cc)
 HDRS = $(wildcard *.h)
 ALL = $(SRCS) $(HDRS)
@@ -58,6 +55,10 @@ else
   VERB=@
   MAKEFLAGS += --no-print-directory
 endif
+
+
+all: $(LIB)
+	@:
 
 # Generate dependency files .d
 DEPS = $(SRCS:%.cc=%.d)
