@@ -1,8 +1,18 @@
 
-RECURSIVE_TARGETS = all clean debug opt info
+RECURSIVE_TARGETS = all debug opt install clean info
+
+# Make the build itself verbose
+VERBOSE = 0
+ifeq ($(VERBOSE),1)
+  VERB=
+else
+  VERB=@
+  MAKEFLAGS += --no-print-directory
+endif
+
 
 all: Makefile
-	@echo "Making all in src"
+#	@echo "Making all in src"
 	@$(MAKE) -C src all && echo "Make all done" || exit 1
 
 debug: 
@@ -13,12 +23,16 @@ opt:
 	@echo "Cleaning and remaking optimized"
 	@$(MAKE) clean all
 
+install:
+	@echo "Installing"
+	@$(MAKE) -C src install
+
 clean:
-	@echo "Making clean in src"
+#	@echo "Making clean in src"
 	@$(MAKE) -C src clean && echo "Make clean done" || exit 1
 
 info:
-	@echo "Making info in src"
+#	@echo "Making info in src"
 	@$(MAKE) -C src info && echo "Make info done" || exit 1
 
 
