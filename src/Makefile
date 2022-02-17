@@ -1,44 +1,55 @@
 
-CC=$(shell sst-config --CC)
-CXX=$(shell sst-config --CXX)
-CXXFLAGS=$(shell sst-config --ELEMENT_CXXFLAGS)
-LDFLAGS=$(shell sst-config --ELEMENT_LDFLAGS)
+SRCDIR = $(PWD)/src
+LIBDIR  = $(PWD)/lib
+
+# Check for custom build config resulting from successful install
+SSTCONFARG =
+SSTCONFIG = $(LIBDIR)/sst-phold.conf
+ifneq (,$(wildcard $(SSTCONFIG)))
+  SSTCONFARG = --lib-path=$(SSTCONFIG)
+endif
+
+CC=$(shell       sst-config $(SSTCONFARG) --CC)
+CXX=$(shell      sst-config $(SSTCONFARG) --CXX)
+CXXFLAGS=$(shell sst-config $(SSTCONFARG) --ELEMENT_CXXFLAGS)
+LDFLAGS=$(shell  sst-config $(SSTCONFARG) --ELEMENT_LDFLAGS)
 
 # Add hard-coded path to help out CLion
-CXXFLAGS += -I$(HOME)/local/include
+#CXXFLAGS += -I$(HOME)/local/include
 
 # Warn if undefined symbols, only works for GCC, not Clang
 # LDFLAGS += -Wl,--no-undefined
 
 
-# Check if we're debugging or not
-ifndef PHOLD_DEBUG
-  CXXFLAGS_PHOLD_DEBUG=-g -O3
-  $(info Building optimized with $(CXXFLAGS_PHOLD_DEBUG))
-  CXXFLAGS+=$(CXXFLAGS_PHOLD_DEBUG)
-else
-  CXXFLAGS_PHOLD_DEBUG=-g -Og -DPHOLD_DEBUG
-  $(info Building debug with $(CXXFLAGS_PHOLD_DEBUG))
-  CXXFLAGS+=$(CXXFLAGS_PHOLD_DEBUG)
+# Set various build flags
+ifneq ($(MAKECMDGOALS),clean)
+  PHOLD_DEBUG = 0
+  ifeq ($(PHOLD_DEBUG),0)
+    CXXFLAGS_PHOLD_DEBUG=-g -O3
+    $(info Building optimized with $(CXXFLAGS_PHOLD_DEBUG))
+    CXXFLAGS+=$(CXXFLAGS_PHOLD_DEBUG)
+  else
+    CXXFLAGS_PHOLD_DEBUG=-g -Og -DPHOLD_DEBUG
+    $(info Building debug with $(CXXFLAGS_PHOLD_DEBUG))
+    CXXFLAGS+=$(CXXFLAGS_PHOLD_DEBUG)
+  endif
+
+  RNG_DEBUG = 0
+  ifeq ($(RNG_DEBUG),1)
+    CXXFLAGS_RNG_DEBUG=-DRNG_DEBUG
+    $(info Building RNG debug with $(CXXFLAGS_RNG_DEBUG))
+    CXXFLAGS+=$(CXXFLAGS_RNG_DEBUG)
+  endif
+
+  # Check if we're skipping rngs
+  PHOLD_FIXED = 0
+  ifeq ($(PHOLD_FIXED),1)
+    CXXFLAGS_PHOLD_FIXED=-DPHOLD_FIXED
+    $(info Using fixed rng values with $(CXXFLAGS_PHOLD_FIXED))
+    CXXFLAGS+=$(CXXFLAGS_PHOLD_FIXED)
+  endif
+
 endif
-
-ifdef RNG_DEBUG
-  CXXFLAGS_RNG_DEBUG=-DRNG_DEBUG
-  $(info Building RNG debug with $(CXXFLAGS_RNG_DEBUG))
-  CXXFLAGS+=$(CXXFLAGS_RNG_DEBUG)
-endif
-
-# Check if we're skipping rngs
-ifdef PHOLD_FIXED
-  CXXFLAGS_PHOLD_FIXED=-DPHOLD_FIXED
-  $(info Using fixed rng values with $(CXXFLAGS_PHOLD_FIXED))
-  CXXFLAGS+=$(CXXFLAGS_PHOLD_FIXED)
-endif
-
-
-SRCDIR = $(PWD)/src
-DISTDIR = $(HOME)/local
-LIBDIR  = $(DISTDIR)/lib/sst-elements-library
 
 SRCS = $(wildcard *.cc)
 HDRS = $(wildcard *.h)
