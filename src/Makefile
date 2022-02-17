@@ -68,7 +68,9 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $*.d
 	$(VERB)$(CXX) $(DEPFLAGS) $(CXXFLAGS) -c $<
 
 $(DEPS):
-include $(wildcard $(DEPS))
+ifneq ($(MAKECMDGOALS),clean)
+  include $(wildcard $(DEPS))
+endif
 
 $(LIB): $(OBJS)
 	@echo "LD" $@
