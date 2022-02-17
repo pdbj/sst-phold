@@ -1,4 +1,4 @@
-#! python3
+#!python3
 """
 Configuration for the classic PHOLD benchmark.
 """
@@ -225,6 +225,9 @@ phold = PholdArgs()
 phold.parse()
 
 if just_script:
+    phprint(f"Configuration:")
+    phold.print()
+    phprint(f"Nothing left to do, exiting")
     sys.exit(1)
 
 # Create the LPs
