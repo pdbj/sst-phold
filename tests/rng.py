@@ -10,6 +10,9 @@ import math
 import os
 import sys
 
+phold_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, phold_dir)
+import progress_dot as dot
 
 
 def meprint(args):
@@ -21,92 +24,6 @@ def vprint(level, args):
     """Print a verbose message at verbosity level."""
     if rng.pyVerbose >= level:
         meprint(args)
-
-
-class Dot():
-    """Print a series of dots to show progress.
-
-    The class is initialized with the expected number of items.
-    The processing of each item is logged by calling dot().
-    This will print a dot '.' for each item, or periodically if there are
-    more than 80 items.
-
-    Whether a dot is printed
-
-    Parameters
-    ----------
-    N : int
-        The total number of items expected.
-    level : int
-        Threshold level above which printing should be suppressed
-        (presumably because the caller has a more verbose progess indication).
-
-    Methods
-    -------
-    dot(level: int, show=True) -> bool
-        Log the processing of an item at level.  Suppress
-    done()
-        If any dots were printed add a newline.
-
-    """
-
-    def __init__(self, N: int, level: int):
-        """
-        Parameter
-        ----------
-        N : int
-            The total number of items expected.
-        level : int
-            Threshold level at which to suppress printing.
-
-        Attributes
-        ----------
-        _dots_per : int
-            Number of items per dot.
-        _level : int
-            Threshold level at which to suppress printing.
-        _item_count : int
-            How many items have been logged since the last dot was printed.
-        _dotted : bool
-            True if we've printed any dots, so we add a newline when done.
-        """
-        # limit dots to a single 80 char line
-        self._dots_per = math.ceil(N / 79.0)
-        self._level = level
-        self._item_count = 0
-        self._dotted = False
-
-    def dot(self, level: int, show=True) -> bool:
-        """Log the processing of an item.
-
-        Parameters
-        ----------
-        level : int
-            Verbosity level of this call. If this is greater than self.level
-            printing is suppressed.
-        show : bool
-            Alternate method to suppress printing
-
-        Returns True if level was too high, allowing this pattern:
-           if dotter.dot(l, False): print("Alternate verbose message")
-
-        """
-        if show:
-            self._item_count += 1
-        if self._level < level:
-            if self._item_count >= self._dots_per:
-                if show:
-                    print('.', end='', flush=True)
-                    self._dotted = True
-                self._item_count = 0
-            return False
-
-        return True
-
-    def done(self):
-        """Finish by adding a newline, if any dots were printed."""
-        if self._dotted:
-            print("")
 
 
 # RNG parameters
@@ -223,7 +140,7 @@ if just_script:
 
 # Create the LPs
 meprint(f"Creating {rng.number} components")
-dotter = Dot(rng.number, rng.pyVerbose)
+dotter = dot.Dot(rng.number, rng.pyVerbose)
 lps = []
 for i in range(rng.number):
     if dotter.dot(1):
@@ -233,7 +150,24 @@ for i in range(rng.number):
     lps.append(lp)
 dotter.done()
 
-# No links
+# Nuisance links
+latency = "1 ms"
+meprint(f"Creating complete ring with latency {latency} ({rng.number} total links)")
+dotter = dot.Dot(rng.number, rng.pyVerbose)
+for i in range(rng.number):
+    j = (i + 1) % rng.number
+    link = sst.Link(str(i) + "_" + str(j))
+    if dotter.dot(2, False):
+        vprint(2, f"  Creating link {i}_{j}")
+    li = lps[i], 'portL', latency
+    lj = lps[j], 'portR', latency
+    if (dotter.dot(3)):
+        vprint(3, f"    creating tuple")
+        vprint(3, f"      {li}")
+        vprint(3, f"      {lj}")
+        vprint(3, f"    connecting {i} to {j}")
+    link.connect(li, lj)
+dotter.done()
 
 # Enable statistics
 stat_level = 1

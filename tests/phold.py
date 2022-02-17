@@ -1,4 +1,4 @@
-#!python3
+#! python3
 """
 Configuration for the classic PHOLD benchmark.
 """
@@ -6,11 +6,14 @@ Configuration for the classic PHOLD benchmark.
 # import sst is managed below
 
 import argparse
-import math
 import os
 import pprint
 import sys
 import textwrap
+
+phold_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, phold_dir)
+import progress_dot as dot
 
 
 def phprint(args):
@@ -35,91 +38,6 @@ def dprint(message: str, dictionary: dict):
         dict_pretty = pprint.pformat(dictionary, indent=2, width=1)
         print(textwrap.indent(dict_pretty, '    '))
 
-
-class Dot():
-    """Print a series of dots to show progress.
-
-    The class is initialized with the expected number of items.
-    The processing of each item is logged by calling dot().
-    This will print a dot '.' for each item, or periodically if there are
-    more than 80 items.
-
-    Whether a dot is printed
-
-    Parameters
-    ----------
-    N : int
-        The total number of items expected.
-    level : int
-        Threshold level above which printing should be suppressed
-        (presumably because the caller has a more verbose progess indication).
-
-    Methods
-    -------
-    dot(level: int, show=True) -> bool
-        Log the processing of an item at level.  Suppress
-    done()
-        If any dots were printed add a newline.
-
-    """
-
-    def __init__(self, N: int, level: int):
-        """
-        Parameter
-        ----------
-        N : int
-            The total number of items expected.
-        level : int
-            Threshold level at which to suppress printing.
-
-        Attributes
-        ----------
-        _dots_per : int
-            Number of items per dot.
-        _level : int
-            Threshold level at which to suppress printing.
-        _item_count : int
-            How many items have been logged since the last dot was printed.
-        _dotted : bool
-            True if we've printed any dots, so we add a newline when done.
-        """
-        # limit dots to a single 80 char line
-        self._dots_per = math.ceil(N / 79.0)
-        self._level = level
-        self._item_count = 0
-        self._dotted = False
-
-    def dot(self, level: int, show=True) -> bool:
-        """Log the processing of an item.
-
-        Parameters
-        ----------
-        level : int
-            Verbosity level of this call. If this is greater than self.level
-            printing is suppressed.
-        show : bool
-            Alternate method to suppress printing
-
-        Returns True if level was too high, allowing this pattern:
-           if dotter.dot(l, False): print("Alternate verbose message")
-
-        """
-        if show:
-            self._item_count += 1
-        if self._level < level:
-            if self._item_count >= self._dots_per:
-                if show:
-                    print('.', end='', flush=True)
-                    self._dotted = True
-                self._item_count = 0
-            return False
-
-        return True
-
-    def done(self):
-        """Finish by adding a newline, if any dots were printed."""
-        if self._dotted:
-            print("")
 
 
 # PHOLD parameters
@@ -311,7 +229,7 @@ if just_script:
 
 # Create the LPs
 phprint(f"Creating {phold.number} LPs")
-dotter = Dot(phold.number, phold.pyVerbose)
+dotter = dot.Dot(phold.number, phold.pyVerbose)
 lps = []
 for i in range(phold.number):
     if dotter.dot(1):
@@ -327,7 +245,7 @@ latency = str(phold.minimum) + ' ' + phold.TIMEBASE
 # Add links
 num_links = int(phold.number * (phold.number - 1) / 2)
 phprint(f"Creating complete graph with latency {latency} ({num_links} total)")
-dotter = Dot(num_links, phold.pyVerbose)
+dotter = dot.Dot(num_links, phold.pyVerbose)
 for i in range(phold.number):
     for j in range(i + 1, phold.number):
 
