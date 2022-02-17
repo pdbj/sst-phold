@@ -89,7 +89,6 @@ $(LIB): $(OBJS)
 
 SSTREGCMD = sst-register $(SSTCONFARG)
 install: $(LIB)
-build-date: $(LIB)
 	@echo "SST_REG"
 	$(VERB)mkdir -p $(LIBDIR)
 	$(VERB)cp $< $(LIBDIR)
@@ -102,10 +101,9 @@ build-date: $(LIB)
 
 .PHONY: all install clean info
 
-install: build-date
 
 clean:
-	rm -f *.o *.d *.so build-date
+	rm -rf *.o *.d *.so $(LIBDIR)
 
 info:
 	@echo "PWD:          $(PWD)"
