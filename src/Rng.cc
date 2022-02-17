@@ -8,7 +8,7 @@
 
 
 #include "Rng.h"
-#include "PholdEvent.h"
+#include "RngEvent.h"
 
 #include <sst/core/timeConverter.h>
 #include <sst/core/sst_types.h>
@@ -25,7 +25,7 @@
 
 namespace Phold {
 
-#ifdef PHOLD_DEBUG
+#ifdef RNG_DEBUG
 // Simplify use of sst_assert
 #define ASSERT(condition, args...) \
     Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
@@ -56,7 +56,7 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
   m_verbose = params.find<long>("pverbose", 0);
   m_output.init("@t:@X:Rng-" + getName() + " [@p()] -> ", 
                 m_verbose, 0, SST::Output::STDOUT);
-#ifdef PHOLD_DEBUG
+#ifdef RNG_DEBUG
   VERBOSE_PREFIX = "@t:@X:Rng-" + getName() + " [@p() (@f:@l)] -> ";
   VERBOSE(2, "Full c'tor() @0x%p, id: %llu, name: %s\n", 
           this, getId(), getName().c_str());
@@ -69,19 +69,20 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
 
   if (0 == getId()) {
     std::stringstream ss;
+    double totalSamples = m_number * m_samples;
 
     ss << "\nRng Configuration:"
        << "\n    Number of components:             " << m_number
        << "\n    Number of samples per component:  " << m_samples
+       << "\n    Total rng samples:                " << totalSamples
        << "\n    Verbosity level:                  " << m_verbose
        << "\n    Optimization level:               "
-#ifdef PHOLD_DEBUG
+#ifdef RNG_DEBUG
        << "debug"
 #else
        << "optimized"
 #endif
        << std::endl;
-#undef BEST
 
     OUTPUT("%s\n", ss.str().c_str());
   }
@@ -93,11 +94,33 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
   VERBOSE(4, "  m_rng      @0x%p\n", m_rng);
 
   // Configure ports/links
-  auto handler = new SST::Event::Handler<Rng, uint32_t>(this, &Rng::handleEvent, getId());
-  ASSERT(handler, "Failed to create handler\n");
-  m_self = configureSelfLink("self", handler);
-  ASSERT(m_self, "Failed to configure self link\n");
-  VERBOSE(4, "    self link  @0x%p with handler @0x%p\n", m_self, handler);
+  VERBOSE(3, "Configuring links:\n");
+
+  auto linkup = [this](std::string port, uint32_t id) -> void
+    {
+      ASSERT(isPortConnected(port),
+             "%s is not connected\n", port);
+      auto handler = new SST::Event::Handler<Rng, uint32_t>(this, &Rng::handleEvent, id);
+      ASSERT(handler, "Failed to create %s handler\n", port);
+      SST::Link * link;
+      if (port == "self")
+        {
+          link = configureSelfLink(port, handler);
+        } 
+      else {
+        link = configureLink(port, handler);
+      }
+      ASSERT(link, "Failed to configure %s link", port);
+      VERBOSE(4, "    %s link @%p with handler @%p\n",
+              port, link, handlerL);
+    };
+
+  uint32_t left  = (getId() > 0 ? getId() : m_number) - 1;
+  uint32_t right = (getId() + 1) % m_number;
+
+  linkup("portL", left);
+  linkup("portR", right);
+  linkup("self", getId());
 
   // Register statistics
 
@@ -138,7 +161,7 @@ Rng::~Rng() noexcept
 void
 Rng::handleEvent(SST::Event *ev, uint32_t from)
 {
-  auto event = dynamic_cast<PholdEvent*>(ev);
+  auto event = dynamic_cast<RngEvent*>(ev);
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
   // Extract any useful data, then clean it up
   delete event;
@@ -160,7 +183,7 @@ Rng::setup()
 {
   VERBOSE(2, "sending initial event\n");
 
-  auto ev = new PholdEvent(0);
+  auto ev = new RngEvent();
   m_self->send(0, ev);
 }
 

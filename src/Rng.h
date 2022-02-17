@@ -9,7 +9,7 @@
 #pragma once 
 
 // Work around a Clang12-MacPorts MPI configuration issue
-#include <limits>
+#include <climits>
 #ifndef ULLONG_MAX
 # pragma message "Supplying fallback ULLONG_MAX"
 # define ULLONG_MAX 0xffffffffffffffffULL 
@@ -164,8 +164,8 @@ public:
    */
   static constexpr char PORT_NAME[]   = "port_%(number)d";
 
-  //  SST_ELI_DOCUMENT_PORTS
-  //  (
+  SST_ELI_DOCUMENT_PORTS
+  (
    /*
      Macro defined in sst-core/src/sst/core/eli/portsInfo.h:
      static const std::vector<SST::ElementInfoPort2>& ELI_getPorts();
@@ -184,7 +184,10 @@ public:
        };
    */
 
-  //  );
+   { "portL", "Nuisance port", {"phold.RngEvent", ""}},
+   { "portR", "Nuisance port", {"phold.RngEvent", ""}},
+
+  );
   
 private:
   /** Default c'tor for serialization only. */
