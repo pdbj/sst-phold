@@ -123,7 +123,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
   // Verbose output in ShowConfiguration
-  
+
+  m_initLive = false;
+
   if (0 == getId())
     {
       ShowConfiguration();
@@ -389,7 +391,7 @@ Phold::ShowSizes() const
 
 
 void
-Phold::SendEvent()
+Phold::SendEvent(bool live /* = false */)
 {
   VERBOSE(2, "\n");
 
@@ -472,6 +474,10 @@ Phold::SendEvent()
   if (nextEventTime < m_stop)
     {
       m_sendCount->addData(1);
+      if (live)
+        {
+          m_initLive = true;
+        }
     }
 
 }  // SendEvent()
@@ -624,8 +630,23 @@ Phold::setup()
   // Generate initial event set
   for (auto i = 0; i < m_events; ++i)
     {
+#ifdef PHOLD_DEBUG
+      SendEvent(true);  // record if any events are scheduled before stop
+#else
       SendEvent();
+#endif
     }
+
+#ifdef PHOLD_DEBUG
+  // Make sure at least one event will actually run
+  std::size_t extras{0};
+  while (!m_initLive)
+    {
+      ++extras;
+      SendEvent(true);
+    }
+  VERBOSE(3, "    used %llu extra SendEvent calls to ensure at least one live event\n", extras);
+#endif
   OUTPUT("Setup complete\n");
 }
 
