@@ -377,7 +377,6 @@ private:
    * @param parent The parent index.
    * @param sendCount The total number of events sent by me and my children
    * @param recvCount The total number of events received by me and my children
-   * \todo We should accumulate sent and received events to cross check.
    */
   void sendToParent(SST::ComponentId_t parent,
                     std::size_t sendCount, std::size_t recvCount);
