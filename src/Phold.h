@@ -33,7 +33,7 @@
 #include <vector>
 
 /**
- * \file
+ * @file
  * Phold::Phold class declaration.
  */
 
@@ -56,7 +56,7 @@ class Phold : public SST::Component
 public:
 
   /**
-   * \copydoc  component.h#SST_ELI_REGISTER_COMPONENT
+   * @copydoc  component.h#SST_ELI_REGISTER_COMPONENT
    *
    * Register this component with SST.
    */
@@ -263,15 +263,15 @@ public:
    *     $  sst tests/phold.py -- -n 5 -vvvv | grep "\(init\|operator\)()"
    *
    * will show detailed logging of the init process with the following checks
-   * for each component at each interation (\c phase):
+   * for each component at each interation (@c phase):
    *
-   * * If \c phase is less than the expected depth for this component, check for
-   *   "early" events."
-   * * If \c phase is the expected depth:
+   * * If @c phase is less than the expected depth for this component, 
+   *   check for "early" events."
+   * * If @c phase is the expected depth:
    *   * Check for the expected event from the parent,
    *   * Check for any "other" unexpected events.
-   * * If \c phase is deeper than the expected depth, check for
-   *   "late" events.
+   * * If @c phase is deeper than the expected depth, 
+   *   check for "late" events.
    *
    * This command:
    *
@@ -337,10 +337,10 @@ private:
   /** @{ */
 
   /**
-   * Get a possible event from the link at \c id.
+   * Get a possible event from the link at @c id.
    * @tparam E The Phold event type to return
    * @param id The link/remote to query.
-   * @returns The event pointer, NULL of no event from the \c id.
+   * @returns The event pointer, NULL of no event from the @c id.
    */
   template <typename E>
   E * getEvent(SST::ComponentId_t id);
@@ -357,7 +357,7 @@ private:
 
   /**
    * Send an init event to a child by index..
-   * This skips children greater than \c m_number, so it's ok to call this
+   * This skips children greater than @c m_number, so it's ok to call this
    * on both pair members returned by BinaryTree::children().
    * @param child The child index to send to
    */
@@ -441,13 +441,13 @@ private:
    */
   typedef SST::RNG::XORShiftRNG RNG_t;
 
-  /**< Base RNG instance */
+  /** Base RNG instance */
   RNG_t                                * m_rng;
-  /**< Uniform RNG for deciding if event should be remote */
+  /** Uniform RNG for deciding if event should be remote */
   RNG_t                                * m_remRng;
-  /**< Uniform RNG for picking remote LPs */
+  /** Uniform RNG for picking remote LPs */
   SST::RNG::SSTUniformDistribution     * m_nodeRng;
-  /**< Exponential RNG for picking delay times */
+  /** Exponential RNG for picking delay times */
   SST::RNG::SSTExponentialDistribution * m_delayRng;
 
   // Class instance statistics
