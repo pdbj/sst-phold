@@ -4,15 +4,18 @@ LIBDIR  = $(PWD)/lib
 
 # Check for custom build config resulting from successful install
 SSTCONFARG =
-SSTCONFIG = $(LIBDIR)/sst-phold.conf
-ifneq (,$(wildcard $(SSTCONFIG)))
-  SSTCONFARG = --lib-path=$(SSTCONFIG)
+SSTCONFIG_PHOLD = $(LIBDIR)/sst-phold.conf
+ifneq (,$(wildcard $(SSTCONFIG_PHOLD)))
+  SSTCONFARG = --lib-path=$(SSTCONFIG_PHOLD)
 endif
 
-CC=$(shell       sst-config $(SSTCONFARG) --CC)
-CXX=$(shell      sst-config $(SSTCONFARG) --CXX)
-CXXFLAGS=$(shell sst-config $(SSTCONFARG) --ELEMENT_CXXFLAGS)
-LDFLAGS=$(shell  sst-config $(SSTCONFARG) --ELEMENT_LDFLAGS)
+SST=$(shell which sst)
+SSTCONFIGCMD = sst-config $(SSTCONFARG)
+CC=$(shell       $(SSTCONFIGCMD) --CC)
+CXX=$(shell      $(SSTCONFIGCMD) --CXX)
+CXXFLAGS=$(shell $(SSTCONFIGCMD) --ELEMENT_CXXFLAGS)
+LDFLAGS=$(shell  $(SSTCONFIGCMD) --ELEMENT_LDFLAGS)
+SSTLIBDIR=$(shell $(SSTCONFIGCMD) SST_ELEMENT_LIBRARY SST_ELEMENT_LIBRARY_LIBDIR)
 
 # Add hard-coded path to help out CLion
 #CXXFLAGS += -I$(HOME)/local/include
@@ -22,7 +25,11 @@ LDFLAGS=$(shell  sst-config $(SSTCONFARG) --ELEMENT_LDFLAGS)
 
 
 # Set various build flags
-ifneq ($(MAKECMDGOALS),clean)
+clean_or_install=$(strip \
+  $(or $(findstring clean,$(MAKECMDGOALS)), \
+       $(findstring install,$(MAKECMDGOALS))))
+
+ifeq ($(clean_or_install),)
   PHOLD_DEBUG = 0
   ifeq ($(PHOLD_DEBUG),0)
     CXXFLAGS_PHOLD_DEBUG=-g -O3
@@ -33,6 +40,7 @@ ifneq ($(MAKECMDGOALS),clean)
     $(info Building debug with $(CXXFLAGS_PHOLD_DEBUG))
     CXXFLAGS+=$(CXXFLAGS_PHOLD_DEBUG)
   endif
+  $(info SST: $(SST))
 
   RNG_DEBUG = 0
   ifeq ($(RNG_DEBUG),1)
@@ -92,11 +100,11 @@ install: $(LIB)
 	@echo "SST_REG"
 	$(VERB)mkdir -p $(LIBDIR)
 	$(VERB)cp $< $(LIBDIR)
-	$(VERB)touch $(SSTCONFIG)
+	$(VERB)cp $< $(SSTLIBDIR)
+	$(VERB)touch $(SSTCONFIG_PHOLD)
 	$(VERB)$(SSTREGCMD) phold LIBDIR=$(LIBDIR)
 	$(VERB)$(SSTREGCMD) SST_ELEMENT_SOURCE phold=$(SRCDIR)
 	$(VERB)$(SSTREGCMD) SST_ELEMENT_TESTS  phold=$(SRCDIR)/tests
-	$(VERB)touch $@
 
 
 .PHONY: all install clean info
@@ -106,30 +114,31 @@ clean:
 	rm -rf *.o *.d *.so $(LIBDIR)
 
 info:
-	@echo "PWD:          $(PWD)"
-	@echo "CURDIR:       $(CURDIR)"
+	@echo "PWD:              $(PWD)"
+	@echo "CURDIR:           $(CURDIR)"
 	@echo ""
-	@echo "SSTCONFIG:    $(SSTCONFIG)"
-	@echo "SSTCONFARG:   $(SSTCONFARG)"
-	@echo "SSTREGCMD:    $(SSTREGCMD)"
+	@echo "SSTCONFIG_PHOLD:  $(SSTCONFIG_PHOLD)"
+	@echo "SSTCONFARG:       $(SSTCONFARG)"
+	@echo "SSTREGCMD:        $(SSTREGCMD)"
+	@echo "SSTELEMLIB:       $(SSTELEMLIB)"
 	@echo ""
-	@echo "CC:           $(CC) = `which $(CC)`"
-	@echo "CXX:          $(CXX) = `which $(CXX)`"
-	@echo "CXXFLAGS:     $(CXXFLAGS)"
-	@echo "LDFLAGS:      $(LDFLAGS)"
+	@echo "CC:               $(CC) = `which $(CC)`"
+	@echo "CXX:              $(CXX) = `which $(CXX)`"
+	@echo "CXXFLAGS:         $(CXXFLAGS)"
+	@echo "LDFLAGS:          $(LDFLAGS)"
 	@echo ""
-	@echo "VERBOSE:      $(VERBOSE)"
-	@echo "PHOLD_DEBUG:  $(PHOLD_DEBUG)"
-	@echo "RNG_DEBUG:    $(RNG_DEBUG)"
-	@echo "PHOLD_FIXED:  $(PHOLD_FIXED)"
+	@echo "VERBOSE:          $(VERBOSE)"
+	@echo "PHOLD_DEBUG:      $(PHOLD_DEBUG)"
+	@echo "RNG_DEBUG:        $(RNG_DEBUG)"
+	@echo "PHOLD_FIXED:      $(PHOLD_FIXED)"
 	@echo ""
-	@echo "SRCDIR:       $(SRCDIR)"
-	@echo "LIBDIR:       $(LIBDIR)"
-	@echo "SRCS:         $(SRCS)"
-	@echo "HDRS:         $(HDRS)"
-	@echo "ALL:          $(ALL)"
-	@echo "OBJS:         $(OBJS)"
-	@echo "LIB:          $(LIB)"
-	@echo "DEPS:         $(DEPS)"
-	@echo "DEPFLAGS:     $(DEPFLAGS)"
+	@echo "SRCDIR:           $(SRCDIR)"
+	@echo "LIBDIR:           $(LIBDIR)"
+	@echo "SRCS:             $(SRCS)"
+	@echo "HDRS:             $(HDRS)"
+	@echo "ALL:              $(ALL)"
+	@echo "OBJS:             $(OBJS)"
+	@echo "LIB:              $(LIB)"
+	@echo "DEPS:             $(DEPS)"
+	@echo "DEPFLAGS:         $(DEPFLAGS)"
 
