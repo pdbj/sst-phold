@@ -159,32 +159,25 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   for (uint32_t i = 0; i < m_number; ++i) {
     ASSERT(m_links[i] == nullptr, 
            "Initialized link %u (%p) is not null!\n", i, m_links[i]);
+    // Each link needs it's own handler.  SST manages the destruction.
+    auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
+    ASSERT(handler, "Failed to create handler\n");
     if (i != getId())
     {
       port = prefix + std::to_string(i);
       ASSERT(isPortConnected(port), 
              "Port %s is not connected\n", port.c_str());
-      // Each link needs it's own handler.  SST manages the destruction.
-      auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
-      ASSERT(handler, 
-             "Failed to create handler\n");
       m_links[i] = configureLink(port, handler);
-      ASSERT(m_links[i], 
-             "Failed to configure link %u\n", i);
       VERBOSE(4, "    link %u: %s @%p with handler @%p\n", 
               i, port.c_str(), m_links[i], handler);
 
     } else {
 
-      auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
-      ASSERT(handler, 
-             "Failed to create handler\n");
       m_links[i] = configureSelfLink("self", handler);
-      ASSERT(m_links[i], 
-             "Failed to configure self link\n");
       VERBOSE(4, "    link %u: self   @%p with handler @%p\n", 
               i, m_links[i], handler);
     }
+    ASSERT(m_links[i], "Failed to configure link %u\n", i);
   }
 
   // Register statistics
