@@ -76,7 +76,7 @@ class PholdArgs(dict):
         self.delays = False
         self.pverbose = 0
         self.pyVerbose = 0
-        self.TIMEBASE = 's'
+        self.TIMEBASE = "s"
 
     def __str__(self) -> str:
         return f"remote: {self.remote}, " \
@@ -237,7 +237,7 @@ lps = []
 for i in range(phold.number):
     if dotter.dot(1):
         vprint(1, f"  Creating LP {i}")
-    lp = sst.Component(str(i), 'phold.Phold')
+    lp = sst.Component("phold_" + str(i), 'phold.Phold')
     lp.addParams(vars(phold))  # pass ph as simple dictionary
     lps.append(lp)
 dotter.done()
@@ -252,7 +252,7 @@ dotter = dot.Dot(num_links, phold.pyVerbose)
 for i in range(phold.number):
     for j in range(i + 1, phold.number):
 
-        link = sst.Link(str(i) + '_' + str(j))
+        link = sst.Link("link_" + str(i) + '_' + str(j))
 
         if dotter.dot(2, False):
             vprint(2, f"  Creating link {i}_{j}")
