@@ -477,11 +477,12 @@ Phold::SendEvent(bool live /* = false */)
 
 
   // Send a new event.  This is deleted in handleEvent
-  auto ev = new PholdEvent(getCurrentSimTime());
-  m_links[nextId]->send(delay, ev);
-  VERBOSE(2, "from %llu @ %llu, delay: %llu -> %llu @ %llu %s\n",
+  auto event = new PholdEvent(getCurrentSimTime());
+  m_links[nextId]->send(delay, event);
+  VERBOSE(2, "from %llu @ %llu, delay: %llu -> %llu @ %llu %s, @%p\n",
           getId(), now, delay, nextId, nextEventTime,
-          (nextEventTime < m_stop ? "" : "(too late)")
+          (nextEventTime < m_stop ? "" : "(too late)"),
+          event
           );
 
   m_delays->addData(delayTotal * TIMEFACTOR);
@@ -507,6 +508,7 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
   // Extract any useful data, then clean it up
   auto sendTime = event->getSendTime();
+  VERBOSE(3, "  deleting event @%p\n", event);
   delete event;
 
   auto now = getCurrentSimTime();
@@ -536,7 +538,10 @@ template <typename E>
 E *
 Phold::getEvent(SST::ComponentId_t id)
 {
-  return dynamic_cast<E*>(m_links[id]->recvUntimedData());
+  VERBOSE(3, "    getting event from link %lu\n", id);
+  auto event = m_links[id]->recvUntimedData();
+  VERBOSE(3, "    got %p\n", (void *)(event));
+  return dynamic_cast<E*>(event);
 }
 
 
@@ -544,11 +549,17 @@ template <typename E>
 void
 Phold::checkForEvents(const std::string msg)
 {
-  for (SST::ComponentId_t i = 0; i < m_number; ++i)
+  for (SST::ComponentId_t id = 0; id < m_number; ++id)
     {
-      auto event = getEvent<E>(i);
+      VERBOSE(3, "  checking link %lu\n", id);
+      auto event = getEvent<E>(id);
       ASSERT(NULL == event, 
-             "    got %s event from %llu\n", msg.c_str(), i);
+             "    got %s event from %llu\n", msg.c_str(), id);
+      if (event)
+        {
+          VERBOSE(3, "    deleting event @%p\n", event);
+          delete event;
+        }
     }
 }
 
@@ -558,8 +569,8 @@ Phold::sendToChild(SST::ComponentId_t child)
 {
   if (child < m_number)
     {
-      VERBOSE(3, "    sending to child %llu\n", child);
       auto event = new InitEvent(getId());
+      VERBOSE(3, "    sending to child %llu, @%p\n", child, (void*)(event));
       m_links[child]->sendUntimedData(event);
     }
   else
@@ -606,9 +617,12 @@ Phold::init(unsigned int phase)
           ASSERT(event, 
                  "    failed to recv expected event from parent %zu\n", parent);
           auto src = event->getSenderId();
-          VERBOSE(3, "    received from %llu\n", src);
+          VERBOSE(3, "    received from %llu, @%p\n", src, event);
           ASSERT(parent == src, 
                  "    event from %llu, expected parent %lu\n", src, parent);
+
+          VERBOSE(3, "  deleting event @%p\n", event);
+          delete event;
         }  // 0 != getId(),  non-root receive from parent
       else
         {
@@ -664,6 +678,7 @@ Phold::setup()
     }
   VERBOSE(3, "    used %llu extra SendEvent calls to ensure at least one live event\n", extras);
 #endif
+
   OUTPUT("Setup complete\n");
 }
 
@@ -681,8 +696,10 @@ Phold::getChildCounts(SST::ComponentId_t child)
              "   failed to receive expected event from child %llu\n", child);
       counts.first  = event->getSendCount();
       counts.second = event->getRecvCount();
-      VERBOSE(4, "      child %llu reports %zu sends, %zu recvs\n",
-              child, counts.first, counts.second);
+      VERBOSE(4, "      child %llu reports %zu sends, %zu recvs, @%p\n",
+              child, counts.first, counts.second, event);
+      VERBOSE(3, "  deleting event @%p\n", event);
+      delete event;
     }
   else {
     VERBOSE(3, "    skipping overflow child %llu\n", child);
@@ -696,9 +713,9 @@ void
 Phold::sendToParent(SST::ComponentId_t parent,
                     std::size_t sendCount, std::size_t recvCount)
 {
-  VERBOSE(3, "    sending to parent %llu with sends: %zu, recvs: %zu\n",
-          parent, sendCount, recvCount);
   auto event = new CompleteEvent(sendCount, recvCount);
+  VERBOSE(3, "    sending to parent %llu with sends: %zu, recvs: %zu, @%p\n",
+          parent, sendCount, recvCount, event);
   m_links[parent]->sendUntimedData(event);
 }
 
