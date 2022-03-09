@@ -184,7 +184,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   VERBOSE(3, "Initializing statistics\n");
   // Stop stat collection at stop time
   SST::Params p;
-  p.insert("stopat", std::to_string(m_stop));
+  std::string stopat {toBestSI(m_stop)};
+  VERBOSE(3, "  Setting stopat to %s\n", stopat.c_str());
+  p.insert("stopat", stopat);
 
   m_sendCount = dynamic_cast<decltype(m_sendCount)>(registerStatistic<uint64_t>(p, "SendCount"));
   ASSERT(m_sendCount, 
@@ -324,7 +326,29 @@ Phold::ShowConfiguration() const
 #endif
 
   ss << std::endl;
+  OUTPUT("%s\n", ss.str().c_str());
   
+  // SST config
+  auto myRank = getRank();
+  auto ranks = getNumRanks();
+    
+  std::string runMode;
+  switch (getSimulation()->getSimulationMode())
+    {
+    case SST::Simulation::INIT:     runMode = "INIT";        break;
+    case SST::Simulation::RUN:      runMode = "RUN";         break;
+    case SST::Simulation::BOTH:     runMode = "BOTH";        break;
+    case SST::Simulation::UNKNOWN:  runMode = "UNKNOWN";     break;
+    default:                        runMode = "undefined)";
+    }
+  
+  ss.str("");
+  ss.clear();
+  ss << "SST Configuration:"
+     << "\n    Rank, thread:                         " << myRank.rank << ", " << myRank.thread
+     << "\n    Total ranks, threads:                 " << ranks.rank << ", " << ranks.thread
+     << "\n    Run mode:                             " << runMode;
+  ss << std::endl;
   OUTPUT("%s\n", ss.str().c_str());
 
 }  // ShowConfiguration()
