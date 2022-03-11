@@ -40,6 +40,9 @@ install:
 	@echo "Installing"
 	@$(MAKE) -C src install
 
+valgrind:
+	@$(MAKE) -C src valgrind
+
 clean:
 #	@echo "Making clean in src"
 	@$(MAKE) -C src clean && echo "Make clean done" || exit 1

@@ -5,9 +5,9 @@ LIBDIR  = $(PWD)/lib
 # Check for custom build config resulting from successful install
 SSTCONFARG =
 SSTCONFIG_PHOLD = $(LIBDIR)/sst-phold.conf
-ifneq (,$(wildcard $(SSTCONFIG_PHOLD)))
-  SSTCONFARG = --lib-path=$(SSTCONFIG_PHOLD)
-endif
+# ifneq (,$(wildcard $(SSTCONFIG_PHOLD)))
+#   SSTCONFARG = --lib-path=$(SSTCONFIG_PHOLD)
+# endif
 
 SST=$(shell which sst)
 SSTCONFIGCMD = sst-config $(SSTCONFARG)
@@ -97,7 +97,7 @@ $(LIB): $(OBJS)
 
 SSTREGCMD = sst-register $(SSTCONFARG)
 install: $(LIB)
-	@echo "SST_REG"
+	@echo "SST_REG $(basename $<)" 
 	$(VERB)mkdir -p $(LIBDIR)
 	$(VERB)cp $< $(LIBDIR)
 	$(VERB)cp $< $(SSTLIBDIR)
@@ -107,7 +107,14 @@ install: $(LIB)
 	$(VERB)$(SSTREGCMD) SST_ELEMENT_TESTS  phold=$(SRCDIR)/tests
 
 
-.PHONY: all install clean info
+PHOLDTEST=../tests/phold.py
+valgrind: install
+	@echo VALGRIND sst $(PHOLDTEST)
+	$(VERB)valgrind --tool=memcheck --track-origins=yes \
+            --show-error-list=yes --trace-children=yes --leak-check=full \
+            sst --print-timing-info $(PHOLDTEST) -- -vvvV
+
+.PHONY: all install clean info valgrind
 
 
 clean:
