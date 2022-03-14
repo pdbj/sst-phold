@@ -9,7 +9,17 @@
 # pragma once
 
 /**
- * Work with a binary tree stored in an indexed container.
+ * Convenience functions for working with a binary tree stored 
+ * in an indexed container.
+ *
+ * Note these functions know nothing about the container,
+ * these just work with notional indices.  They also know nothing
+ * about how many actual items are stored in the container, 
+ * just how many _could_ be stored in a tree of a given depth.
+ *
+ * In general the caller should check that any indices
+ * returned by `begin()`, `end()`, `children()`, `parent()` 
+ * are actually valid.
  *
  * \c capacity(depth) returns the maximum number of items which 
  * can be stored in a tree of a given depth.
@@ -19,14 +29,14 @@
  * \c begin(depth), \c end(depth) return the first and one past the last
  * index at \c depth.
 
- * \c children(index) returns a std::pair with the indices of the children
- * of the item at \c index:
+ * \c children(parentIdx) returns a std::pair with the indices of the children
+ * of the item at \c parentIcx:
  *
- *    2 * index + 1, 2 * index + 2
+ *    2 * parentIdx + 1, 2 * parentIdx + 2
  *
- * \c parent(index) returns the index of the parent of the item at \c child:
+ * \c parent(childIdx) returns the index of the parent of the item at \c childIdx:
  *
- *    parent = (child - 1) / 2  // with integer division truncation
+ *    parent = (childIdx - 1) / 2  // with integer division truncation
  */
 struct BinaryTree
 {
@@ -82,19 +92,19 @@ struct BinaryTree
   }
 
   /**
-   * Return the parent indes for \c child
+   * Return the parent index for \c childIdx
    */
-  static std::size_t parent(std::size_t child)
+  static std::size_t parent(std::size_t childIdx)
   {
-    return (child - 1) / 2;
+    return (childIdx - 1) / 2;
   }
 
   /**
-   * Return the children indices of \c index
+   * Return the children indices of \c parentIdx
    */
-  static std::pair<std::size_t, std::size_t> children(std::size_t index)
+  static std::pair<std::size_t, std::size_t> children(std::size_t parentIdx)
   {
-    std::size_t child1 = 2 * index + 1;
+    std::size_t child1 = 2 * parentIdx + 1;
     return std::make_pair(child1, child1 + 1);
   }
 
