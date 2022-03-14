@@ -485,8 +485,8 @@ Phold::SendEvent(bool live /* = false */)
           event
           );
 
-  m_delays->addData(delayTotal * TIMEFACTOR);
   VERBOSE(3, "  histogramming %f\n", delayTotal * TIMEFACTOR);
+  m_delays->addData(delayTotal * TIMEFACTOR);
 
   // Record only sends which will be *received* before stop time.
   if (nextEventTime < m_stop)
@@ -632,6 +632,8 @@ Phold::init(unsigned int phase)
 
       // Send to two children
       auto children = bt::children(getId());
+      VERBOSE(3, "    sending to my children %llu and %llu\n", 
+              children.first, children.second);
       sendToChild(children.first);
       sendToChild(children.second);
 
