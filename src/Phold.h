@@ -324,10 +324,10 @@ private:
 
   /** 
    * Send a new event to a random LP. 
-   * @param [in] live If @c true record (in m_initLive) 
+   * @param [in] mustLive If @c true record (in m_initLive) 
    *     if the scheduled event will be executed before the stop time.
    */
-  void SendEvent(bool live = false);
+  void SendEvent(bool mustLive = false);
 
   /**
    * Incoming event handler.
@@ -420,6 +420,12 @@ private:
 
   static SST::TimeConverter * m_timeConverter;
 
+  /** Flag to record that at least one initial event is scheduled
+   *  before the stop time.
+   *  This is set by SendEvent(true), called by Setup()
+   */
+  static bool m_initLive;
+
 
   // **** Class instance data members ****
 
@@ -452,12 +458,6 @@ private:
   SST::RNG::SSTUniformDistribution     * m_nodeRng;
   /** Exponential RNG for picking delay times */
   SST::RNG::SSTExponentialDistribution * m_delayRng;
-
-  /** Flag to record that at least one initial event is scheduled
-   *  before the stop time.
-   *  This is set by SendEvent(true), called by Setup()
-   */
-  bool m_initLive;
 
   // Class instance statistics
   /** Count of events sent. */

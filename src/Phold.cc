@@ -83,6 +83,7 @@ bool                 Phold::m_delaysOut;
 uint32_t             Phold::m_verbose;
 SST::SimTime_t       Phold::m_stop;
 SST::TimeConverter * Phold::m_timeConverter;
+bool                 Phold::m_initLive {false};
 
 std::string
 Phold::toBestSI(SST::SimTime_t sim) const
@@ -408,7 +409,7 @@ Phold::ShowSizes() const
 
 
 void
-Phold::SendEvent(bool live /* = false */)
+Phold::SendEvent(bool mustLive /* = false */)
 {
   VERBOSE(2, "\n");
 
@@ -493,9 +494,13 @@ Phold::SendEvent(bool live /* = false */)
     {
       m_sendCount->addData(1);
       if (live)
+#ifdef PHOLD_DEBUG
+      if (mustLive && !m_initLive)
         {
+          VERBOSE(3, "  recording live event\n");
           m_initLive = true;
         }
+#endif
     }
 
 }  // SendEvent()
@@ -678,7 +683,10 @@ Phold::setup()
       ++extras;
       SendEvent(true);
     }
-  VERBOSE(3, "    used %llu extra SendEvent calls to ensure at least one live event\n", extras);
+  if (extras)
+    {
+      VERBOSE(3, "    used %llu extra SendEvent calls to ensure at least one live event\n", extras);
+    }
 #endif
 
   OUTPUT("Setup complete\n");
