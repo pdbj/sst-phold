@@ -72,7 +72,7 @@ ifeq ($(VERBOSE),1)
   VERB=
 else
   VERB=@
-  MAKEFLAGS += --no-print-directory
+  MAKEFLAGS +=--no-print-directory
 endif
 
 
@@ -121,31 +121,39 @@ clean:
 	rm -rf *.o *.d *.so $(LIBDIR)
 
 info:
-	@echo "PWD:              $(PWD)"
-	@echo "CURDIR:           $(CURDIR)"
+	@echo "PWD:                   $(PWD)"
+	@echo "CURDIR:                $(CURDIR)"
 	@echo ""
-	@echo "SSTCONFIG_PHOLD:  $(SSTCONFIG_PHOLD)"
-	@echo "SSTCONFARG:       $(SSTCONFARG)"
-	@echo "SSTREGCMD:        $(SSTREGCMD)"
-	@echo "SSTELEMLIB:       $(SSTELEMLIB)"
+	@echo "SST:                   $(SST)"
+	@echo "SSTCONFIG_PHOLD:       $(SSTCONFIG_PHOLD)"
+	@echo "SSTCONFARG:            $(SSTCONFARG)"
+	@echo "SSTCONFIGCMD:          $(SSTCONFIGCMD)"
+	@echo "SSTREGCMD:             $(SSTREGCMD)"
+	@echo "SSTLIBDIR:             $(SSTLIBDIR)"
+	@echo "SSTELEMLIB:            $(SSTELEMLIB)"
 	@echo ""
-	@echo "CC:               $(CC) = `which $(CC)`"
-	@echo "CXX:              $(CXX) = `which $(CXX)`"
-	@echo "CXXFLAGS:         $(CXXFLAGS)"
-	@echo "LDFLAGS:          $(LDFLAGS)"
+	@echo "CC:                    $(CC) = `which      $(CC)`"
+	@echo "CXX:                   $(CXX) = `which      $(CXX)`"
+	@echo "CXXFLAGS:              $(CXXFLAGS)"
+	@echo "LDFLAGS:               $(LDFLAGS)"
 	@echo ""
-	@echo "VERBOSE:          $(VERBOSE)"
-	@echo "PHOLD_DEBUG:      $(PHOLD_DEBUG)"
-	@echo "RNG_DEBUG:        $(RNG_DEBUG)"
-	@echo "PHOLD_FIXED:      $(PHOLD_FIXED)"
+	@echo "VERBOSE:               $(VERBOSE)"
+	@echo "PHOLD_DEBUG:           $(PHOLD_DEBUG)"
+	@echo "CXXFLAGS_PHOLD_DEBUG:  $(CXXFLAGS_PHOLD_DEBUG)"
+	@echo "RNG_DEBUG:             $(RNG_DEBUG)"
+	@echo "CXXFLAGS_RNG_DEBUG:    $(CXXFLAGS_RNG_DEBUG)"
+	@echo "PHOLD_FIXED:           $(PHOLD_FIXED)"
+	@echo "CXXFLAGS_PHOLD_FIXED:  $(CXXFLAGS_PHOLD_FIXED)"
 	@echo ""
-	@echo "SRCDIR:           $(SRCDIR)"
-	@echo "LIBDIR:           $(LIBDIR)"
-	@echo "SRCS:             $(SRCS)"
-	@echo "HDRS:             $(HDRS)"
-	@echo "ALL:              $(ALL)"
-	@echo "OBJS:             $(OBJS)"
-	@echo "LIB:              $(LIB)"
-	@echo "DEPS:             $(DEPS)"
-	@echo "DEPFLAGS:         $(DEPFLAGS)"
+	@echo "SRCDIR:                $(SRCDIR)"
+	@echo "LIBDIR:                $(LIBDIR)"
+	@echo "SRCS:                  $(SRCS)"
+	@echo "HDRS:                  $(HDRS)"
+	@echo "ALL:                   $(ALL)"
+	@echo "OBJS:                  $(OBJS)"
+	@echo "LIB:                   $(LIB)"
+	@echo "MAKEFLAGS:             $(MAKEFLAGS)"
+	@echo "DEPS:                  $(DEPS)"
+	@echo "DEPFLAGS:              $(DEPFLAGS)"
+	@echo "PHOLDTEST:             $(PHOLDTEST)"
 
