@@ -40,7 +40,7 @@ ifeq ($(clean_or_install),)
     $(info Building debug with $(CXXFLAGS_PHOLD_DEBUG))
     CXXFLAGS+=$(CXXFLAGS_PHOLD_DEBUG)
   endif
-  $(info SST: $(SST))
+  $(info Linking to $(SST))
 
   RNG_DEBUG = 0
   ifeq ($(RNG_DEBUG),1)
