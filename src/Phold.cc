@@ -443,9 +443,9 @@ Phold::SendEvent(bool mustLive /* = false */)
   SST::ComponentId_t nextId = getId();
 
 #ifndef PHOLD_FIXED
-  auto rem = m_remRng->nextUniform();
+  const auto rem = m_remRng->nextUniform();
 #else
-  auto rem = 0.0;
+  const auto rem = 1.0;
 #endif
 
   // Whether the event is local or remote
@@ -477,7 +477,9 @@ Phold::SendEvent(bool mustLive /* = false */)
 #ifndef PHOLD_FIXED
   auto delay = static_cast<SST::SimTime_t>(m_delayRng->getNextDouble());
 #else
-  auto delay = static_cast<SST::SimTime_t>(m_average.getDoubleValue() / TIMEFACTOR);
+  static const 
+  auto delayAvg = static_cast<SST::SimTime_t>(m_average.getDoubleValue() / TIMEFACTOR);
+  auto delay = delayAvg;
 #endif
   auto delayTotal = delay + m_minimum;
   auto nextEventTime = delayTotal + now;
@@ -512,14 +514,13 @@ Phold::SendEvent(bool mustLive /* = false */)
           event
           );
 
-  VERBOSE(3, "  histogramming %f\n", delayTotal * TIMEFACTOR);
-  m_delays->addData(delayTotal * TIMEFACTOR);
-
   // Record only sends which will be *received* before stop time.
   if (nextEventTime < m_stop)
     {
       m_sendCount->addData(1);
-      if (live)
+      VERBOSE(3, "  histogramming %f\n", delayTotal * TIMEFACTOR);
+      m_delays->addData(delayTotal * TIMEFACTOR);
+
 #ifdef PHOLD_DEBUG
       if (mustLive && !m_initLive)
         {
