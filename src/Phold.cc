@@ -58,8 +58,7 @@
   m_output.output(CALL_INFO, __VA_ARGS__)
 
 #define OUTPUT0(...)                            \
-  if (0 == getId()) OUTPUT(__VA_ARGS__)
-
+  if (0 == getId()) m_output.output(CALL_INFO, __VA_ARGS__)
 
 
 namespace Phold {
@@ -310,8 +309,9 @@ Phold::ShowConfiguration() const
   duty.invert();
   duty *= m_average;
   double duty_factor = duty.getDoubleValue();
-  VERBOSE(3, "  period: %s, duty factor: %f\n",
-          period.toStringBestSI().c_str(), 
+  VERBOSE(3, "  min: %s, duty: %s, df: %f\n",
+          minimum.toStringBestSI().c_str(), 
+          duty.toStringBestSI().c_str(), 
           duty_factor);
   
   double ev_per_win = m_events * duty_factor;
@@ -619,7 +619,6 @@ Phold::clockTick(SST::Cycle_t cycle)
   return next > m_stop;
 }
 
-}
 
 template <typename E>
 E *
