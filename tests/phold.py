@@ -1,4 +1,4 @@
-#!python3
+#!/bin/python3
 """
 Configuration for the classic PHOLD benchmark.
 """
