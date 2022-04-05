@@ -53,13 +53,6 @@
 
 #endif
 
-#ifndef PHOLD_FIXED
-#  define RNG_MODE "rng"
-#else
-#  define RNG_MODE "fixed"
-#endif
-
-
 #define OUTPUT(...)                             \
   if (0 == getId()) m_output.output(CALL_INFO, __VA_ARGS__)
 
@@ -72,7 +65,6 @@ constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
 /* const */ double Phold::TIMEFACTOR;
 //  Conversion factor from phold.py script to Phold::TIMEBASE
 /* const */ double Phold::PHOLD_PY_TIMEFACTOR{1e6};
-
 
 double               Phold::m_remote;
 SST::SimTime_t       Phold::m_minimum;
@@ -101,11 +93,14 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 {
   m_verbose = params.find<long>("pverbose", 0);
 #ifndef PHOLD_DEBUG
+  // Prefix with virtual time
   m_output.init("@t:Phold: ",
                 m_verbose, 0, SST::Output::STDOUT);
 #else
+  // Prefix with "<time>:[<rank>:<thread>]Phold-<id> [<function>] -> "
   m_output.init("@t:@X:Phold-" + getName() + " [@p()] -> ",
                 m_verbose, 0, SST::Output::STDOUT);
+  // Prefix with "<time>:[<rank>:<thread>]Phold-<id> [<function> (<file>:<lineL)] -> "
   VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
   VERBOSE(2, "Full c'tor() @%p, id: %llu, name: %s\n", this, getId(), getName().c_str());
 #endif
@@ -169,6 +164,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       ASSERT(isPortConnected(port), 
              "Port %s is not connected\n", port.c_str());
       m_links[i] = configureLink(port, handler);
+      ASSERT(m_links[i], "Failed to create link\n");
       VERBOSE(4, "    link %u: %s @%p with handler @%p\n", 
               i, port.c_str(), m_links[i], handler);
 
@@ -288,7 +284,9 @@ Phold::ShowConfiguration() const
   duty *= minimum;
   double duty_factor = duty.getDoubleValue();
   VERBOSE(3, "  min: %s, duty: %s, df: %f\n",
-          minimum.toStringBestSI().c_str(), duty.toStringBestSI().c_str(), duty_factor);
+          minimum.toStringBestSI().c_str(), 
+          duty.toStringBestSI().c_str(), 
+          duty_factor);
   
   double ev_per_win = m_events * duty_factor;
   const double min_ev_per_win = 10;
@@ -300,9 +298,21 @@ Phold::ShowConfiguration() const
   
   std::stringstream ss;
   ss << "PHOLD Configuration:"
+
+#ifndef PHOLD_FIXED
      << "\n    Remote LP fraction:                   " << m_remote
+#else
+     << "\n    Remote LP fraction:                   " << "1 (fixed)"
+#endif
+
      << "\n    Minimum inter-event delay:            " << toBestSI(m_minimum)
+
+#ifndef PHOLD_FIXED
      << "\n    Additional exponential average delay: " << m_average.toStringBestSI()
+#else
+     << "\n    Additional fixed delay:               " << m_average.toStringBestSI()
+#endif
+
      << "\n    Stop time:                            " << toBestSI(m_stop)
      << "\n    Number of LPs:                        " << m_number
      << "\n    Number of initial events per LP:      " << m_events
@@ -313,9 +323,21 @@ Phold::ShowConfiguration() const
     {
       ss << "\n      (Too low!  Suggest setting '--events=" << min_events << "')";
     }
-  ss << "\n    Expected total number of events:      " << totalEvents
-     << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
-     << "\n    Sampling:                             " << RNG_MODE
+  ss << "\n    Expected total number of events:      " << totalEvents;
+
+#ifdef PHOLD_DEBUG
+  ss << "\n    Clock print interval:                 " << m_clockPrintInterval 
+     << " cycles";
+#endif
+
+  ss << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
+
+#ifndef PHOLD_FIXED
+     << "\n    Sampling:                             " << "rng"
+#else
+     << "\n    Sampling:                             " << "fixed"
+#endif
+
      << "\n    Optimization level:                   " << OPT_LEVEL
      << "\n    Verbosity level:                      " << m_verbose;
   
@@ -326,13 +348,14 @@ Phold::ShowConfiguration() const
     }
 #endif
 
+
   ss << std::endl;
   OUTPUT("%s\n", ss.str().c_str());
   
   // SST config
   auto myRank = getRank();
   auto ranks = getNumRanks();
-    
+  
   std::string runMode;
   switch (getSimulation()->getSimulationMode())
     {
@@ -341,15 +364,16 @@ Phold::ShowConfiguration() const
     case SST::Simulation::BOTH:     runMode = "BOTH";        break;
     case SST::Simulation::UNKNOWN:  runMode = "UNKNOWN";     break;
     default:                        runMode = "undefined)";
-    }
+    };
   
   ss.str("");
   ss.clear();
+
   ss << "SST Configuration:"
      << "\n    Rank, thread:                         " << myRank.rank << ", " << myRank.thread
      << "\n    Total ranks, threads:                 " << ranks.rank << ", " << ranks.thread
-     << "\n    Run mode:                             " << runMode;
-  ss << std::endl;
+     << "\n    Run mode:                             " << runMode
+     << std::endl;
   OUTPUT("%s\n", ss.str().c_str());
 
 }  // ShowConfiguration()
@@ -358,6 +382,8 @@ Phold::ShowConfiguration() const
 void
 Phold::ShowSizes() const
 {
+  if (!m_verbose) return;
+
   VERBOSE(2, "\n");
 
 # define TABLE(label, value)                    \
@@ -503,6 +529,8 @@ Phold::SendEvent(bool mustLive /* = false */)
 #endif
     }
 
+  VERBOSE(3, "  done\n");
+
 }  // SendEvent()
 
 
@@ -537,6 +565,8 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
             now, from, sendTime);
     primaryComponentOKToEndSim();
   }
+  VERBOSE(3, "  done\n");
+
 }
 
 template <typename E>
