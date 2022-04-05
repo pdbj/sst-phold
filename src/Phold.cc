@@ -160,7 +160,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   for (uint32_t i = 0; i < m_number; ++i) {
     ASSERT(m_links[i] == nullptr, 
            "Initialized link %u (%p) is not null!\n", i, m_links[i]);
-    // Each link needs it's own handler.  SST manages the destruction.
+    // Each link needs it's own handler.  SST manages the destruction in ~Link
     auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
     ASSERT(handler, "Failed to create handler\n");
     if (i != getId())
@@ -477,7 +477,7 @@ Phold::SendEvent(bool mustLive /* = false */)
     }
 
 
-  // Send a new event.  This is deleted in handleEvent
+  // Send a new event.  This is deleted at the reciever in handleEvent()
   auto event = new PholdEvent(getCurrentSimTime());
   m_links[nextId]->send(delay, event);
   VERBOSE(2, "from %llu @ %llu, delay: %llu -> %llu @ %llu %s, @%p\n",
@@ -560,6 +560,7 @@ Phold::checkForEvents(const std::string msg)
       auto event = getEvent<E>(id);
       ASSERT(NULL == event, 
              "    got %s event from %llu\n", msg.c_str(), id);
+      // This won't run because of the assert above
       if (event)
         {
           VERBOSE(3, "    deleting event @%p\n", event);
@@ -574,6 +575,7 @@ Phold::sendToChild(SST::ComponentId_t child)
 {
   if (child < m_number)
     {
+      // This is deleted in init()
       auto event = new InitEvent(getId());
       VERBOSE(3, "    sending to child %llu, @%p\n", child, (void*)(event));
       m_links[child]->sendUntimedData(event);
@@ -723,6 +725,7 @@ void
 Phold::sendToParent(SST::ComponentId_t parent,
                     std::size_t sendCount, std::size_t recvCount)
 {
+  // This is deleted in getChildCounts()
   auto event = new CompleteEvent(sendCount, recvCount);
   VERBOSE(3, "    sending to parent %llu with sends: %zu, recvs: %zu, @%p\n",
           parent, sendCount, recvCount, event);
