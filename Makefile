@@ -10,7 +10,7 @@ else
   MAKEFLAGS += --no-print-directory
 endif
 
-.PHONY: all help debug opt install clean info
+.PHONY: all help debug opt install valgrind sst clean info
 
 all: Makefile
 #	@echo "Making all in src"
