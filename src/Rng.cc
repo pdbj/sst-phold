@@ -99,9 +99,9 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
   auto linkup = [this](std::string port, uint32_t id) -> void
     {
       ASSERT(isPortConnected(port),
-             "%s is not connected\n", port);
+             "%s is not connected\n", port.c_str());
       auto handler = new SST::Event::Handler<Rng, uint32_t>(this, &Rng::handleEvent, id);
-      ASSERT(handler, "Failed to create %s handler\n", port);
+      ASSERT(handler, "Failed to create %s handler\n", port.c_str());
       SST::Link * link;
       if (port == "self")
         {
@@ -110,9 +110,9 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
       else {
         link = configureLink(port, handler);
       }
-      ASSERT(link, "Failed to configure %s link", port);
+      ASSERT(link, "Failed to configure %s link", port.c_str());
       VERBOSE(4, "    %s link @%p with handler @%p\n",
-              port, link, handler);
+              port.c_str(), link, handler);
     };
 
   uint32_t left  = (getId() > 0 ? getId() : m_number) - 1;
