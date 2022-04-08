@@ -45,8 +45,8 @@ namespace Phold {
   
 // Class static data members
 constexpr char Rng::PORT_NAME[];  // constexpr initialized in Rng.h
-long           Rng::m_number;
-long           Rng::m_samples;
+uint32_t       Rng::m_number;
+uint64_t       Rng::m_samples;
 uint32_t       Rng::m_verbose;
 
 
@@ -58,7 +58,7 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
                 m_verbose, 0, SST::Output::STDOUT);
 #ifdef RNG_DEBUG
   VERBOSE_PREFIX = "@t:@X:Rng-" + getName() + " [@p() (@f:@l)] -> ";
-  VERBOSE(2, "Full c'tor() @0x%p, id: %llu, name: %s\n", 
+  VERBOSE(2, "Full c'tor() @0x%p, id: %" PRIu64 ", name: %s\n", 
           this, getId(), getName().c_str());
 #endif
   
@@ -168,7 +168,7 @@ Rng::handleEvent(SST::Event *ev, uint32_t from)
 
   // Do the iterations
   double sum = 0;
-  for (uint64_t i = 0; i < m_samples; ++i)
+  for (decltype(m_samples) i = 0; i < m_samples; ++i)
     {
       sum += m_rng->nextUniform();
     }

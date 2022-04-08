@@ -203,8 +203,8 @@ private:
   
   // Class static data members
 
-  static long              m_number;     /**< Total number of components */
-  static long              m_samples;    /**< Number of samples per component */
+  static uint32_t          m_number;     /**< Total number of components */
+  static uint64_t          m_samples;    /**< Number of samples per component */
   static uint32_t          m_verbose;    /**< Verbose output flag */
 
   // Class instance data members
