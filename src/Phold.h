@@ -336,6 +336,12 @@ private:
    */
   void handleEvent(SST::Event *ev, uint32_t from);
 
+  /**
+   * Clock handler, only enabled in debug builds.
+   * @param cycle The current time when this is called.
+   * @return \c true if this clock should be disabled.
+   */
+  bool clockTick(SST::Cycle_t cycle);
 
   /** Helper functions for init(), complete() */
   /** @{ */
@@ -426,6 +432,9 @@ private:
    */
   static bool m_initLive;
 
+  /** Number of cycles between print statements in mainTick */
+  SST::Cycle_t m_clockPrintInterval;
+
 
   // **** Class instance data members ****
 
@@ -441,6 +450,9 @@ private:
 
   /** The list of links to other LPs */
   std::vector<SST::Link *> m_links;
+
+  /** The clock. */
+  SST::TimeConverter *     m_clockTimeConverter;
 
   /**
    * Choice of underlying RNG:
