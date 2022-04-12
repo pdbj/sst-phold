@@ -119,6 +119,26 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   m_initLive = false;
 
+#ifdef PHOLD_DEBUG
+  // Register a clock
+  auto clock = new SST::Clock::Handler<Phold>(this, &Phold::clockTick);
+  ASSERT(clock, "Failed to create clock handler\n");
+  auto clockRate = m_average;
+  clockRate += TIMEBASE * (m_minimum + getId());
+  VERBOSE(2, "  clock period %s\n", clockRate.toStringBestSI().c_str());
+  clockRate.invert();
+  m_clockTimeConverter = registerClock(clockRate, clock);
+  ASSERT(m_clockTimeConverter, "Failed to register clock\n");
+  auto cycles = clockRate;
+  cycles *= (TIMEBASE * m_stop);
+  
+  m_clockPrintInterval = std::max(1.0, cycles.getDoubleValue() / 10);
+  VERBOSE(2, "Configured clock on Phold %" PRIu64 " with rate %s\n",
+          getId(), clockRate.toStringBestSI().c_str());
+  VERBOSE(2,"  expect %s cycles, print interval %" PRIu64 "\n",
+          cycles.toStringBestSI().c_str(), m_clockPrintInterval);
+#endif
+
   // Default time unit for Component and links
   m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
   TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
@@ -571,6 +591,30 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   VERBOSE(3, "  done\n");
 
 }
+
+
+bool
+Phold::clockTick(SST::Cycle_t cycle)
+{
+  auto nextCore  = m_clockTimeConverter->convertToCoreTime(cycle + 1);
+  auto next = m_timeConverter->convertFromCoreTime(nextCore);
+  
+  // Print periodically
+  if (cycle % m_clockPrintInterval == 0)
+    {
+      auto nextCycle = getNextClockCycle(m_clockTimeConverter);
+      OUTPUT0("Clock tick %" PRIu64 ", next: %" PRIu64 "%s\n", 
+             cycle, nextCycle,
+             (next <= m_stop ? "" : " stopping clock")); 
+    }
+
+  // To signal stop from a clock return true
+  // To continue return false
+
+  return next > m_stop;
+
+}  // clockTick()
+
 
 template <typename E>
 E *
