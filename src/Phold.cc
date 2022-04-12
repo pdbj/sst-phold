@@ -265,7 +265,8 @@ Phold::Phold() : SST::Component(-1)
   m_remRng = m_rng;
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
   m_delayRng = new SST::RNG::SSTExponentialDistribution(m_average.invert().getDoubleValue(), m_rng);
-}
+
+}  // Phold()
 
 
 Phold::~Phold() noexcept
@@ -280,10 +281,11 @@ Phold::~Phold() noexcept
   DELETE(m_delayRng);
 
 #undef DELETE
-}
+
+}  // ~Phold()
 
 
-void 
+void
 Phold::ShowConfiguration() const
 {
   VERBOSE(2, "\n");
@@ -452,7 +454,8 @@ Phold::ShowSizes() const
 #undef TABLE
 
   OUTPUT0("%s\n", ss.str().c_str());
-}
+
+}  // ShowSizes()
 
 
 void
@@ -590,7 +593,7 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   }
   VERBOSE(3, "  done\n");
 
-}
+}  // handleEvent()
 
 
 bool
@@ -624,7 +627,8 @@ Phold::getEvent(SST::ComponentId_t id)
   auto event = m_links[id]->recvUntimedData();
   VERBOSE(3, "    got %p\n", (void *)(event));
   return dynamic_cast<E*>(event);
-}
+
+}  // getEvent()
 
 
 template <typename E>
@@ -644,7 +648,8 @@ Phold::checkForEvents(const std::string msg)
           delete event;
         }
     }
-}
+
+}  // checkForEvents()
 
 
 void
@@ -661,7 +666,7 @@ Phold::sendToChild(SST::ComponentId_t child)
     {
       VERBOSE(3, "    skipping overflow child %" PRIu64 "\n", child);
     }
-};
+}  // sendToChild()
 
 
 void
@@ -769,7 +774,8 @@ Phold::setup()
 #endif
 
   OUTPUT0("Setup complete\n");
-}
+
+}  // setup()
 
 
 std::pair<std::size_t, std::size_t>
@@ -807,7 +813,8 @@ Phold::sendToParent(SST::ComponentId_t parent,
   VERBOSE(3, "    sending to parent %" PRIu64 " with sends: %zu, recvs: %zu, @%p\n",
           parent, sendCount, recvCount, event);
   m_links[parent]->sendUntimedData(event);
-}
+
+}  // sendToParents()
 
 
 void
@@ -885,5 +892,6 @@ Phold::finish()
   VERBOSE(2, "\n");
   OUTPUT0("Finish complete\n");
 }
+
 
 }  // namespace Phold
