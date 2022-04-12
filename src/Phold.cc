@@ -85,10 +85,7 @@ bool                 Phold::m_initLive {false};
 std::string
 Phold::toBestSI(SST::SimTime_t sim) const
 {
-  auto factor = m_timeConverter->getFactor();
-  auto time = m_timeConverter->convertFromCoreTime(sim * factor);
-  auto s = TIMEBASE;
-  s *= time;
+  auto s = TIMEBASE * sim;
   return s.toStringBestSI();
 }
 
@@ -111,9 +108,6 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
           this, getId(), getName().c_str());
 #endif
 
-  // Default time unit for Component and links
-  m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
-
   m_remote    = params.find<double>("remote",   0.9);
   m_minimum   = params.find<double>("minimum",  1.0) * PHOLD_PY_TIMEFACTOR;
   m_average   = TIMEBASE;
@@ -123,10 +117,38 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_events    = params.find<unsigned long>("events",   1);
   m_delaysOut = params.find<bool>("delays",  false);
 
-  TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
-  // Verbose output in ShowConfiguration
-
   m_initLive = false;
+
+#ifdef PHOLD_DEBUG
+  // Register a clock
+  auto clock = new SST::Clock::Handler<Phold>(this, &Phold::clockTick);
+  ASSERT(clock, "Failed to create clock handler\n");
+  auto clockRate = m_average;
+  clockRate += TIMEBASE * (m_minimum + getId());
+  VERBOSE(2, "  clock period %s\n", clockRate.toStringBestSI().c_str());
+  clockRate.invert();
+  m_clockTimeConverter = registerClock(clockRate, clock);
+  ASSERT(m_clockTimeConverter, "Failed to register clock\n");
+  auto cycles = clockRate;
+  cycles *= (TIMEBASE * m_stop);
+  
+  m_clockPrintInterval = std::max(1.0, cycles.getDoubleValue() / 10);
+  VERBOSE(2, "Configured clock on Phold %" PRIu64 " with rate %s\n",
+          getId(), clockRate.toStringBestSI().c_str());
+  VERBOSE(2,"  expect %s cycles, print interval %" PRIu64 "\n",
+          cycles.toStringBestSI().c_str(), m_clockPrintInterval);
+
+  // Register with the free clock
+  auto freeTimePeriod = m_clockTimeConverter->getPeriod();
+  freeTimePeriod *= 2;
+  freeTimePeriod.invert();
+  FreeClock::Register(freeTimePeriod, this, &Phold::freeClockTick);
+
+#endif
+
+  // Default time unit for Component and links
+  m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
+  TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
 
   if (0 == getId())
     {
@@ -280,14 +302,13 @@ Phold::ShowConfiguration() const
           m_timeConverter->getPeriod().toStringBestSI().c_str(),
           m_timeConverter->getPeriod().getDoubleValue());
 
-  auto minimum = TIMEBASE;
-  minimum *= m_minimum;
-  // duty_factor = minimum / (minimum + m_average)
+  auto minimum = TIMEBASE * m_minimum;
+  // duty_factor = m_average / (minimum + m_average)
   auto duty = m_average;
-  duty += minimum;
-  auto meanInterval = duty.getDoubleValue();  // minimum + m_average
+  duty += TIMEBASE * m_minimum;
+  auto period = duty;  // minimum + m_average
   duty.invert();
-  duty *= minimum;
+  duty *= m_average;
   double duty_factor = duty.getDoubleValue();
   VERBOSE(3, "  period: %s, duty factor: %f\n",
           period.toStringBestSI().c_str(), 
@@ -299,7 +320,9 @@ Phold::ShowConfiguration() const
   VERBOSE(3, "  m_ev: %lu, ev_win: %f, min_ev_win: %f, min_ev: %lu\n",
           m_events, ev_per_win, min_ev_per_win, min_events);
 
-  double totalEvents = m_number * m_events * m_stop / meanInterval * TIMEFACTOR;
+  // Convert period to rate, then expected total number of events
+  auto tEvents = (TIMEBASE * m_number * m_events * m_stop) / period;
+  double totalEvents = tEvents.getDoubleValue();
   
   std::stringstream ss;
   ss << "PHOLD Configuration:"
@@ -317,7 +340,7 @@ Phold::ShowConfiguration() const
 #else
      << "\n    Additional fixed delay:               " << m_average.toStringBestSI()
 #endif
-
+     << "\n    Average period:                       " << period.toStringBestSI()
      << "\n    Stop time:                            " << toBestSI(m_stop)
      << "\n    Number of LPs:                        " << m_number
      << "\n    Number of initial events per LP:      " << m_events

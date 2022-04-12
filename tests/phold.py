@@ -277,9 +277,9 @@ sst.setStatisticLoadLevel(stat_level)
 sst.setStatisticOutput('sst.statOutputConsole')
 
 # Common stats configuration:
-# rate: 0ns:    Only report results at end
+# rate: 0us:    Only report results at end
 # stopat:       Stop collecting at stop time
-stats_config = {'rate': '0ns',
+stats_config = {'rate': '0us',
                 'stopat' : str(phold.stop) + phold.TIMEBASE}
 
 # We always enable the send/recv counters
@@ -302,5 +302,14 @@ if phold.delays:
     dprint("Delay histogram config:", delays_config)
 
     sst.enableStatisticsForComponentType('phold.Phold', ['Delays'], delays_config)
+
+
+# Set overall program options
+phprint(f"Setting SST options\n")
+sst_timebase = "1ns"
+phprint(f"  Time base: {sst_timebase}\n")
+sst.setProgramOption('timebase', sst_timebase)
+phprint(f"  Print timing: yes\n")
+sst.setProgramOption('print-timing-info', '1')
 
 phprint(f"Done\n")
