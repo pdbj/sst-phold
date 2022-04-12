@@ -12,6 +12,9 @@ endif
 
 .PHONY: all help debug opt install valgrind sst clean info
 
+# Parallel build and install is broken :(
+.NOTPARALLEL:
+
 all: Makefile
 #	@echo "Making all in src"
 	@$(MAKE) -C src all && echo "Make all done" || exit 1
@@ -30,7 +33,8 @@ help:
 
 debug: 
 	@echo "Cleaning and remaking with PHOLD_DEBUG"
-	@$(MAKE) PHOLD_DEBUG=1 RNG_DEBUG=1 clean all
+	@$(MAKE) clean
+	@$(MAKE) PHOLD_DEBUG=1 RNG_DEBUG=1 all
 
 opt:
 	@echo "Cleaning and remaking optimized"
