@@ -23,6 +23,8 @@ SSTLIBDIR=$(shell $(SSTCONFIGCMD) SST_ELEMENT_LIBRARY SST_ELEMENT_LIBRARY_LIBDIR
 # Warn if undefined symbols, only works for GCC, not Clang
 # LDFLAGS += -Wl,--no-undefined
 
+# Warn all
+CXXFLAGS += -Wall
 
 # Set various build flags
 clean_or_install=$(strip \
