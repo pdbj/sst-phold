@@ -47,15 +47,21 @@
 #  define DEBUG(condition, args...)             \
    if (! (condition)) VERBOSE (3, args)
 
-#  define VERBOSE(l, f, args...)                            \
-   m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),           \
-                          CALL_INFO, l, 0,                  \
-                          "[%u] " f, l, ##args)
+#  define VERBOSE(l, f, args...)                        \
+  do {                                                  \
+    m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),      \
+                           CALL_INFO, l, 0,             \
+                           "[%u] " f, l, ##args);       \
+    m_output.flush();                                   \
+  } while (0)
 
 #endif
 
 #define OUTPUT(...)                             \
-  m_output.output(CALL_INFO, __VA_ARGS__)
+  do {                                          \
+    m_output.output(CALL_INFO, __VA_ARGS__);    \
+    m_output.flush();                           \
+  } while (0)
 
 #define OUTPUT0(...)                            \
   if (0 == getId()) OUTPUT(__VA_ARGS__)
