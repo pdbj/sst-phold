@@ -621,14 +621,18 @@ Phold::clockTick(SST::Cycle_t cycle)
   if (cycle % m_clockPrintInterval == 0)
     {
       auto nextCycle = getNextClockCycle(m_clockTimeConverter);
-      OUTPUT0("Clock tick %" PRIu64 ", next: %" PRIu64 "%s\n",
-             cycle, nextCycle,
-             (next <= m_stop ? "" : " stopping clock"));
+      OUTPUT0("Clock tick %" PRIu64 ", next: %" PRIu64 "\n",
+             cycle, nextCycle);
     }
 
   // To signal stop from a clock return true
   // To continue return false
 
+  if (next > m_stop)
+    {
+      OUTPUT0("Next tick %" PRIu64 ", stop %" PRIu64 ", stopping clock\n",
+              next, m_stop);
+    }
   return next > m_stop;
 
 }  // clockTick()
