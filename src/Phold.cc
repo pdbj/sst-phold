@@ -260,6 +260,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   // Tell SST to wait until we authorize it to exit
   registerAsPrimaryComponent();
   primaryComponentDoNotEndSim();
+  // primaryComponentOKToEndSim() called in handleEvent when late event rec'ved
+  // Alternative would be to pass the `--stop-at=TIME` option to SST
+  // or from Python `sst.setProgramOption('stop-at', TIME)`
 
 }  // Phold(...)
 
@@ -784,6 +787,12 @@ Phold::setup()
       VERBOSE(3, "    used %zu extra SendEvent calls to ensure at least one live event\n", extras);
     }
 #endif
+
+  // Ensure we have a late event so we primaryComponentOKToEndSim()
+  VERBOSE(3, "  sending late event to self\n");
+  auto event = new PholdEvent(getCurrentSimTime());
+  auto delay = m_stop + m_minimum;
+  m_links[getId()]->send(delay, event);
 
   OUTPUT0("Setup complete\n");
 
