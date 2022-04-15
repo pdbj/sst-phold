@@ -82,6 +82,7 @@ SST::SimTime_t       Phold::m_minimum;
 SST::UnitAlgebra     Phold::m_average;
 unsigned long        Phold::m_number;
 unsigned long        Phold::m_events;
+unsigned long        Phold::m_bufferSize;
 bool                 Phold::m_delaysOut;
 uint32_t             Phold::m_verbose;
 SST::SimTime_t       Phold::m_stop;
@@ -110,18 +111,19 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
                 m_verbose, 0, SST::Output::STDOUT);
   // Prefix with "<time>:[<rank>:<thread>]Phold-<id> [<function> (<file>:<lineL)] -> "
   VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
-  VERBOSE(2, "Full c'tor() @%p, id: %" PRIu64 ", name: %s\n",
+  VERBOSE(1, "Full c'tor() @%p, id: %" PRIu64 ", name: %s\n",
           this, getId(), getName().c_str());
 #endif
 
-  m_remote    = params.find<double>("remote",   0.9);
-  m_minimum   = params.find<double>("minimum",  1.0) * PHOLD_PY_TIMEFACTOR;
-  m_average   = TIMEBASE;
-  m_average  *= params.find<double>("average", 9.0) * PHOLD_PY_TIMEFACTOR;
-  m_stop      = params.find<double>("stop",    10) * PHOLD_PY_TIMEFACTOR;
-  m_number    = params.find<unsigned long>("number",   2);
-  m_events    = params.find<unsigned long>("events",   1);
-  m_delaysOut = params.find<bool>("delays",  false);
+  m_remote     = params.find<double>("remote",   0.9);
+  m_minimum    = params.find<double>("minimum",  1.0) * PHOLD_PY_TIMEFACTOR;
+  m_average    = TIMEBASE;
+  m_average   *= params.find<double>("average", 9.0) * PHOLD_PY_TIMEFACTOR;
+  m_stop       = params.find<double>("stop",    10) * PHOLD_PY_TIMEFACTOR;
+  m_number     = params.find<unsigned long>("number",   2);
+  m_events     = params.find<unsigned long>("events",   1);
+  m_bufferSize = params.find<unsigned long>("buffer",     0);
+  m_delaysOut  = params.find<bool>("delays",  false);
 
   m_initLive = false;
 
@@ -348,6 +350,7 @@ Phold::ShowConfiguration() const
      << "\n    Stop time:                            " << toBestSI(m_stop)
      << "\n    Number of LPs:                        " << m_number
      << "\n    Number of initial events per LP:      " << m_events
+     << "\n    Size of event data buffer (bytes):    " << m_bufferSize
 
      << "\n    Average events per window:            " << ev_per_win;
 
@@ -540,7 +543,7 @@ Phold::SendEvent(bool mustLive /* = false */)
 
 
   // Send a new event.  This is deleted at the reciever in handleEvent()
-  auto event = new PholdEvent(getCurrentSimTime());
+  auto event = new PholdEvent(getCurrentSimTime(), m_bufferSize);
   m_links[nextId]->send(delay, event);
   VERBOSE(2, "from %" PRIu64 " @ %" PRIu64 ", delay: %" PRIu64 " -> %" PRIu64 " @ %" PRIu64 "%s, @%p\n",
           getId(), now, delay, nextId, nextEventTime,
@@ -575,6 +578,8 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
   // Extract any useful data, then clean it up
   auto sendTime = event->getSendTime();
+  auto size = event->getBufferSize();
+  ASSERT(size == m_bufferSize, "Unexpected buffer size: %lu\n", size);
   VERBOSE(3, "  deleting event @%p\n", event);
   delete event;
 
@@ -615,8 +620,9 @@ Phold::clockTick(SST::Cycle_t cycle)
   if (cycle % m_clockPrintInterval == 0)
     {
       auto nextCycle = getNextClockCycle(m_clockTimeConverter);
-      OUTPUT0("Clock tick %" PRIu64 ", next: %" PRIu64 "\n",
-             cycle, nextCycle);
+      auto nextPrint = cycle + m_clockPrintInterval;
+      OUTPUT0("Clock tick %" PRIu64 ", next: %" PRIu64 ", next print: %" PRIu64 "\n",
+              cycle, nextCycle, nextPrint);
     }
 
   // To signal stop from a clock return true
@@ -788,7 +794,7 @@ Phold::setup()
 
   // Ensure we have a late event so we primaryComponentOKToEndSim()
   VERBOSE(3, "  sending late event to self\n");
-  auto event = new PholdEvent(getCurrentSimTime());
+  auto event = new PholdEvent(getCurrentSimTime(), m_bufferSize);
   auto delay = m_stop + m_minimum;
   m_links[getId()]->send(delay, event);
 

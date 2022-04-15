@@ -73,6 +73,7 @@ class PholdArgs(dict):
         self.stop = 10
         self.number = 2
         self.events = 1
+        self.buffer = 0
         self.delays = False
         self.pverbose = 0
         self.pyVerbose = 0
@@ -85,6 +86,7 @@ class PholdArgs(dict):
                f"stop: {self.stop}, " \
                f"nodes: {self.number}, " \
                f"events: {self.events}, " \
+               f"buffer: {self.buffer}, " \
                f"delays: {self.delays}, " \
                f"verbose: {self.pverbose}, " \
                f"pyVerbose: {self.pyVerbose}"
@@ -107,6 +109,7 @@ class PholdArgs(dict):
         print(f"    Stop time:                            {self.stop} {self.TIMEBASE}")
         print(f"    Number of LPs:                        {self.number}")
         print(f"    Number of initial events per LP:      {self.events}")
+        print(f"    Size of event data buffer:            {self.buffer}")
 
         print(f"    Average events per window:            {ev_per_win:.2f}")
         if ev_per_win < min_ev_per_win:
@@ -141,6 +144,12 @@ class PholdArgs(dict):
         if self.events < 1:
             phprint(f"Invalid initial events: {self.events}, need at least 1")
             valid = False
+        
+        self.buffer = int(self.buffer)
+        if self.buffer < 0:
+            phprint(f"Invalid event buffer size: {self.buffer}, can't be negative")
+            valid = False
+
         return valid
 
     def _init_argparse(self) -> argparse.ArgumentParser:
@@ -167,13 +176,17 @@ class PholdArgs(dict):
             help=f"Total simulation time, in {self.TIMEBASE}. "
             f"Must be > 0, default {self.stop}.")
         parser.add_argument(
-            '-n', '--number', action='store', type=float,
+            '-n', '--number', action='store', type=int,
             help=f"Total number of LPs. "
-            f"Must be > , default {self.number}.")
+            f"Must be > 2, default {self.number}.")
         parser.add_argument(
-            '-e', '--events', action='store', type=float,
+            '-e', '--events', action='store', type=int,
             help=f"Number of initial events per LP. "
             f"Must be > 0, default {self.events}")
+        parser.add_argument(
+            '-b', '--buffer', action='store', type=int,
+            help=f"Size of event data buffer. "
+            f"Must be non-negative, default {self.buffer}")
         parser.add_argument(
             # '--verbose' conflicts with SST, even after --
             '-v', '--pverbose', action='count',
@@ -201,7 +214,7 @@ class PholdArgs(dict):
             sys.exit(1)
 
         if self.pyVerbose:
-            phprint(f"Configuration:")
+            phprint(f"Configuration at parsing:")
             self.print()
 
 

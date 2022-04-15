@@ -28,10 +28,26 @@ public:
    * @param sendTime The simulation time when the event was sent.
    */
   explicit
-  PholdEvent(SST::SimTime_t sendTime)
+    PholdEvent(SST::SimTime_t sendTime, std::size_t bytes = 0)
     : SST::Event(),
-    m_sendTime (sendTime)
-  {};
+      m_sendTime{sendTime},
+      m_bytes{bytes},
+      m_buffer{nullptr}
+  {
+    if (m_bytes > 0) m_buffer = new char[m_bytes];
+  };
+
+  ~PholdEvent()
+    {
+      delete [] m_buffer;
+    };
+
+  // Rule of 5
+  PholdEvent(const PholdEvent &) = delete;
+  PholdEvent & operator= (const PholdEvent &) = delete;
+  PholdEvent(PholdEvent &&) = delete;
+  PholdEvent & operator= (const PholdEvent &&) = delete;
+  
 
   // Basic PHOLD has no event data to send
   // \todo Consider adding src tracking, QHOLD hash...
@@ -45,10 +61,21 @@ public:
     return m_sendTime;
   };
 
+  /** 
+   * Get the buffer size. 
+   * @returns The event data buffer size, in bytes.
+   */
+  std::size_t getBufferSize() const
+    {
+      return m_bytes;
+    }
+
   /** Default c'tor, for serialization. */
   PholdEvent()
     : SST::Event(),
-    m_sendTime(0)
+    m_sendTime(0),
+    m_bytes(0),
+    m_buffer{nullptr}
   {};
 
   // Inherited
@@ -57,6 +84,8 @@ public:
   {
     Event::serialize_order(ser);
     ser & m_sendTime;
+    // Serializes m_bytes then m_buffer
+    ser.binary(m_buffer, m_bytes);
   };
 
   /*
@@ -71,6 +100,11 @@ private:
 
   /** Send time of this event. */
   SST::SimTime_t m_sendTime;
+
+  /** Byte buffer size. */
+  std::size_t m_bytes;
+  /** Bytes buffer. */
+  char * m_buffer;
 
 };  // class PholdEvent
 
