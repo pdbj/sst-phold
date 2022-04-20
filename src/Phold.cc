@@ -552,10 +552,10 @@ Phold::SendEvent(bool mustLive /* = false */)
   // Send a new event.  This is deleted at the reciever in handleEvent()
   auto event = new PholdEvent(getCurrentSimTime(), m_bufferSize);
   m_links[nextId]->send(delay, event);
-  VERBOSE(2, "from %" PRIu64 " @ %" PRIu64 ", delay: %" PRIu64 " -> %" PRIu64 " @ %" PRIu64 "%s, @%p\n",
+  VERBOSE(2, "from %" PRIu64 " @ %" PRIu64 ", delay: %" PRIu64 " -> %" PRIu64 " @ %" PRIu64 ", @%p, %s\n",
           getId(), now, delay, nextId, nextEventTime,
-          (nextEventTime < m_stop ? "" : " (too late)"),
-          event
+          event,
+          (nextEventTime < m_stop ? "" : " (too late)")
           );
   // Record only sends which will be *received* before stop time.
   if (nextEventTime < m_stop)
@@ -592,24 +592,23 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
 
   auto now = getCurrentSimTime();
 
-  // Record the receive.  Configured (in .py) not to record after m_stop,
-  // but doesn't seem to work
-  if (now < m_stop)
-    {
-      m_recvCount->addData(1);
-    }
 
   // Check the stopping condition
   if (now < m_stop)
   {
-    VERBOSE(2, "now: %" PRIu64 ", from %" PRIu32 " @ %" PRIu64 "\n",
-            now, from, sendTime);
+    // Record the receive. 
+    // Configured (in .py) not to record after m_stop, 
+    // but doesn't seem to work
+    m_recvCount->addData(1);
+
+    VERBOSE(2, "now: %" PRIu64 ", from %" PRIu32 " @ %" PRIu64 ", @%p\n",
+            now, from, sendTime, ev);
     SendEvent();
   } else
   {
     VERBOSE(2, "now: %" PRIu64 ", from %u @ %" PRIu64
-            ", stopping due to late event\n",
-            now, from, sendTime);
+            ", @%p, stopping due to late event\n",
+            now, from, sendTime, ev);
     primaryComponentOKToEndSim();
   }
   VERBOSE(3, "  done\n");
