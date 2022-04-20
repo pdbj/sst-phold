@@ -80,9 +80,9 @@ constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
 double               Phold::m_remote;
 SST::SimTime_t       Phold::m_minimum;
 SST::UnitAlgebra     Phold::m_average;
-unsigned long        Phold::m_number;
-unsigned long        Phold::m_events;
-unsigned long        Phold::m_bufferSize;
+uint64_t             Phold::m_number;
+uint64_t             Phold::m_events;
+std::size_t          Phold::m_bufferSize;
 bool                 Phold::m_delaysOut;
 uint32_t             Phold::m_verbose;
 SST::SimTime_t       Phold::m_stop;
@@ -115,15 +115,15 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
           this, getId(), getName().c_str());
 #endif
 
-  m_remote     = params.find<double>("remote",   0.9);
-  m_minimum    = params.find<double>("minimum",  1.0) * PHOLD_PY_TIMEFACTOR;
+  m_remote     = params.find<double>     ("remote", 0.9);
+  m_minimum    = params.find<double>     ("minimum", 1.0) *PHOLD_PY_TIMEFACTOR;
   m_average    = TIMEBASE;
-  m_average   *= params.find<double>("average", 9.0) * PHOLD_PY_TIMEFACTOR;
-  m_stop       = params.find<double>("stop",    10) * PHOLD_PY_TIMEFACTOR;
-  m_number     = params.find<unsigned long>("number",   2);
-  m_events     = params.find<unsigned long>("events",   1);
-  m_bufferSize = params.find<unsigned long>("buffer",     0);
-  m_delaysOut  = params.find<bool>("delays",  false);
+  m_average   *= params.find<double>     ("average", 9.0) *PHOLD_PY_TIMEFACTOR;
+  m_stop       = params.find<double>     ("stop", 10)     *PHOLD_PY_TIMEFACTOR;
+  m_number     = params.find<uint64_t>   ("number", 2);
+  m_events     = params.find<uint64_t>   ("events", 1);
+  m_bufferSize = params.find<std::size_t>("buffer", 0);
+  m_delaysOut  = params.find<bool>       ("delays", false);
 
   m_initLive = false;
 
