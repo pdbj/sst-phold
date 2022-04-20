@@ -74,6 +74,7 @@ class PholdArgs(dict):
         self.number = 2
         self.events = 1
         self.buffer = 0
+        self.stats = False
         self.delays = False
         self.pverbose = 0
         self.pyVerbose = 0
@@ -87,6 +88,7 @@ class PholdArgs(dict):
                f"nodes: {self.number}, " \
                f"events: {self.events}, " \
                f"buffer: {self.buffer}, " \
+               f"stats: {self.stats}, " \
                f"delays: {self.delays}, " \
                f"verbose: {self.pverbose}, " \
                f"pyVerbose: {self.pyVerbose}"
@@ -115,7 +117,8 @@ class PholdArgs(dict):
         if ev_per_win < min_ev_per_win:
             print(f"      (Too low!  Suggest setting '--events={min_events}')")
 
-        print(f"    Output delay histogram:               {self.delays}")
+        print(f"    Output statistics:                    {self.stats}")
+        print(f"      Include delay histogram:            {self.delays}")
         print(f"    Verbosity level:                      {self.pverbose}")
         print(f"    Python script verbosity level:        {self.pyVerbose}")
 
@@ -191,6 +194,9 @@ class PholdArgs(dict):
             # '--verbose' conflicts with SST, even after --
             '-v', '--pverbose', action='count',
             help=f"Phold module verbosity, default {self.pverbose}.")
+        parser.add_argument(
+            '-S', '--stats', action='store_true',
+            help=f"Output statistics, default {self.stats}.")
         parser.add_argument(
             '-d', '--delays', action='store_true',
             help=f"Whether to output delay histogram, default {self.delays}.")
