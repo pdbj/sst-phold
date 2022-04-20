@@ -437,8 +437,13 @@ Phold::ShowSizes() const
   std::size_t pholdTotal{0};
 
   ss << "Sizes of objects:";
+  SIZEOF(PholdEvent, "empty event");
+  SIZEOF(SST::Event, "base class");
+  SIZEOF(SST::Activity, "base class");
+  SIZEOF(SST::Core::Serialization::serializable, "vtable");
+  ss << "\n";
   SIZEOF(Phold, "class instance");                 pholdTotal = 0;
-  ss << "\n\n    Plus heap allocated:";
+  ss << "\n      Plus heap allocated:";
   SIZEOF(SST::RNG::MersenneRNG, "m_rng");
   SIZEOF(SST::RNG::MarsagliaRNG, "m_remRng");
   SIZEOF(SST::RNG::SSTUniformDistribution, "m_nodeRng");
@@ -450,7 +455,7 @@ Phold::ShowSizes() const
      << sizeof(uint64_t) << " bytes per bin.)";
   TABLE("Subtotal heap allocated: ", pholdTotal);
   SIZEOF(SST::Link, "N * (N - 1) links total");
-  ss << "\n\n    Other components:";
+
 
   SIZEOF(SST::UnitAlgebra, "statics TIMEBASE, m_average");
   SIZEOF(SST::TimeConverter, "static m_timeConverter");
