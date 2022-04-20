@@ -422,7 +422,8 @@ private:
   static uint64_t          m_number;     /**< Total number of LPs */
   static uint64_t          m_events;     /**< Initial number of events per LP */
   static std::size_t       m_bufferSize; /**< Event buffer size, bytes */
-  static bool              m_delaysOut;  /**< Output delays histogram */
+  static bool              m_statsOut;   /**< Output statistics */
+  static bool              m_delaysOut;  /**< Include delays histogram  in stats output*/
   static uint32_t          m_verbose;    /**< Verbose output flag */
 
   static SST::TimeConverter * m_timeConverter;

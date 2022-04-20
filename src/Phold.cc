@@ -83,6 +83,7 @@ SST::UnitAlgebra     Phold::m_average;
 uint64_t             Phold::m_number;
 uint64_t             Phold::m_events;
 std::size_t          Phold::m_bufferSize;
+bool                 Phold::m_statsOut;
 bool                 Phold::m_delaysOut;
 uint32_t             Phold::m_verbose;
 SST::SimTime_t       Phold::m_stop;
@@ -123,6 +124,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_number     = params.find<uint64_t>   ("number", 2);
   m_events     = params.find<uint64_t>   ("events", 1);
   m_bufferSize = params.find<std::size_t>("buffer", 0);
+  m_statsOut   = params.find<bool>       ("stats", false);
   m_delaysOut  = params.find<bool>       ("delays", false);
 
   m_initLive = false;
@@ -217,7 +219,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_sendCount = dynamic_cast<decltype(m_sendCount)>(registerStatistic<uint64_t>(p, "SendCount"));
   ASSERT(m_sendCount,
          "Failed to register SendCount statistic");
-  m_sendCount->setFlagOutputAtEndOfSim(false);
+  m_sendCount->setFlagOutputAtEndOfSim(m_statsOut);
   ASSERT(m_sendCount->isEnabled(),
          "SendCount statistic is not enabled!\n");
   ASSERT( ! m_sendCount->isNullStatistic(),
@@ -227,7 +229,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_recvCount = dynamic_cast<decltype(m_recvCount)>(registerStatistic<uint64_t>(p, "RecvCount"));
   ASSERT(m_recvCount,
          "Failed to register RecvCount statistic");
-  m_recvCount->setFlagOutputAtEndOfSim(false);
+  m_recvCount->setFlagOutputAtEndOfSim(m_statsOut);
   ASSERT(m_recvCount->isEnabled(),
          "RecvCount statistic is not enabled!\n");
   ASSERT( ! m_recvCount->isNullStatistic(),
@@ -239,9 +241,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_delays = registerStatistic<float>(p, "Delays");
   ASSERT(m_delays,
          "Failed to register Delays statistic\n");
-  if (m_delaysOut)
+  if (m_statsOut && m_delaysOut)
     {
-      m_delays->setFlagOutputAtEndOfSim(true);
+      m_delays->setFlagOutputAtEndOfSim(m_delaysOut);
       ASSERT(m_delays->isEnabled(),
              "Delays statistic is not enabled!\n");
       ASSERT( ! m_delays->isNullStatistic(),
