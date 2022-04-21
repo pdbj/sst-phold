@@ -601,8 +601,8 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   auto event = dynamic_cast<PholdEvent*>(ev);
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
   // Extract any useful data, then clean it up
-  auto sendTime = event->getSendTime();
-  auto size = event->getBufferSize();
+  auto sendTime [[maybe_unused]] = event->getSendTime();
+  auto size [[maybe_unused]] = event->getBufferSize();
   ASSERT(size == m_bufferSize, "Unexpected buffer size: %lu\n", size);
   VERBOSE(3, "  deleting event @%p\n", event);
   delete event;
@@ -747,7 +747,7 @@ Phold::init(unsigned int phase)
 
           ASSERT(event,
                  "    failed to recv expected event from parent %zu\n", parent);
-          auto src = event->getSenderId();
+          auto src [[maybe_unused]] = event->getSenderId();
           VERBOSE(3, "    received from %" PRIu64 ", @%p\n", src, event);
           ASSERT(parent == src,
                  "    event from %" PRIu64 ", expected parent %zu\n", src, parent);
