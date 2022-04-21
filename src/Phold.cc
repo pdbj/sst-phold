@@ -217,12 +217,12 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   // Register statistics
   VERBOSE(3, "Initializing statistics\n");
   // Stop stat collection at stop time
-  SST::Params p;
+  SST::Params statParams;
   std::string stopat {toBestSI(m_stop)};
   VERBOSE(3, "  Setting stopat to %s\n", stopat.c_str());
-  p.insert("stopat", stopat);
+  statParams.insert("stopat", stopat);
 
-  m_sendCount = dynamic_cast<decltype(m_sendCount)>(registerStatistic<uint64_t>(p, "SendCount"));
+  m_sendCount = dynamic_cast<decltype(m_sendCount)>(registerStatistic<uint64_t>(statParams, "SendCount"));
   ASSERT(m_sendCount,
          "Failed to register SendCount statistic");
   m_sendCount->setFlagOutputAtEndOfSim(m_statsOut);
@@ -232,7 +232,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
           "SendCount statistic is Null!\n");
   VERBOSE(4, "  m_sendCount    @%p\n", m_sendCount);
 
-  m_recvCount = dynamic_cast<decltype(m_recvCount)>(registerStatistic<uint64_t>(p, "RecvCount"));
+  m_recvCount = dynamic_cast<decltype(m_recvCount)>(registerStatistic<uint64_t>(statParams, "RecvCount"));
   ASSERT(m_recvCount,
          "Failed to register RecvCount statistic");
   m_recvCount->setFlagOutputAtEndOfSim(m_statsOut);
@@ -244,7 +244,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   // Delay histogram might not be enabled, in which case registerStatistic
   // returns a NullStatistic
-  m_delays = registerStatistic<float>(p, "Delays");
+  m_delays = registerStatistic<float>(statParams, "Delays");
   ASSERT(m_delays,
          "Failed to register Delays statistic\n");
   if (m_statsOut && m_delaysOut)
@@ -559,15 +559,17 @@ Phold::SendEvent(bool mustLive /* = false */)
   // Send a new event.  This is deleted at the reciever in handleEvent()
   auto event = new PholdEvent(getCurrentSimTime(), m_bufferSize);
   m_links[nextId]->send(delay, event);
-  VERBOSE(2, "from %" PRIu64 " @ %" PRIu64 ", delay: %" PRIu64 " -> %" PRIu64 " @ %" PRIu64 ", @%p, %s\n",
-          getId(), now, delay, nextId, nextEventTime,
-          event,
-          (nextEventTime < m_stop ? "" : " (too late)")
-          );
+
   // Record only sends which will be *received* before stop time.
   if (nextEventTime < m_stop)
     {
       m_sendCount->addData(1);
+      VERBOSE(2, "from %" PRIu64 " @ %" PRIu64 ", delay: %" PRIu64 
+              " -> %" PRIu64 " @ %" PRIu64 ", @%p, sendC: %" PRIu64 "\n",
+              getId(), now, delay, 
+              nextId, nextEventTime, event,
+              m_sendCount->getCount());
+
       VERBOSE(3, "  histogramming %f\n", delayTotal * TIMEFACTOR);
       m_delays->addData(delayTotal * TIMEFACTOR);
 
@@ -578,7 +580,15 @@ Phold::SendEvent(bool mustLive /* = false */)
           m_initLive = true;
         }
 #endif
-    }
+
+    } else {
+      VERBOSE(2, "from %" PRIu64 " @ %" PRIu64 ", delay: %" PRIu64 
+              " -> %" PRIu64 " @ %" PRIu64 ", @%p, sendC: %" PRIu64 "%s\n",
+              getId(), now, delay,
+              nextId, nextEventTime, event,
+              m_sendCount->getCount(),
+              (nextEventTime < m_stop ? "" : ", (too late)"));
+  }
 
   VERBOSE(3, "  done\n");
 
@@ -603,19 +613,20 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   // Check the stopping condition
   if (now < m_stop)
   {
+    VERBOSE(2, "now: %" PRIu64 ", from %" PRIu32 " @ %" PRIu64 ", @%p, recvC before: %" PRIu64 "\n",
+            now, from, sendTime, ev,
+            m_recvCount->getCount());
+
     // Record the receive. 
-    // Configured (in .py) not to record after m_stop, 
-    // but doesn't seem to work
     m_recvCount->addData(1);
 
-    VERBOSE(2, "now: %" PRIu64 ", from %" PRIu32 " @ %" PRIu64 ", @%p\n",
-            now, from, sendTime, ev);
     SendEvent();
-  } else
-  {
+
+  } else {
     VERBOSE(2, "now: %" PRIu64 ", from %u @ %" PRIu64
-            ", @%p, stopping due to late event\n",
-            now, from, sendTime, ev);
+            ", @%p, stopping due to late event, recvC: %" PRIu64 "\n",
+            now, from, sendTime, ev,
+            m_recvCount->getCount());
     primaryComponentOKToEndSim();
   }
   VERBOSE(3, "  done\n");
@@ -889,6 +900,9 @@ Phold::complete(unsigned int phase)
       // Accumulate the send counts
       auto sendCount = m_sendCount->getCount() + left.first + right.first;
       auto recvCount = m_recvCount->getCount() + left.second + right.second;
+      VERBOSE(2, "my counts: send: %" PRIu64 ", recv: %" PRIu64 ", total: %" PRIu64 "\n",
+              m_sendCount->getCount(), m_recvCount->getCount(),
+              m_sendCount->getCount() + m_recvCount->getCount());
 
       VERBOSE(3, "    accumulating sends: me: %" PRIu64 ", left: %zu, right: %zu, total: %zu\n",
               m_sendCount->getCount(), left.first, right.first, sendCount);
