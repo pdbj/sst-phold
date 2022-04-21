@@ -298,8 +298,9 @@ sst.setStatisticOutput('sst.statOutputConsole')
 # Common stats configuration:
 # rate: 0us:    Only report results at end
 # stopat:       Stop collecting at stop time
-stats_config = {'rate': '0us',
-                'stopat' : str(phold.stop) + phold.TIMEBASE}
+stats_config = {'rate': '0us'}
+#,
+#                'stopat' : str(phold.stop + 1) + phold.TIMEBASE}
 
 # We always enable the send/recv counters
 # Stat type accumulator is the default, so don't need state it explicitly
@@ -324,11 +325,11 @@ if phold.delays:
 
 
 # Set overall program options
-phprint(f"Setting SST options\n")
+phprint(f"Setting SST options")
 sst_timebase = "1ns"
-phprint(f"  Time base: {sst_timebase}\n")
+phprint(f"  Time base: {sst_timebase}")
 sst.setProgramOption('timebase', sst_timebase)
-phprint(f"  Print timing: yes\n")
+phprint(f"  Print timing: yes")
 sst.setProgramOption('print-timing-info', '1')
 
 phprint(f"Done\n")
