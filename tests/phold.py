@@ -69,6 +69,7 @@ class PholdArgs(dict):
         super().__init__()
         self.remote = 0.9
         self.minimum = 1
+        self.thread = 1
         self.average = 9
         self.stop = 10
         self.number = 2
@@ -83,6 +84,7 @@ class PholdArgs(dict):
     def __str__(self) -> str:
         return f"remote: {self.remote}, " \
                f"min: {self.minimum}, " \
+               f"min: {self.thread}, " \
                f"avg: {self.average}, " \
                f"stop: {self.stop}, " \
                f"nodes: {self.number}, " \
@@ -107,6 +109,7 @@ class PholdArgs(dict):
 
         print(f"    Remote LP fraction:                   {self.remote}")
         print(f"    Minimum inter-event delay:            {self.minimum} {self.TIMEBASE}")
+        print(f"    Inter-thread min delay:               {self.thread} {self.TIMEBASE}")
         print(f"    Additional exponential average delay: {self.average} {self.TIMEBASE}")
         print(f"    Stop time:                            {self.stop} {self.TIMEBASE}")
         print(f"    Number of LPs:                        {self.number}")
@@ -131,6 +134,9 @@ class PholdArgs(dict):
             valid = False
         if self.minimum <= 0:
             phprint(f"Invalid minimum delay: {self.minimum}, must be > 0")
+            valid = False
+        if self.thread <= 0:
+            phprint(f"Invalid inter-thread delay: {self.thread}, must be > 0")
             valid = False
         if self.average < 0:
             phprint(f"Invalid average delay: {self.average}, must be >= 0")
@@ -169,6 +175,10 @@ class PholdArgs(dict):
             '-m', '--minimum', action='store', type=float,
             help=f"Minimum inter-event delay, in {self.TIMEBASE}. "
             f"Must be >0, default {self.minimum}.")
+        parser.add_argument(
+            '-t', '--thread', action='store', type=float,
+            help=f"Inter-thread minimum delay, in {self.TIMEBASE}. "
+            f"Must by >0, default {self.thread}.")
         parser.add_argument(
             '-a', '--average', action='store', type=float,
             help=f"Average additional inter-event delay, in {self.TIMEBASE}. "
@@ -263,22 +273,32 @@ dotter.done()
 
 # min latency
 latency = str(phold.minimum) + ' ' + phold.TIMEBASE
+thread_latency = str(phold.thread) + ' ' + phold.TIMEBASE
+nranks = sst.getMPIRankCount()
+
+# Assume block partitioning: 
+#   Each rank holds 
+nLP_rank = phold.number / nranks
+#   Rank 0 holds 0-nLP_rank - 1
 
 # Add links
 num_links = int(phold.number * (phold.number - 1) / 2)
 phprint(f"Creating complete graph with latency {latency} ({num_links} total)")
 dotter = dot.Dot(num_links, phold.pyVerbose)
 for i in range(phold.number):
+    rank_i = i // nLP_rank
     for j in range(i + 1, phold.number):
-
-        link = sst.Link("link_" + str(i) + '_' + str(j))
+        rank_j = j // nLP_rank
+        lat = thread_latency if (rank_i == rank_j) else latency
 
         if dotter.dot(2, False):
-            vprint(2, f"  Creating link {i}_{j}")
+            vprint(2, f"  Creating link {i}_{j} between ranks {rank_i} and {rank_j} with latency {lat}")
+        link = sst.Link("link_" + str(i) + '_' + str(j))
+
         # links cross connect ports:
         # port number gives the LP id on the other side of the link
-        li = lps[i], 'port_' + str(j), latency
-        lj = lps[j], 'port_' + str(i), latency
+        li = lps[i], 'port_' + str(j), lat
+        lj = lps[j], 'port_' + str(i), lat
 
         if dotter.dot(3):
             vprint(3, f"    creating tuples")

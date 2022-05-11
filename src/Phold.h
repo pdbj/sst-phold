@@ -400,8 +400,11 @@ private:
   std::string    toBestSI(SST::SimTime_t sim) const;
 
 
-  /** Show the configuration. */
-  void ShowConfiguration() const;
+  /**
+   *  Show the configuration. 
+   *  @param thread_latency Latency between LPs on the same thread, in seconds.
+   */
+  void ShowConfiguration(double thread_latency) const;
 
   /** Show sizes of objects. */
   void ShowSizes() const;
