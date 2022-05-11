@@ -155,7 +155,9 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
   if (0 == getId())
     {
-      ShowConfiguration();
+      // Not used here, so just read it and pass to ShowConfig
+      auto thread_latency = params.find<double> ("thread", 1.0) * PHOLD_PY_TIMEFACTOR;
+      ShowConfiguration(thread_latency);
       ShowSizes();
     }
 
@@ -299,7 +301,7 @@ Phold::~Phold() noexcept
 
 
 void
-Phold::ShowConfiguration() const
+Phold::ShowConfiguration(double thread_latency) const
 {
   VERBOSE(2, "\n");
 
@@ -342,6 +344,7 @@ Phold::ShowConfiguration() const
 #endif
 
      << "\n    Minimum inter-event delay:            " << toBestSI(m_minimum)
+     << "\n    Inter-thread min delay:               " << toBestSI(thread_latency)
 
 #ifndef PHOLD_FIXED
      << "\n    Additional exponential average delay: " << m_average.toStringBestSI()
@@ -354,7 +357,7 @@ Phold::ShowConfiguration() const
      << "\n    Number of initial events per LP:      " << m_events
      << "\n    Size of event data buffer (bytes):    " << m_bufferSize
 
-     << "\n    Average events per window:            " << ev_per_win;
+     << "\n    Approx. events per LP window:         " << ev_per_win;
 
   if (ev_per_win < min_ev_per_win)
     {
