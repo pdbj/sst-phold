@@ -116,7 +116,7 @@ class PholdArgs(dict):
         print(f"    Number of initial events per LP:      {self.events}")
         print(f"    Size of event data buffer:            {self.buffer}")
 
-        print(f"    Average events per window:            {ev_per_win:.2f}")
+        print(f"    Approx. events per LP per window:     {ev_per_win:.2f}")
         if ev_per_win < min_ev_per_win:
             print(f"      (Too low!  Suggest setting '--events={min_events}')")
 
@@ -229,7 +229,7 @@ class PholdArgs(dict):
             parser.print_help()
             sys.exit(1)
 
-        if self.pyVerbose:
+        if self.pyVerbose > 1:
             phprint(f"Configuration at parsing:")
             self.print()
 
@@ -253,9 +253,11 @@ except ImportError as error:
 phold = PholdArgs()
 phold.parse()
 
-if just_script:
+if phold.pyVerbose:
     phprint(f"Configuration:")
     phold.print()
+
+if just_script:
     phprint(f"Nothing left to do, exiting")
     sys.exit(1)
 
@@ -265,7 +267,7 @@ dotter = dot.Dot(phold.number, phold.pyVerbose)
 lps = []
 for i in range(phold.number):
     if dotter.dot(1):
-        vprint(1, f"  Creating LP {i}")
+        vprint(2, f"  Creating LP {i}")
     lp = sst.Component("phold_" + str(i), 'phold.Phold')
     lp.addParams(vars(phold))  # pass ph as simple dictionary
     lps.append(lp)
