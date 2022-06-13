@@ -71,10 +71,10 @@ namespace Phold {
 
 // Class static data members
 constexpr char Phold::PORT_NAME[];  // constexpr initialized in Phold.h
-/* const */ SST::UnitAlgebra Phold::TIMEBASE("1 us");
+/* const */ SST::UnitAlgebra Phold::TIMEBASE("1ms");
 /* const */ double Phold::TIMEFACTOR;
 //  Conversion factor from phold.py script to Phold::TIMEBASE
-/* const */ double Phold::PHOLD_PY_TIMEFACTOR{1e6};
+/* const */ double Phold::PHOLD_PY_TIMEFACTOR{1e3};
 
 double               Phold::m_remote;
 SST::SimTime_t       Phold::m_minimum;
