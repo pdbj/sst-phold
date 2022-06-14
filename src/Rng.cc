@@ -102,7 +102,7 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
              "%s is not connected\n", port.c_str());
       auto handler = new SST::Event::Handler<Rng, uint32_t>(this, &Rng::handleEvent, id);
       ASSERT(handler, "Failed to create %s handler\n", port.c_str());
-      SST::Link * link;
+      SST::Link * link [[maybe_unused]] {nullptr};
       if (port == "self")
         {
           link = configureSelfLink(port, handler);
