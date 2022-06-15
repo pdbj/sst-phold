@@ -102,6 +102,7 @@ install: $(LIB)
 	@echo "SST_REG $(basename $<)" 
 	$(VERB)mkdir -p $(LIBDIR)
 	$(VERB)cp $< $(LIBDIR)
+	$(VERB)mkdir -p $(SSTLIBDIR)
 	$(VERB)cp $< $(SSTLIBDIR)
 	$(VERB)touch $(SSTCONFIG_PHOLD)
 	$(VERB)$(SSTREGCMD) phold LIBDIR=$(LIBDIR)
