@@ -21,3 +21,5 @@ phold.png
 *.sample
 *.trace/
 study
+src/binary-tree-test
+

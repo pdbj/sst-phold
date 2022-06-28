@@ -42,7 +42,6 @@ ifeq ($(clean_or_install),)
     $(info Building debug with $(CXXFLAGS_PHOLD_DEBUG))
     CXXFLAGS+=$(CXXFLAGS_PHOLD_DEBUG)
   endif
-  $(info Linking to $(SST))
 
   RNG_DEBUG = 0
   ifeq ($(RNG_DEBUG),1)
@@ -59,6 +58,8 @@ ifeq ($(clean_or_install),)
     CXXFLAGS+=$(CXXFLAGS_PHOLD_FIXED)
   endif
 
+else
+  $(info Building against $(SST))
 endif
 
 SRCS = $(wildcard *.cc)
@@ -66,6 +67,12 @@ HDRS = $(wildcard *.h)
 ALL = $(SRCS) $(HDRS)
 
 OBJS = $(SRCS:%.cc=%.o)
+
+TESTSRC = $(wildcard *test.cc)
+TESTOBJ := $(TESTSRC:%.cc=%.o)
+TEST = $(TESTSRC:%.cc=%)
+
+LIBOBJS := $(filter-out $(TESTOBJ),$(OBJS))
 LIB  = libphold.so
 
 # Make the build itself verbose
@@ -78,7 +85,7 @@ else
 endif
 
 
-all: $(LIB)
+all: $(LIB) $(TEST)
 	@:
 
 # Generate dependency files .d
@@ -93,7 +100,7 @@ ifneq ($(MAKECMDGOALS),clean)
   include $(wildcard $(DEPS))
 endif
 
-$(LIB): $(OBJS)
+$(LIB): $(LIBOBJS)
 	@echo "LD" $@
 	$(VERB)$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
@@ -116,6 +123,11 @@ valgrind: install
 	$(VERB)valgrind --tool=memcheck --track-origins=yes \
             --show-error-list=yes --trace-children=yes --leak-check=full \
             sst --print-timing-info $(PHOLDTEST) -- -vvvV
+
+LD_TEST = -Wl,-undefined -Wl,dynamic_lookup
+$(TEST) : $(TESTOBJ)
+	@echo "LD" $@
+	$(VERB)$(CXX) $(CXXFLAGS) $(LD_TEST) -o $@ $^
 
 .PHONY: all install clean info valgrind
 
