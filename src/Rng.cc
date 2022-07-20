@@ -27,13 +27,13 @@ namespace Phold {
 
 #ifdef RNG_DEBUG
 // Simplify use of sst_assert
-#define ASSERT(condition, args...) \
-    Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
+#define ASSERT(condition, ...)                                          \
+  Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
 
-#define VERBOSE(l, f, args...)                          \
+#define VERBOSE(l, f, ...)                              \
   m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),        \
                          CALL_INFO, l, 0,               \
-                         "[%d] " f, l, ##args)
+                         "[%d] " f, l, ## __VA_ARGS__)
 #else
 #define ASSERT(...)
 #define VERBOSE(...)
@@ -59,7 +59,7 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
 #ifdef RNG_DEBUG
   VERBOSE_PREFIX = "@t:@X:Rng-" + getName() + " [@p() (@f:@l)] -> ";
   VERBOSE(2, "Full c'tor() @0x%p, id: %" PRIu64 ", name: %s\n", 
-          this, getId(), getName().c_str());
+          (void*)this, getId(), getName().c_str());
 #endif
   
   m_number  = params.find<long>   ("number",   2);
@@ -87,14 +87,14 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
     OUTPUT("%s\n", ss.str().c_str());
   }
 
-  VERBOSE(3, "Initializing RNGs\n");
+  VERBOSE(3, "%s", "Initializing RNGs\n");
   m_rng  = new Rng::RNG_t;
   // seed() doesn't check validity of arg, can't be 0
   m_rng->seed(1 + getId());
-  VERBOSE(4, "  m_rng      @0x%p\n", m_rng);
+  VERBOSE(4, "  m_rng      @0x%p\n", (void*)m_rng);
 
   // Configure ports/links
-  VERBOSE(3, "Configuring links:\n");
+  VERBOSE(3, "%s", "Configuring links:\n");
 
   auto linkup = [this](std::string port, uint32_t id) -> void
     {
@@ -112,7 +112,7 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
       }
       ASSERT(link, "Failed to configure %s link", port.c_str());
       VERBOSE(4, "    %s link @%p with handler @%p\n",
-              port.c_str(), link, handler);
+              port.c_str(), (void*)link, (void*)handler);
     };
 
   uint32_t left  = (getId() > 0 ? getId() : m_number) - 1;
@@ -134,7 +134,7 @@ Rng::Rng( SST::ComponentId_t id, SST::Params& params )
 
 Rng::Rng() : SST::Component(-1)
 {
-  VERBOSE(2, "Default c'tor()\n");
+  VERBOSE(2, "%s", "Default c'tor()\n");
   /*
    * \todo How to initialize a Component after deserialization?
    * Here we need m_number, m_average
@@ -147,9 +147,9 @@ Rng::Rng() : SST::Component(-1)
 
 Rng::~Rng() noexcept
 {
-  VERBOSE(2, "Destructor()\n");
+  VERBOSE(2, "%s", "Destructor()\n");
 #define DELETE(p) \
-  VERBOSE(4, "  deleting %s @0x%p\n", #p, (p));  \
+  VERBOSE(4, "  deleting %s @0x%p\n", #p, (void*)(p));  \
   p = 0
 
   DELETE(m_rng);
@@ -181,7 +181,7 @@ Rng::handleEvent(SST::Event *ev, uint32_t from)
 void
 Rng::setup() 
 {
-  VERBOSE(2, "sending initial event\n");
+  VERBOSE(2, "%s", "sending initial event\n");
 
   auto ev = new RngEvent();
   m_self->send(0, ev);
@@ -191,7 +191,7 @@ Rng::setup()
 void
 Rng::finish() 
 {
-  VERBOSE(2, "\n");
+  VERBOSE(2, "%s", "\n");
 }
 
 }  // namespace Phold
