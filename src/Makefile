@@ -24,7 +24,7 @@ SSTLIBDIR=$(shell $(SSTCONFIGCMD) SST_ELEMENT_LIBRARY SST_ELEMENT_LIBRARY_LIBDIR
 # LDFLAGS += -Wl,--no-undefined
 
 # Warn all
-CXXFLAGS += -Wall
+CXXFLAGS += -Wall -Wpedantic
 
 # Set various build flags
 clean_or_install=$(strip \

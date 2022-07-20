@@ -39,20 +39,20 @@
    // Extra conditional is to avoid early evaluation of args, so we can do
    //   ASSERT(NULL == p, ..., function(p));
    // when we expect a null pointer, and not call a function on it until necessary
-#  define ASSERT(condition, args...)                             \
-   if (! (condition))                                            \
-   Component::sst_assert(condition, CALL_INFO_LONG, 1, args)
+#  define ASSERT(condition, ...)                                        \
+   if (! (condition))                                                   \
+   Component::sst_assert(condition, CALL_INFO_LONG, 1, __VA_ARGS__)
 
    // Non-asserting assert, for debugging
-#  define DEBUG(condition, args...)             \
-   if (! (condition)) VERBOSE (3, args)
+#  define DEBUG(condition, ...)                 \
+   if (! (condition)) VERBOSE (3, __VA_ARGS__)
 
-#  define VERBOSE(l, f, args...)                        \
-  do {                                                  \
-    m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),      \
-                           CALL_INFO, l, 0,             \
-                           "[%u] " f, l, ##args);       \
-    m_output.flush();                                   \
+#  define VERBOSE(l, f, ...)                                  \
+   do {                                                         \
+    m_output.verbosePrefix(VERBOSE_PREFIX.c_str(),              \
+                           CALL_INFO, l, 0,                     \
+                           "[%u] " f, l, ## __VA_ARGS__);       \
+    m_output.flush();                                           \
   } while (0)
 
 #endif
@@ -112,7 +112,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   // Prefix with "<time>:[<rank>:<thread>]Phold-<id> [<function> (<file>:<lineL)] -> "
   VERBOSE_PREFIX = "@t:@X:Phold-" + getName() + " [@p() (@f:@l)] -> ";
   VERBOSE(1, "Full c'tor() @%p, id: %" PRIu64 ", name: %s\n",
-          this, getId(), getName().c_str());
+          (void*)this, getId(), getName().c_str());
 #endif
 
   m_remote     = params.find<double>     ("remote", 0.9);
@@ -167,24 +167,24 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       ShowSizes();
     }
 
-  VERBOSE(3, "Initializing RNGs\n");
+  VERBOSE(3, "%s", "Initializing RNGs\n");
   m_rng  = new Phold::RNG_t;
   // seed() doesn't check validity of arg, can't be 0
   m_rng->seed(1 + getId());
-  VERBOSE(4, "  m_rng      @%p\n", m_rng);
+  VERBOSE(4, "  m_rng      @%p\n", (void*)m_rng);
   m_remRng  = m_rng;
-  VERBOSE(4, "  m_remRng   @%p\n", m_remRng);
+  VERBOSE(4, "  m_remRng   @%p\n", (void*)m_remRng);
   m_nodeRng = new SST::RNG::SSTUniformDistribution(m_number, m_rng);
-  VERBOSE(4, "  m_nodeRng  @%p\n", m_nodeRng);
+  VERBOSE(4, "  m_nodeRng  @%p\n", (void*)m_nodeRng);
   auto avgRngRate = m_average;
   avgRngRate /= TIMEFACTOR;
   avgRngRate.invert();
   m_delayRng = new SST::RNG::SSTExponentialDistribution(avgRngRate.getDoubleValue(), m_rng);
   VERBOSE(4, "  m_delayRng @%p, rate: %s (%f)\n",
-          m_delayRng, avgRngRate.toString().c_str(), m_delayRng->getLambda());
+          (void*)m_delayRng, avgRngRate.toString().c_str(), m_delayRng->getLambda());
 
   // Configure ports/links
-  VERBOSE(3, "Configuring links:\n");
+  VERBOSE(3, "%s", "Configuring links:\n");
   m_links.resize(m_number);
 
   // Set up the port labels
@@ -193,7 +193,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   std::string port;
   for (uint32_t i = 0; i < m_number; ++i) {
     ASSERT(m_links[i] == nullptr,
-           "Initialized link %u (%p) is not null!\n", i, m_links[i]);
+           "Initialized link %u (%p) is not null!\n", i, (void*)m_links[i]);
     // Each link needs it's own handler.  SST manages the destruction in ~Link
     auto handler = new SST::Event::Handler<Phold, uint32_t>(this, &Phold::handleEvent, i);
     ASSERT(handler, "Failed to create event handler %u\n", i);
@@ -205,19 +205,19 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       m_links[i] = configureLink(port, handler);
       ASSERT(m_links[i], "Failed to create link\n");
       VERBOSE(4, "    link %u: %s @%p with handler @%p\n",
-              i, port.c_str(), m_links[i], handler);
+              i, port.c_str(), (void*)m_links[i], (void*)handler);
 
     } else {
 
       m_links[i] = configureSelfLink("self", handler);
       VERBOSE(4, "    link %u: self   @%p with handler @%p\n",
-              i, m_links[i], handler);
+              i, (void*)m_links[i], (void*)handler);
     }
     ASSERT(m_links[i], "Failed to configure link %u\n", i);
   }
 
   // Register statistics
-  VERBOSE(3, "Initializing statistics\n");
+  VERBOSE(3, "%s", "Initializing statistics\n");
   // Stop stat collection at stop time
   SST::Params statParams;
   std::string stopat {toBestSI(m_stop)};
@@ -232,7 +232,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
          "SendCount statistic is not enabled!\n");
   ASSERT( ! m_sendCount->isNullStatistic(),
           "SendCount statistic is Null!\n");
-  VERBOSE(4, "  m_sendCount    @%p\n", m_sendCount);
+  VERBOSE(4, "  m_sendCount    @%p\n", (void*)m_sendCount);
 
   m_recvCount = dynamic_cast<decltype(m_recvCount)>(registerStatistic<uint64_t>(statParams, "RecvCount"));
   ASSERT(m_recvCount,
@@ -242,7 +242,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
          "RecvCount statistic is not enabled!\n");
   ASSERT( ! m_recvCount->isNullStatistic(),
           "RecvCount statistic is Null!\n");
-  VERBOSE(4, "  m_recvCount    @%p\n", m_recvCount);
+  VERBOSE(4, "  m_recvCount    @%p\n", (void*)m_recvCount);
 
   // Delay histogram might not be enabled, in which case registerStatistic
   // returns a NullStatistic
@@ -259,7 +259,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
       ASSERT(dynamic_cast<SST::Statistics::HistogramStatistic<float> *>(m_delays),
              "m_delays is not a Histogram!\n");
     }
-  VERBOSE(4, "  m_delays   @%p\n", m_delays);
+  VERBOSE(4, "  m_delays   @%p\n", (void*)m_delays);
 
   // Initial events created in setup()
 
@@ -275,7 +275,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
 Phold::Phold() : SST::Component(-1)
 {
-  VERBOSE(2, "Default c'tor()\n");
+  VERBOSE(2, "%s", "Default c'tor()\n");
   /*
    * \todo How to initialize a Component after deserialization?
    * Here we need m_number, m_average
@@ -292,9 +292,9 @@ Phold::Phold() : SST::Component(-1)
 
 Phold::~Phold() noexcept
 {
-  VERBOSE(2, "Destructor()\n");
+  VERBOSE(2, "%s", "Destructor()\n");
 #define DELETE(p) \
-  VERBOSE(4, "  deleting %s @%p\n", #p, (p));  \
+  VERBOSE(4, "  deleting %s @%p\n", #p, (void*)(p));  \
   p = 0
 
   DELETE(m_rng);
@@ -309,7 +309,7 @@ Phold::~Phold() noexcept
 void
 Phold::ShowConfiguration(double thread_latency) const
 {
-  VERBOSE(2, "\n");
+  VERBOSE(2, "%s", "\n");
 
   // Show TIMEFACTOR and TimeConverter values only from LP 0
   VERBOSE(3, "  TIMEFACTOR: %f, timeConverter factor: %" PRIu64 ", period: %s (%f s?)\n",
@@ -431,7 +431,7 @@ Phold::ShowSizes() const
 {
   if (!m_verbose) return;
 
-  VERBOSE(2, "\n");
+  VERBOSE(2, "%s", "\n");
 
 # define TABLE(label, value)                    \
   ss << "\n    "  << std::left << std::setw(50) \
@@ -490,7 +490,7 @@ Phold::ShowSizes() const
 void
 Phold::SendEvent(bool mustLive /* = false */)
 {
-  VERBOSE(3, "\n");
+  VERBOSE(3, "%s", "\n");
 
   // Remote or local?
   SST::ComponentId_t nextId = getId();
@@ -570,7 +570,7 @@ Phold::SendEvent(bool mustLive /* = false */)
       VERBOSE(2, "from %" PRIu64 " @ %" PRIu64 ", delay: %" PRIu64 
               " -> %" PRIu64 " @ %" PRIu64 ", @%p, sendC: %" PRIu64 "\n",
               getId(), now, delay, 
-              nextId, nextEventTime, event,
+              nextId, nextEventTime, (void*)event,
               m_sendCount->getCount());
 
       VERBOSE(3, "  histogramming %f\n", delayTotal * TIMEFACTOR);
@@ -579,7 +579,7 @@ Phold::SendEvent(bool mustLive /* = false */)
 #ifdef PHOLD_DEBUG
       if (mustLive && !m_initLive)
         {
-          VERBOSE(3, "  recording live event\n");
+          VERBOSE(3, "%s", "  recording live event\n");
           m_initLive = true;
         }
 #endif
@@ -588,12 +588,12 @@ Phold::SendEvent(bool mustLive /* = false */)
       VERBOSE(2, "from %" PRIu64 " @ %" PRIu64 ", delay: %" PRIu64 
               " -> %" PRIu64 " @ %" PRIu64 ", @%p, sendC: %" PRIu64 "%s\n",
               getId(), now, delay,
-              nextId, nextEventTime, event,
+              nextId, nextEventTime, (void*)event,
               m_sendCount->getCount(),
               (nextEventTime < m_stop ? "" : ", (too late)"));
   }
 
-  VERBOSE(3, "  done\n");
+  VERBOSE(3, "%s", "  done\n");
 
 }  // SendEvent()
 
@@ -607,17 +607,16 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   auto sendTime [[maybe_unused]] = event->getSendTime();
   auto size [[maybe_unused]] = event->getBufferSize();
   ASSERT(size == m_bufferSize, "Unexpected buffer size: %lu\n", size);
-  VERBOSE(3, "  deleting event @%p\n", event);
+  VERBOSE(3, "  deleting event @%p\n", (void*)event);
   delete event;
 
   auto now = getCurrentSimTime();
-
 
   // Check the stopping condition
   if (now < m_stop)
   {
     VERBOSE(2, "now: %" PRIu64 ", from %" PRIu32 " @ %" PRIu64 ", @%p, recvC before: %" PRIu64 "\n",
-            now, from, sendTime, ev,
+            now, from, sendTime, (void*)ev,
             m_recvCount->getCount());
 
     // Record the receive. 
@@ -628,11 +627,12 @@ Phold::handleEvent(SST::Event *ev, uint32_t from)
   } else {
     VERBOSE(2, "now: %" PRIu64 ", from %u @ %" PRIu64
             ", @%p, stopping due to late event, recvC: %" PRIu64 "\n",
-            now, from, sendTime, ev,
+            now, from, sendTime, (void*)ev,
             m_recvCount->getCount());
     primaryComponentOKToEndSim();
   }
-  VERBOSE(3, "  done\n");
+  VERBOSE(3, "%s", "  done\n");
+
 }  // handleEvent()
 
 
@@ -670,7 +670,7 @@ Phold::getEvent(SST::ComponentId_t id)
 {
   VERBOSE(3, "    getting event from link %" PRIu64 "\n", id);
   auto event = m_links[id]->recvUntimedData();
-  VERBOSE(3, "    got %p\n", (void *)(event));
+  VERBOSE(3, "    got %p\n", (void*)(event));
   return dynamic_cast<E*>(event);
 
 }  // getEvent()
@@ -689,7 +689,7 @@ Phold::checkForEvents(const std::string msg)
       // This won't run because of the assert above
       if (event)
         {
-          VERBOSE(3, "    deleting event @%p\n", event);
+          VERBOSE(3, "    deleting event @%p\n", (void*)event);
           delete event;
         }
     }
@@ -732,14 +732,14 @@ Phold::init(unsigned int phase)
   // First check for early init event
   if (phase < bt::depth(getId()))
     {
-      VERBOSE(3, "  checking for early events\n");
+      VERBOSE(3, "%s", "  checking for early events\n");
       checkForEvents<InitEvent>("EARLY");
     }
 
   else if (phase == bt::depth(getId()))
 
     {
-      VERBOSE(3, "  our phase\n");
+      VERBOSE(3, "%s", "  our phase\n");
       // Get the expected event from parent
       // Root id 0 does not have a parent, so skip it
       if (0 != getId())
@@ -751,11 +751,11 @@ Phold::init(unsigned int phase)
           ASSERT(event,
                  "    failed to recv expected event from parent %zu\n", parent);
           auto src [[maybe_unused]] = event->getSenderId();
-          VERBOSE(3, "    received from %" PRIu64 ", @%p\n", src, event);
+          VERBOSE(3, "    received from %" PRIu64 ", @%p\n", src, (void*)event);
           ASSERT(parent == src,
                  "    event from %" PRIu64 ", expected parent %zu\n", src, parent);
 
-          VERBOSE(3, "  deleting event @%p\n", event);
+          VERBOSE(3, "  deleting event @%p\n", (void*)event);
           delete event;
         }  // 0 != getId(),  non-root receive from parent
       else
@@ -772,14 +772,14 @@ Phold::init(unsigned int phase)
       sendToChild(children.second);
 
       // Check for any other events
-      VERBOSE(3, "  checking for other events\n");
+      VERBOSE(3, "%s", "  checking for other events\n");
       checkForEvents<InitEvent>("OTHER");
     }
 
   else
 
     {
-      VERBOSE(3, "  checking for late events\n");
+      VERBOSE(3, "%s", "  checking for late events\n");
       ASSERT(phase > bt::depth(getId()),
              "  expected to be late in this phase, but not\n");
       // Check for late events
@@ -819,7 +819,7 @@ Phold::setup()
 #endif
 
   // Ensure we have a late event so we primaryComponentOKToEndSim()
-  VERBOSE(3, "  sending late event to self\n");
+  VERBOSE(3, "%s", "  sending late event to self\n");
   auto event = new PholdEvent(getCurrentSimTime(), m_bufferSize);
   auto delay = m_stop + m_minimum;
   m_links[getId()]->send(delay, event);
@@ -843,8 +843,8 @@ Phold::getChildCounts(SST::ComponentId_t child)
       counts.first  = event->getSendCount();
       counts.second = event->getRecvCount();
       VERBOSE(4, "      child %" PRIu64 " reports %zu sends, %zu recvs, @%p\n",
-              child, counts.first, counts.second, event);
-      VERBOSE(3, "  deleting event @%p\n", event);
+              child, counts.first, counts.second, (void*)event);
+      VERBOSE(3, "  deleting event @%p\n", (void*)event);
       delete event;
     }
   else {
@@ -862,7 +862,7 @@ Phold::sendToParent(SST::ComponentId_t parent,
   // This is deleted in getChildCounts()
   auto event = new CompleteEvent(sendCount, recvCount);
   VERBOSE(3, "    sending to parent %" PRIu64 " with sends: %zu, recvs: %zu, @%p\n",
-          parent, sendCount, recvCount, event);
+          parent, sendCount, recvCount, (void*)event);
   m_links[parent]->sendUntimedData(event);
 
 }  // sendToParents()
@@ -887,14 +887,14 @@ Phold::complete(unsigned int phase)
   // First check for early events
   if (ephase > bt::depth(getId()))
     {
-      VERBOSE(3, "  checking for early events\n");
+      VERBOSE(3, "%s", "  checking for early events\n");
       checkForEvents<CompleteEvent>("EARLY");
     }
 
   else if (ephase == bt::depth(getId()))
 
     {
-      VERBOSE(3, "  our phase\n");
+      VERBOSE(3, "%s", "  our phase\n");
       // Get the send counts from children
       auto children = bt::children(getId());
       auto left = getChildCounts(children.first);
@@ -923,14 +923,14 @@ Phold::complete(unsigned int phase)
              sendCount, recvCount, (long long)sendCount - recvCount);
 
       // Finally, check for any other events
-      VERBOSE(3, "  checking for other events\n");
+      VERBOSE(3, "%s", "  checking for other events\n");
       checkForEvents<CompleteEvent>("OTHER");
     }
 
   else
 
     {
-      VERBOSE(3, "  checking for late events\n");
+      VERBOSE(3, "%s", "  checking for late events\n");
       ASSERT(ephase < bt::depth(getId()),
              "  expected to be late in this phase, but not\n");
       // Check for late eents
@@ -943,7 +943,7 @@ Phold::complete(unsigned int phase)
 void
 Phold::finish()
 {
-  VERBOSE(2, "\n");
+  VERBOSE(2, "%s", "\n");
   OUTPUT0("Finish complete\n");
 }
 
