@@ -1,6 +1,11 @@
-//
-// Created by Barnes, Peter D. on 6/29/21.
-//
+/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
+/*
+ * Copyright (c) 2021 Lawrence Livermore National Laboratory
+ * All rights reserved.
+ *
+ * Author:  Peter D. Barnes, Jr. <pdbarnes@llnl.gov>
+ */
+
 
 #pragma once
 

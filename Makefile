@@ -1,3 +1,9 @@
+# -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*-
+#
+# Copyright (c) 2021 Lawrence Livermore National Laboratory
+# All rights reserved.
+#
+# Author:  Peter D. Barnes, Jr. <pdbarnes@llnl.gov>
 
 RECURSIVE_TARGETS = all debug opt install clean info
 
