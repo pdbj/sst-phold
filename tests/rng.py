@@ -128,7 +128,7 @@ class RngArgs(dict):
 print(f"\n")
 meprint(f"Creating RNG timing benchmark")
 
-# If sst not found, we're just debugging this script
+# If sst not found, we are just debugging this script
 try:
     import sst
     just_script = False
@@ -152,7 +152,7 @@ lps = []
 for i in range(rng.number):
     if dotter.dot(1):
         vprint(1, f"  Creating LP {i}")
-    lp = sst.Component(str(i), "phold.Rng")
+    lp = sst.Component("rng_" + str(i), "phold.Rng")
     lp.addParams(vars(rng))  # pass rng params as simple dictionary
     lps.append(lp)
 dotter.done()
@@ -163,9 +163,9 @@ meprint(f"Creating complete ring with latency {latency} ({rng.number} total link
 dotter = dot.Dot(rng.number, rng.pyVerbose)
 for i in range(rng.number):
     j = (i + 1) % rng.number
-    link = sst.Link(str(i) + "_" + str(j))
+    link = sst.Link("rng_" + str(i) + "_" + str(j))
     if dotter.dot(2, False):
-        vprint(2, f"  Creating link {i}_{j}")
+        vprint(2, f"  Creating link rng_{i}_{j}")
     li = lps[i], 'portL', latency
     lj = lps[j], 'portR', latency
     if (dotter.dot(3)):
