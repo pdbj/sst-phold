@@ -60,31 +60,32 @@ public:
    *
    * Register this component with SST.
    */
-  SST_ELI_REGISTER_COMPONENT
-  (
-   /*
-      Long macro chain starting in sst-core/sst/core/component.h:
-      SST_ELI_REGISTER_COMPONENT(cls,lib,name,ELI_FORWARD_AS_ONE(version),desc)
-
-      Defines class static info functions:
-
-      Return type                     Function name            Macro arg
-      ------------------------------  ---------------------    ----------------
-      static const std::string &      ELI_getCompileDate();    implicit
-      static const std::string        ELI_getCompileFile();    implicit
-      static constexpr unsigned       majorVersion();          from version arg
-      static constexpr unsigned       minorVersion();          from version arg
-      static constexpr unsigned       tertiaryVersion();       from version arg
-      static const std::vector<int> & ELI_getVersion();        version
-      static const char *             ELI_getLibrary();        lib
-      static const char *             ELI_getName();           cls
-      static const char *             ELI_getDescription();    desc
-      static uint32_t                 ELI_getCategory();       category tag
-
-      (Implicit args are derived during compilation.)
-
-      As if there was a struct (but the information isn't stored that way):
-
+   /**
+    * 
+    * Long macro chain starting in `sst-core/sst/core/component.h`:
+    *
+    * `SST_ELI_REGISTER_COMPONENT(cls,lib,name,ELI_FORWARD_AS_ONE(version),desc)`
+    *
+    * Defines class static info functions:
+    *
+    * Return type                     |  Function name         |  Macro arg
+    * ------------------------------- | ---------------------- | ----------------
+    * static const std::string &      | ELI_getCompileDate();  | implicit
+    * static const std::string        | ELI_getCompileFile();  | implicit
+    * static constexpr unsigned       | majorVersion();        | from version arg
+    * static constexpr unsigned       | minorVersion();        | from version arg
+    * static constexpr unsigned       | tertiaryVersion();     | from version arg
+    * static const std::vector<int> & | ELI_getVersion();      | version
+    * static const char *             | ELI_getLibrary();      | lib
+    * static const char *             | ELI_getName();         | cls
+    * static const char *             | ELI_getDescription();  | desc
+    * static uint32_t                 | ELI_getCategory();     | category tag
+    *
+    * (Implicit args are derived during compilation.)
+    *
+    * As if there was a struct (but the information isn't stored that way):
+    *
+    * \code{cpp}
       template<class T> struct
       {
         <T>  cls;                   // !< Component class type, used in InstantiateBuilder templates
@@ -99,8 +100,11 @@ public:
         const std::string compDate; // !< Compile date
         const std::string file;     // !< File (compilation unit)
       },
-   */
-
+      \endcode
+    *
+    */
+  SST_ELI_REGISTER_COMPONENT
+  (
    Phold,
    "phold",
    "Phold",
@@ -109,24 +113,26 @@ public:
    COMPONENT_CATEGORY_UNCATEGORIZED
    );
 
-  SST_ELI_DOCUMENT_PARAMS
-  (
-   /*
-      Macro defined in sst-core/src/sst/core/eli/paramsInfo.h:
-      static const std::vector<SST::ElementInfoParam> & ELI_getParams();
-
-      struct SST::ElementInfoParam from sst-core/src/sst/core/eli/elibase.h:
+   /**
+    * Macro defined in `sst-core/src/sst/core/eli/paramsInfo.h`:
+    *
+    * `static const std::vector<SST::ElementInfoParam> & ELI_getParams();`
+    *
+    * \code{cpp}
+      struct SST::ElementInfoParam  // From sst-core/src/sst/core/eli/elibase.h:
       {
         const char * name;          // !< Name, as used in calls to Params::find().
         const char * description;   // !< Description as reported by sst-info.
         const char * defaultValue;  // !< Default value if not set explicitly.
       }
-
-      Special values for defaultValue:
-          NULL: no default, required (must be in the c'tor params)
-          "":   no default, optional
-     */
-
+      \endcode
+    *
+    * Special values for `defaultValue`:
+    * - NULL: no default, required (must be in the c'tor params)
+    * - "":   no default, optional
+    */
+  SST_ELI_DOCUMENT_PARAMS
+  (
    { "remote",
      "Fraction of events which should be remote",
      "0.9"
@@ -161,21 +167,24 @@ public:
    }
   );
 
+   /**
+    * Macro defined in `sst-core/src/sst/core/eli/statsInfo.h`:
+    *
+    * `static const std::vector<SST::ElementInfoStatistic>& ELI_getStatistics();`
+    *
+    * \code{cpp}
+      struct SST::ElementInfoStatistic  // From sst-core/src/sst/core/eli/elibase.h
+      {
+        const char* name;               //!< Name of the Statistic to be Enabled
+        const char* description;        //!< Brief description of the Statistic
+        const char* units;              //!< Units associated with this Statistic value
+        const uint8_t enableLevel;      //!< Level to meet to enable statistic 0 = disabled
+      }
+      \endcode
+    *
+    */
   SST_ELI_DOCUMENT_STATISTICS
   (
-   /*
-     Macro defined in sst-core/src/sst/core/eli/statsInfo.h:
-     static const std::vector<SST::ElementInfoStatistic>& ELI_getStatistics();
-
-     struct SST::ElementInfoStatistic from sst-core/src/sst/core/eli/elibase.h
-     {
-       const char* name;               //!< Name of the Statistic to be Enabled
-       const char* description;        //!< Brief description of the Statistic
-       const char* units;              //!< Units associated with this Statistic value
-       const uint8_t enableLevel;      //!< Level to meet to enable statistic 0 = disabled
-     }
-   */
-
    { "SendCount",
      "Count of events sent to execute before stop time.",
      "events",
@@ -194,31 +203,37 @@ public:
    );
 
   /**
-   * Format for dynamic ports 'port_x'. The number of ports created
-   * will be determined from the "number" argument.
+   * Format for dynamic ports `port_x`. The number of ports created
+   * will be determined from the `number` argument.
    */
   static constexpr char PORT_NAME[]   = "port_%(number)d";
 
+   /**
+    * Macro defined in `sst-core/src/sst/core/eli/portsInfo.h`:
+    *
+    * `static const std::vector<SST::ElementInfoPort2>& ELI_getPorts();`
+    *
+    * \code{cpp}
+      struct SST::ElementInfoPort2  // From sst-core/src/sst/core/eli/elibase.h:
+      {
+        /// Name of the port. Can contain `d` for a dynamic port, 
+        /// also `%(xxx)d` for dynamic port with `xxx` being 
+        ///the controlling component parameter    
+        const char* name;
+
+        /// Brief description of the port (ie, what it is used for).
+        /// List of fully-qualified event types that this Port
+        /// expects to send or receive
+        const char* description;
+
+        /// Valid event type names
+        const std::vector<std::string> validEvents;
+      };
+      \endcode
+   * 
+   */
   SST_ELI_DOCUMENT_PORTS
   (
-   /*
-     Macro defined in sst-core/src/sst/core/eli/portsInfo.h:
-     static const std::vector<SST::ElementInfoPort2>& ELI_getPorts();
-
-     struct SST::ElementInfoPort2 from sst-core/src/sst/core/eli/elibase.h:
-     {
-       /// Name of the port. Can contain d for a dynamic port,
-       /// also %(xxx)d for dynamic port with xxx being the
-       /// controlling component parameter
-       const char* name;
-       /// Brief description of the port (ie, what it is used for)
-       const char* description;
-       /// List of fully-qualified event types that this Port expects
-       /// to send or receive
-       const std::vector<std::string> validEvents;
-       };
-   */
-
    { PORT_NAME,
      "Representative port",
      {"phold.PholdEvent", ""}
@@ -366,7 +381,7 @@ private:
   void checkForEvents(const std::string msg);
 
   /**
-   * Send an init event to a child by index..
+   * Send an init event to a child by index.
    * This skips children greater than @c m_number, so it's ok to call this
    * on both pair members returned by BinaryTree::children().
    * @param child The child index to send to

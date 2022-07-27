@@ -13,6 +13,7 @@ lib
 \#*\#
 */__pycache__/*
 
+doc/html
 .idea/
 vtune/*
 phold.dot

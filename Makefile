@@ -16,7 +16,7 @@ else
   MAKEFLAGS += --no-print-directory
 endif
 
-.PHONY: all help debug opt install valgrind sst clean info
+.PHONY: all help debug opt install valgrind sst clean info doc
 
 # Parallel build and install is broken :(
 .NOTPARALLEL:
@@ -61,4 +61,9 @@ info:
 #	@echo "Making info in src"
 	@$(MAKE) -C src info && echo "Make info done" || exit 1
 
-
+doc:
+	@echo "Doxygen"
+	@cd doc && doxygen && cd - 2>&1 /dev/null
+	@echo 
+	@echo "Doxygen warnings:"
+	@cat doc/doxygen.warnings.log | grep -v "'component.h#SST_ELI_REGISTER_COMPONENT' not found" ; true
