@@ -1,3 +1,11 @@
+# -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*-
+#
+# Copyright (c) 2021 Lawrence Livermore National Laboratory
+# All rights reserved.
+#
+# Author:  Peter D. Barnes, Jr. <pdbarnes@llnl.gov>
+
+
 
 SRCDIR = $(PWD)/src
 LIBDIR  = $(PWD)/lib
@@ -145,7 +153,6 @@ info:
 	@echo "SSTCONFIGCMD:          $(SSTCONFIGCMD)"
 	@echo "SSTREGCMD:             $(SSTREGCMD)"
 	@echo "SSTLIBDIR:             $(SSTLIBDIR)"
-	@echo "SSTELEMLIB:            $(SSTELEMLIB)"
 	@echo ""
 	@echo "CC:                    $(CC) = `which      $(CC)`"
 	@echo "CXX:                   $(CXX) = `which      $(CXX)`"
