@@ -31,6 +31,8 @@ public:
   /**
    * C'tor.
    * @param sendTime The simulation time when the event was sent.
+   * @param bytes The number of additional data bytes to include
+   *        as payload in the event.
    */
   explicit
     PholdEvent(SST::SimTime_t sendTime, std::size_t bytes = 0)
