@@ -36,7 +36,7 @@
  * \c children(parentIdx) returns a std::pair with the indices of the children
  * of the item at \c parentIdx:
  *
- *    2 * parentIdx + 1, 2 * parentIdx + 2
+ *    {2 * parentIdx + 1, 2 * parentIdx + 2}
  *
  * \c parent(childIdx) returns the index of the parent of the item at \c childIdx:
  *
@@ -44,6 +44,8 @@
  */
 struct BinaryTree
 {
+  /** The maximum depth (number of bits in size_t).*/
+  static constexpr std::size_t max_depth {std::numeric_limits<std::size_t>::digits};
   /**
    * Return the total size (maximum number of elements)
    * of a tree with \c depth
@@ -54,19 +56,19 @@ struct BinaryTree
   capacity(std::size_t depth)
   {
     /*
-      Since the number of bits availalbe is rather small,
+      Since the number of bits available is rather small,
       just memoize the result.
      */
-    constexpr int digits = std::numeric_limits<std::size_t>::digits;
-    typedef std::array<std::size_t, digits> memo_t;
-    static auto cap_memo = []()
+    typedef std::array<std::size_t, max_depth + 1> memo_t;  // +1 for 0-based
+    static auto cap_memo = []() -> memo_t
       {
         memo_t cap;
-        std::size_t s {1};
-        for (std::size_t d = 0; d < digits; ++d)
+        cap[0] = 0;
+        std::size_t s {1};  // 2^(d - 1)
+        for (std::size_t d = 1; d <= max_depth; ++d)
           {
+            cap[d] = cap[d - 1] + s;
             s <<= 1;
-            cap[d] = s - 1;
           }
         return cap;
       } ();
@@ -82,8 +84,7 @@ struct BinaryTree
   {
     std::size_t depth = 0;
     while (capacity (depth++) <= index);
-    --depth;
-    return depth;
+    return --depth;
   }
 
   /**
@@ -92,7 +93,7 @@ struct BinaryTree
   static inline std::size_t
   begin(std::size_t depth)
   {
-    return (depth > 0 ? capacity(depth -1) : 0);
+    return capacity(depth - 1);
   }
 
   /**
