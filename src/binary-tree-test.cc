@@ -17,47 +17,57 @@ main (int argc, char ** argv)
 {
   using bt = BinaryTree;
 
+  bool all {argc > 1};
+
   // numeric field width
-  constexpr std::size_t w {5};
+  constexpr std::size_t ww {5};
+  constexpr std::size_t wn {4};
 
-  // last index at depth
-  std::size_t last {0};
+  // max depth to show
+  const std::size_t m { all ? bt::max_depth : 9};
 
-  std::cout << "Depth  Cap(d)  |  Indices" << std::endl;  
-  for (std::size_t d = 0; 
-       d < 10 /* std::numeric_limits<std::size_t>::digits */;
-       ++d)
+  std::cout << "Depth  Cap(d)  [begin -   end) |  Indices" << std::endl;  
+  for (std::size_t d = 0; d <= m; ++d)
     {
+      std::size_t b {bt::begin (d)};
+      std::size_t e {bt::end (d)};
       std::size_t c {bt::capacity (d)};
-      std::cout << std::setw (w) << d << "   "
-		<< std::setw (w) << c << "  |";
+      std::cout << std::setw (ww) << d << "   "
+		<< std::setw (ww) << c << "   "
+		<< std::setw (ww) << b << " -  "
+		<< std::setw (ww) << e
+		<< " | ";
 
       // Print indices explicitly for shallow depths
-      if (d < 4)
+      if (d < 5)
 	{
-	  for (std::size_t j = last + (d > 0 ? 1 : 0); j < c; ++j)
+	  for (std::size_t j = b; j < e; ++j)
 	    {
-	      std::cout << std::setw (w) << j;
+	      std::cout << std::setw (wn) << j;
 	      // Flag depth errors, for debugging
 	      if (bt::depth (j) != d)
 		{
-		  std::cout << "[" << bt::depth (j) << "]";
+		  std::cout << "[" << bt::depth (j) << "]?";
 		}
-	      else
+	      else if (j < e - 1)
 		{
 		  std::cout << "  ";
 		}
-	      last = j;
 	    }
 	}
       else
 	{
 	  // Just print first and last index, for deep trees
-	  std::cout << std::setw (w) << last + 1 << "  ...  ";
-	  last = c - 1;
-	  std::cout << last;
+	  std::cout << std::setw (wn) << b << "..." << e - 1;
 	}
       std::cout << std::endl;
+    }
+
+  if (all)
+    {
+      std::cout << "\nstd::numeric_limits<std::size_t>::max() = "
+		<< std::numeric_limits<std::size_t>::max()
+		<< std::endl;
     }
 
   return 0;
