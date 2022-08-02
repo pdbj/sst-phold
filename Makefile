@@ -1,4 +1,4 @@
-# -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*-
+# -*- Mode:make  -*-
 #
 # Copyright (c) 2021 Lawrence Livermore National Laboratory
 # All rights reserved.
