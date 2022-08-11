@@ -24,6 +24,9 @@ CXX=$(shell      $(SSTCONFIGCMD) --CXX)
 CXXFLAGS=$(shell $(SSTCONFIGCMD) --ELEMENT_CXXFLAGS)
 LDFLAGS=$(shell  $(SSTCONFIGCMD) --ELEMENT_LDFLAGS)
 SSTLIBDIR=$(shell $(SSTCONFIGCMD) SST_ELEMENT_LIBRARY SST_ELEMENT_LIBRARY_LIBDIR)
+ifeq ($(SSTLIBDIR),)
+  SSTLIBDIR=$(shell $(SSTCONFIGCMD) --libdir)/sst-elements-library
+endif
 
 # Add hard-coded path to help out CLion
 #CXXFLAGS += -I$(HOME)/local/include
@@ -38,9 +41,16 @@ CXXFLAGS += -Wall
 # CXXFLAGS += -Wpedantic
 
 # Set various build flags
-clean_or_install=$(strip \
-  $(or $(findstring clean,$(MAKECMDGOALS)), \
-       $(findstring install,$(MAKECMDGOALS))))
+clean=$(findstring clean,$(MAKECMDGOALS))
+install=$(findstring install,$(MAKECMDGOALS))
+clean_or_install=$(strip $(or $(clean), $(install)))
+
+ifeq ($(clean_or_install),)
+  $(info Building against $(SST))
+endif
+ifneq ($(install),)
+  $(info Installing to $(SSTLIBDIR))
+endif
 
 ifeq ($(clean_or_install),)
   PHOLD_DEBUG = 0
@@ -68,10 +78,8 @@ ifeq ($(clean_or_install),)
     $(info Using fixed rng values with $(CXXFLAGS_PHOLD_FIXED))
     CXXFLAGS+=$(CXXFLAGS_PHOLD_FIXED)
   endif
-
-else
-  $(info Building against $(SST))
 endif
+
 
 SRCS = $(wildcard *.cc)
 HDRS = $(wildcard *.h)
@@ -118,6 +126,7 @@ ifneq ($(MAKECMDGOALS),clean)
   include $(wildcard $(DEPS))
 endif
 
+
 $(LIB): $(LIBOBJS)
 	@echo "LD $@ $(WHY)"
 	$(VERB)$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
@@ -130,9 +139,7 @@ install: $(LIB)
 	$(VERB)mkdir -p $(SSTLIBDIR)
 	$(VERB)cp $< $(SSTLIBDIR)
 	$(VERB)touch $(SSTCONFIG_PHOLD)
-	$(VERB)$(SSTREGCMD) phold LIBDIR=$(LIBDIR)
-	$(VERB)$(SSTREGCMD) SST_ELEMENT_SOURCE phold=$(SRCDIR)
-	$(VERB)$(SSTREGCMD) SST_ELEMENT_TESTS  phold=$(SRCDIR)/tests
+	$(VERB)$(SSTREGCMD) SST_ELEMENT_LIBRARY SST_ELEMENT_LIBRARY_LIBDIR=$(SSTLIBDIR)
 
 
 PHOLDTEST=../tests/phold.py
