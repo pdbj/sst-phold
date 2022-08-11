@@ -88,22 +88,29 @@ LIB  = libphold.so
 
 # Make the build itself verbose
 VERBOSE = 0
-ifeq ($(VERBOSE),1)
-  VERB=
-else
+WHY =
+ifeq ($(VERBOSE),0)
   VERB=@
+endif
+ifeq ($(VERBOSE),1)
+  VERB=@
+  WHY=$(if $?, ($?))
   MAKEFLAGS +=--no-print-directory
+endif
+ifeq ($(VERBOSE),2)
+  VERB=
+  WHY=$(if $?, ($?))
 endif
 
 
 all: $(LIB) $(TEST)
-	@:
+	@echo "all $(WHY)"
 
 # Generate dependency files .d
 DEPS = $(SRCS:%.cc=%.d)
 DEPFLAGS = -MT $@ -MMD -MP -MF $*.d
 %.o : %.cc %.d Makefile
-	@echo "CXX" $<
+	@echo "CXX $< $(WHY)"
 	$(VERB)$(CXX) $(DEPFLAGS) $(CXXFLAGS) -c $<
 
 $(DEPS):
@@ -112,12 +119,12 @@ ifneq ($(MAKECMDGOALS),clean)
 endif
 
 $(LIB): $(LIBOBJS)
-	@echo "LD" $@
+	@echo "LD $@ $(WHY)"
 	$(VERB)$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
 SSTREGCMD = sst-register $(SSTCONFARG)
 install: $(LIB)
-	@echo "SST_REG $(basename $<)" 
+	@echo "SST_REG $(basename $<) to $(SSTLIBDIR) $(WHY)"
 	$(VERB)mkdir -p $(LIBDIR)
 	$(VERB)cp $< $(LIBDIR)
 	$(VERB)mkdir -p $(SSTLIBDIR)
