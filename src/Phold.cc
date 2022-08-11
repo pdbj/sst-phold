@@ -130,7 +130,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
   m_initLive = false;
 
 #ifdef PHOLD_DEBUG
-  // Register a clock
+  // Register a clock for demonstration
   auto clock = new SST::Clock::Handler<Phold>(this, &Phold::clockTick);
   ASSERT(clock, "Failed to create clock handler\n");
   auto clockRate = m_average;
