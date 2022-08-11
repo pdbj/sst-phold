@@ -96,7 +96,6 @@ public:
         const unsigned tertiary;    // !< Version patch level
         const char* desc;           // !< Descriptive string
         const CATEGORY_T category;  // !< Component category type
-
         const std::string compDate; // !< Compile date
         const std::string file;     // !< File (compilation unit)
       },
@@ -441,7 +440,7 @@ private:
   static uint64_t          m_events;     /**< Initial number of events per LP */
   static std::size_t       m_bufferSize; /**< Event buffer size, bytes */
   static bool              m_statsOut;   /**< Output statistics */
-  static bool              m_delaysOut;  /**< Include delays histogram  in stats output*/
+  static bool              m_delaysOut;  /**< Include delays histogram in stats output*/
   static uint32_t          m_verbose;    /**< Verbose output flag */
 
   static SST::TimeConverter * m_timeConverter;

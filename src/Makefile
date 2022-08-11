@@ -32,7 +32,10 @@ SSTLIBDIR=$(shell $(SSTCONFIGCMD) SST_ELEMENT_LIBRARY SST_ELEMENT_LIBRARY_LIBDIR
 # LDFLAGS += -Wl,--no-undefined
 
 # Warn all
-CXXFLAGS += -Wall -Wpedantic
+CXXFLAGS += -Wall
+
+# Pedantic-turned off because SST generates errors
+# CXXFLAGS += -Wpedantic
 
 # Set various build flags
 clean_or_install=$(strip \
@@ -141,7 +144,8 @@ $(TEST) : $(TESTOBJ)
 
 
 clean:
-	rm -rf *.o *.d *.so $(LIBDIR)
+	@echo "RM"
+	$(VERB)rm -rf *.o *.d *.so $(LIBDIR)
 
 info:
 	@echo "PWD:                   $(PWD)"

@@ -47,7 +47,6 @@ opt:
 	@$(MAKE) clean all
 
 install:
-	@echo "Installing"
 	@$(MAKE) -C src install
 
 valgrind:
