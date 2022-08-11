@@ -85,6 +85,7 @@ class PholdArgs(dict):
         self.buffer = 0
         self.stats = False
         self.delays = False
+        self.delaysAutoscale = False
         self.pverbose = 0
         self.pyVerbose = 0
         self.TIMEBASE = "s"
@@ -100,6 +101,7 @@ class PholdArgs(dict):
                f"buffer: {self.buffer}, " \
                f"stats: {self.stats}, " \
                f"delays: {self.delays}, " \
+               f"delaysAuto: {self.delaysAutscale}, " \
                f"verbose: {self.pverbose}, " \
                f"pyVerbose: {self.pyVerbose}"
 
@@ -130,6 +132,7 @@ class PholdArgs(dict):
 
         print(f"    Output statistics:                    {self.stats}")
         print(f"      Include delay histogram:            {self.delays}")
+        print(f"      Autoscale:                          {self.delaysAutoscale}")
         print(f"    Verbosity level:                      {self.pverbose}")
         print(f"    Python script verbosity level:        {self.pyVerbose}")
 
@@ -218,6 +221,9 @@ class PholdArgs(dict):
         parser.add_argument(
             '-d', '--delays', action='store_true',
             help=f"Whether to output delay histogram, default {self.delays}.")
+        parser.add_argument(
+            '-A', '--delaysAutoscale', action='store_true',
+            help=f"Autscale delay histogram, default {self.delaysAutoscale}.")
         parser.add_argument(
             '-V', '--pyVerbose', action='count',
             help=f"Python script verbosity, default {self.pyVerbose}.")
@@ -323,7 +329,7 @@ dotter.done()
 stat_level = 1 + phold.delays
 phprint(f"Enabling statistics at level {stat_level}")
 sst.setStatisticLoadLevel(stat_level)
-sst.setStatisticOutput('sst.statOutputConsole')
+sst.setStatisticOutput('sst.statOutputCSV')
 
 # Common stats configuration:
 # rate: 0us:    Only report results at end
@@ -343,11 +349,16 @@ if phold.delays:
     delay_mean = phold.minimum + phold.average
     numbins = 50
     binwidth = round(5 * delay_mean / numbins)
+    autoscale = 0
+    if phold.delaysAutoscale:
+        autoscale = 1
+
     delays_config = {**stats_config,
                      **{'type' : 'sst.HistogramStatistic',
                         'minvalue' : '0',
                         'binwidth' : str(binwidth),
-                        'numbins'  : str(numbins)}}
+                        'numbins'  : str(numbins),
+                        'autoscale': str(autoscale)}}
 
     dprint("Delay histogram config:", delays_config)
 
