@@ -63,7 +63,7 @@ struct BinaryTree
     static auto cap_memo = []() -> memo_t
       {
         memo_t cap;
-        cap[0] = 0;
+        cap[0] = 1;
         std::size_t s {1};  // 2^(d - 1)
         for (std::size_t d = 1; d <= max_depth; ++d)
           {
