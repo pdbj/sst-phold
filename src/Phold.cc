@@ -371,19 +371,19 @@ Phold::ShowConfiguration(double thread_latency) const
     {
       ss << "\n      (Too low!  Suggest setting '--events=" << min_events << "')";
     }
-  ss << "\n    Expected total number of events:      " << totalEvents;
+  ss << "\n    Expected total number of events:      " << totalEvents
 
 #ifdef PHOLD_DEBUG
-  ss << "\n    Clock print interval:                 " << m_clockPrintInterval
-     << " cycles";
+     << "\n    Clock print interval:                 " << m_clockPrintInterval
+     << " cycles"
 #endif
 
   ss << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
 
 #ifndef PHOLD_FIXED
-     << "\n    Sampling:                             " << "rng"
+  ss << "\n    Sampling:                             " << "rng"
 #else
-     << "\n    Sampling:                             " << "fixed"
+  ss << "\n    Sampling:                             " << "fixed"
 #endif
 
      << "\n    Optimization level:                   " << OPT_LEVEL
