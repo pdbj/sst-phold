@@ -520,7 +520,7 @@ Phold::SendEvent(bool mustLive /* = false */)
     local = true;
     VERBOSE(3, "  next rng: %f, self             %" PRIu64 "\n", rem, nextId);
   }
-  ASSERT(nextId < m_number && nextId >= 0, "invalid nextId: %" PRIu64 "\n", nextId);
+  ASSERT(static_cast<std::size_t>(nextId) < m_number, "invalid nextId: %" PRIu64 "\n", nextId);
 
   // When?
   auto now = getCurrentSimTime();

@@ -159,7 +159,7 @@ Rng::~Rng() noexcept
 
 
 void
-Rng::handleEvent(SST::Event *ev, uint32_t from)
+Rng::handleEvent(SST::Event *ev, uint32_t from [[maybe_unused]])
 {
   auto event = dynamic_cast<RngEvent*>(ev);
   ASSERT(event, "Failed to cast SST::Event * to PholdEvent *");
