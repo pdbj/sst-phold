@@ -295,6 +295,7 @@ Phold::~Phold() noexcept
   VERBOSE(2, "%s", "Destructor()\n");
 #define DELETE(p) \
   VERBOSE(4, "  deleting %s @%p\n", #p, (void*)(p));  \
+  delete p; \
   p = 0
 
   DELETE(m_rng);
