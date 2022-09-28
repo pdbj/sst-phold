@@ -444,6 +444,8 @@ Phold::ShowSizes() const
   SIZEOF(PholdEvent, "empty event");
   SIZEOF(SST::Event, "base class");
   SIZEOF(SST::Activity, "base class");
+  SIZEOF(InitEvent, "init() event");
+  SIZEOF(CompleteEvent, "complete() event");
   SIZEOF(SST::Core::Serialization::serializable, "vtable");
   ss << "\n";
   SIZEOF(Phold, "class instance");                 pholdTotal = 0;
