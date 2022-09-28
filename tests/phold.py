@@ -152,8 +152,9 @@ class PholdArgs(dict):
         if self.average < 0:
             phprint(f"Invalid average delay: {self.average}, must be >= 0")
             valid = False
-        if self.stop < 0:
+        if self.stop <= 0:
             phprint(f"Invalid stop time: {self.stop}, must be > 0")
+            valid = False
 
         self.number = int(self.number)
         if self.number < 2:
