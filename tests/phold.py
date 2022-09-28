@@ -1,5 +1,5 @@
 #!/bin/python3
-# -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*-
+# -*- Mode:python; c-file-style:"gnu"; indent-tabs-mode:nil; -*-
 #
 # Copyright (c) 2021 Lawrence Livermore National Laboratory
 # All rights reserved.
