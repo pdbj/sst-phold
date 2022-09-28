@@ -13,7 +13,7 @@
 #include <iomanip>
 
 int
-main (int argc, char ** argv)
+main (int argc, char** argv [[maybe_unused]])
 {
   using bt = BinaryTree;
 

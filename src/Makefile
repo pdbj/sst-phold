@@ -35,7 +35,7 @@ endif
 # LDFLAGS += -Wl,--no-undefined
 
 # Warn all
-CXXFLAGS += -Wall
+CXXFLAGS += -Wall -Wextra
 
 # Pedantic-turned off because SST generates errors
 # CXXFLAGS += -Wpedantic
