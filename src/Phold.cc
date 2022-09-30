@@ -371,12 +371,12 @@ Phold::ShowConfiguration(double thread_latency) const
      << " cycles"
 #endif
 
-  ss << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
+     << "\n    Output delay histogram:               " << (m_delaysOut ? "yes" : "no")
 
 #ifndef PHOLD_FIXED
-  ss << "\n    Sampling:                             " << "rng"
+     << "\n    Sampling:                             " << "rng"
 #else
-  ss << "\n    Sampling:                             " << "fixed"
+     << "\n    Sampling:                             " << "fixed"
 #endif
 
      << "\n    Optimization level:                   " << OPT_LEVEL
