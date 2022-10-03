@@ -747,11 +747,11 @@ Phold::init(unsigned int phase)
           ASSERT(event,
                  "    failed to recv expected event from parent %zu\n", parent);
           auto src [[maybe_unused]] = event->getSenderId();
-          VERBOSE(3, "    received from %" PRIu64 ", @%p\n", src, (void*)event);
+          VERBOSE(3, "      received from %" PRIu64 ", @%p\n", src, (void*)event);
           ASSERT(parent == src,
                  "    event from %" PRIu64 ", expected parent %zu\n", src, parent);
 
-          VERBOSE(3, "  deleting event @%p\n", (void*)event);
+          VERBOSE(3, "      deleting event @%p\n", (void*)event);
           delete event;
         }  // 0 != getId(),  non-root receive from parent
       else
