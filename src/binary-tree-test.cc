@@ -39,7 +39,7 @@ main (int argc, char** argv [[maybe_unused]])
 		<< " | ";
 
       // Print indices explicitly for shallow depths
-      if (d < 5)
+      if (d < 4)
 	{
 	  for (std::size_t j = b; j < e; ++j)
 	    {
