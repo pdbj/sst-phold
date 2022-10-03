@@ -728,18 +728,19 @@ Phold::init(unsigned int phase)
   if (0 == phase) OUTPUT0("First init phase\n");
   if (bt::depth(m_number - 1)  == phase) OUTPUT0("Last init phase\n");
 
-
-  VERBOSE(2, "depth: %zu, phase: %u, begin: %zu, end: %zu\n",
-          bt::depth(getId()), phase, bt::begin(phase), bt::end(phase));
+  std::size_t depth = bt::depth(getId());
+  VERBOSE((0 == getId() ? 1 : 2),
+          "my depth: %zu, phase: %u, begin: %zu, end: %zu\n",
+          depth, phase, bt::begin(depth), bt::end(depth));
 
   // First check for early init event
-  if (phase < bt::depth(getId()))
+  if (phase < depth)
     {
       VERBOSE(3, "%s", "  checking for early events\n");
       checkForEvents<InitEvent>("EARLY");
     }
 
-  else if (phase == bt::depth(getId()))
+  else if (phase == depth)
 
     {
       VERBOSE(3, "%s", "  our phase\n");
