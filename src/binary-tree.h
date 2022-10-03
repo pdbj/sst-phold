@@ -23,7 +23,8 @@
  *
  * In general the caller should check that any indices
  * returned by `begin()`, `end()`, `children()`, `parent()` 
- * are actually valid.
+ * are actually valid with respect to the number of items which
+ * have actually been stored.
  *
  * \c capacity(depth) returns the maximum number of items which 
  * can be stored in a tree of a given depth.
@@ -50,7 +51,7 @@ struct BinaryTree
    * Return the total size (maximum number of elements)
    * of a tree with \c depth
    *
-   * The capacity is given by the expression `(2 << (depth + 1)) - 1`.
+   * The capacity is given by the expression `(1 << (depth + 1)) - 1`.
    */
   static inline std::size_t
   capacity(std::size_t depth)
@@ -63,8 +64,8 @@ struct BinaryTree
     static auto cap_memo = []() -> memo_t
       {
         memo_t cap;
-        cap[0] = 1;
-        std::size_t s {1};  // 2^(d - 1)
+        cap[0] = 0;
+        std::size_t s {1};  // 2^(d + 1) - 1 for d == 0
         for (std::size_t d = 1; d <= max_depth; ++d)
           {
             cap[d] = cap[d - 1] + s;
@@ -72,8 +73,7 @@ struct BinaryTree
           }
         return cap;
       } ();
-
-    return cap_memo[depth];
+    return cap_memo[depth + 1];
   }
 
   /**
@@ -93,6 +93,7 @@ struct BinaryTree
   static inline std::size_t
   begin(std::size_t depth)
   {
+    if (depth == 0) return 0;
     return capacity(depth - 1);
   }
 
