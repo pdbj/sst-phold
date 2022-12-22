@@ -146,6 +146,7 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
           getId(), clockRate.toStringBestSI().c_str());
   VERBOSE(2,"  expect %s cycles, print interval %" PRIu64 "\n",
           cycles.toStringBestSI().c_str(), m_clockPrintInterval);
+<<<<<<< HEAD
 
   // Register with the free clock
   auto freeTimePeriod = m_clockTimeConverter->getPeriod();
@@ -155,6 +156,10 @@ Phold::Phold( SST::ComponentId_t id, SST::Params& params )
 
 #endif
 
+=======
+#endif
+
+>>>>>>> pdbj/master
   // Default time unit for Component and links
   m_timeConverter = registerTimeBase(TIMEBASE.toString(), true);
   TIMEFACTOR = m_timeConverter->getPeriod().getDoubleValue();
@@ -303,10 +308,18 @@ Phold::~Phold() noexcept
   DELETE(m_delayRng);
 
 #undef DELETE
+<<<<<<< HEAD
+
+}  // ~Phold()
+=======
+>>>>>>> pdbj/master
 
 }  // ~Phold()
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> pdbj/master
 void
 Phold::ShowConfiguration(double thread_latency) const
 {
@@ -327,9 +340,14 @@ Phold::ShowConfiguration(double thread_latency) const
   duty.invert();
   duty *= m_average;
   double duty_factor = duty.getDoubleValue();
+<<<<<<< HEAD
   VERBOSE(3, "  min: %s, duty: %s, df: %f\n",
           minimum.toStringBestSI().c_str(), 
           duty.toStringBestSI().c_str(), 
+=======
+  VERBOSE(3, "  period: %s, duty factor: %f\n",
+          period.toStringBestSI().c_str(),
+>>>>>>> pdbj/master
           duty_factor);
 
   double ev_per_win = m_events * duty_factor;
